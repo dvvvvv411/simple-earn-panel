@@ -428,44 +428,55 @@ const Auth = () => {
       </div>
 
       {/* Right Side - Security Features */}
-      <div className="relative bg-gradient-hero p-8 lg:flex items-center justify-center hidden">
-        <div className="relative z-10 text-white space-y-8 max-w-lg">
+      <div className="relative bg-gradient-subtle p-8 lg:flex items-center justify-center hidden overflow-hidden">
+        {/* Subtle decorative elements */}
+        <div className="absolute top-20 right-20 w-32 h-32 rounded-full bg-accent/5 blur-xl"></div>
+        <div className="absolute bottom-32 left-16 w-24 h-24 rounded-full bg-accent/3 blur-lg"></div>
+        <div className="absolute top-1/2 right-1/4 w-2 h-16 bg-accent/10 rounded-full rotate-12"></div>
+        
+        <div className="relative z-10 space-y-8 max-w-lg">
           <div className="space-y-6">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
-                <Shield className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Deine Daten sind geschützt</h3>
-                <p className="text-white/80 leading-relaxed">
-                  Unsere Server sind abgesichert und befinden sich in der Europäischen Union. 
-                  Wir befolgen die Europäische Datenschutz-Grundverordnung von 2016 (DSGVO).
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
-                <Key className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">TLS-Protokoll</h3>
-                <p className="text-white/80 leading-relaxed">
-                  Alle Informationen und Registrierungsdaten werden verschlüsselt an unsere Server übertragen, 
-                  damit niemand sie abfangen kann.
-                </p>
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-6 border border-accent/10 hover:border-accent/20 transition-all duration-300">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-foreground">Deine Daten sind geschützt</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Unsere Server sind abgesichert und befinden sich in der Europäischen Union. 
+                    Wir befolgen die Europäische Datenschutz-Grundverordnung von 2016 (DSGVO).
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
-                <CreditCard className="h-6 w-6" />
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-6 border border-accent/10 hover:border-accent/20 transition-all duration-300">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                  <Key className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-foreground">TLS-Protokoll</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Alle Informationen und Registrierungsdaten werden verschlüsselt an unsere Server übertragen, 
+                    damit niemand sie abfangen kann.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">3D Sicherheit</h3>
-                <p className="text-white/80 leading-relaxed">
-                  Jede Online-Bezahlung per Karte wird mit einem eindeutigen Einmalkennwort bestätigt.
-                </p>
+            </div>
+
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-6 border border-accent/10 hover:border-accent/20 transition-all duration-300">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-foreground">3D Sicherheit</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Jede Online-Bezahlung per Karte wird mit einem eindeutigen Einmalkennwort bestätigt.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
