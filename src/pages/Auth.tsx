@@ -19,7 +19,7 @@ const registerSchema = z.object({
   firstName: z.string().min(2, "Vorname muss mindestens 2 Zeichen haben"),
   lastName: z.string().min(2, "Nachname muss mindestens 2 Zeichen haben"),
   email: z.string().email("Ungültige E-Mail-Adresse"),
-  phone: z.string().optional(),
+  phone: z.string().min(1, "Telefonnummer ist erforderlich"),
   password: z.string().min(8, "Passwort muss mindestens 8 Zeichen haben"),
 });
 
@@ -231,8 +231,14 @@ const Auth = () => {
                         <FormLabel>E-Mail</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="E-Mail-Adresse" className="pl-10" {...field} />
+                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input 
+                              type="email"
+                              autoComplete="email"
+                              placeholder="E-Mail-Adresse" 
+                              className="pl-10" 
+                              {...field} 
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -255,8 +261,14 @@ const Auth = () => {
                         <FormLabel>E-Mail</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="E-Mail-Adresse" className="pl-10" {...field} />
+                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input 
+                              type="email"
+                              autoComplete="email"
+                              placeholder="E-Mail-Adresse" 
+                              className="pl-10" 
+                              {...field} 
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -329,8 +341,14 @@ const Auth = () => {
                         <FormLabel>E-Mail</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="E-Mail-Adresse" className="pl-10" {...field} />
+                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input 
+                              type="email"
+                              autoComplete="email"
+                              placeholder="E-Mail-Adresse" 
+                              className="pl-10" 
+                              {...field} 
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -342,11 +360,18 @@ const Auth = () => {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefonnummer (optional)</FormLabel>
+                        <FormLabel>Telefonnummer</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="Telefonnummer" className="pl-10" {...field} />
+                            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input 
+                              type="tel"
+                              inputMode="tel"
+                              autoComplete="tel"
+                              placeholder="Telefonnummer" 
+                              className="pl-10" 
+                              {...field} 
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
