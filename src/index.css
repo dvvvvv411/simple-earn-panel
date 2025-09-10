@@ -110,3 +110,18 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @keyframes grid-flow {
+    0% {
+      transform: translateX(-32px) translateY(-32px);
+    }
+    100% {
+      transform: translateX(0) translateY(0);
+    }
+  }
+  
+  .animate-grid-flow {
+    animation: grid-flow 20s linear infinite;
+  }
+}
