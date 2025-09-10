@@ -25,7 +25,7 @@ const Index = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button variant="hero" size="lg" className="text-lg px-8 py-4">
+              <Button variant="hero" size="lg" className="text-lg px-8 py-4" onClick={() => window.location.href = '/auth'}>
                 Jetzt starten
               </Button>
               <Button variant="outline" size="lg" className="text-lg px-8 py-4">
