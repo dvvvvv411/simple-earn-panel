@@ -467,6 +467,35 @@ const Auth = () => {
           <div className="absolute top-1/6 left-0 w-full h-24 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-y-12 animate-[slide-in-right_12s_ease-in-out_infinite]" />
           <div className="absolute bottom-1/6 left-0 w-full h-16 bg-gradient-to-r from-transparent via-white/3 to-transparent transform skew-y-6 animate-[slide-in-right_15s_ease-in-out_infinite_3s]" />
         </div>
+
+        {/* Security Cards Content */}
+        <div className="relative z-10 w-full max-w-xl px-8 py-12">
+          <div className="space-y-5">
+            {/* Card 1 - Data Protection */}
+            <div className="group relative rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 ring-1 ring-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:ring-white/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-fade-in hover-scale" style={{ animationDelay: "0.05s" }}>
+              <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-b from-white/15 via-transparent to-transparent" />
+              <h3 className="text-white text-xl font-semibold tracking-tight">Deine Daten sind geschützt</h3>
+              <div className="mt-3 space-y-1.5">
+                <p className="text-white/80 leading-relaxed">Unsere Server sind abgesichert und befinden sich in der Europäischen Union</p>
+                <p className="text-white/70 leading-relaxed">Wir befolgen die Europäische Datenschutz-Grundverordnung von 2016 (DSGVO)</p>
+              </div>
+            </div>
+
+            {/* Card 2 - TLS Protocol */}
+            <div className="group relative rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 ring-1 ring-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:ring-white/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-fade-in hover-scale" style={{ animationDelay: "0.15s" }}>
+              <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-b from-white/15 via-transparent to-transparent" />
+              <h3 className="text-white text-xl font-semibold tracking-tight">TLS-Protokoll</h3>
+              <p className="mt-3 text-white/80 leading-relaxed">Alle Informationen und Registrierungsdaten werden verschlüsselt an unsere Server übertragen, damit niemand sie abfangen kann</p>
+            </div>
+
+            {/* Card 3 - 3D Security */}
+            <div className="group relative rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 ring-1 ring-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:ring-white/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-fade-in hover-scale" style={{ animationDelay: "0.25s" }}>
+              <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-b from-white/15 via-transparent to-transparent" />
+              <h3 className="text-white text-xl font-semibold tracking-tight">3D Sicherheit</h3>
+              <p className="mt-3 text-white/80 leading-relaxed">Jede Online-Bezahlung per Karte wird mit einem eindeutigen Einmalkennwort bestätigt</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
