@@ -427,115 +427,45 @@ const Auth = () => {
         </div>
       </div>
 
-      {/* Right Side - Security Features */}
-      <div className="relative p-8 lg:flex items-center justify-center hidden overflow-hidden bg-background">
-        {/* Animated Grid Background */}
-        <div className="absolute inset-0 opacity-60">
+      {/* Right Side - Accent Design */}
+      <div className="relative lg:flex items-center justify-center hidden overflow-hidden bg-accent">
+        {/* Radial Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-radial from-accent via-accent to-accent/90" />
+        
+        {/* Animated Grid Lines */}
+        <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
             backgroundImage: `
-              linear-gradient(hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
             `,
-            backgroundSize: '32px 32px',
-            animation: 'grid-flow 20s linear infinite'
+            backgroundSize: '40px 40px',
+            animation: 'grid-flow 25s linear infinite'
           }} />
         </div>
 
-        {/* Flowing Accent Lines */}
+        {/* Flowing Light Lines */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent animate-[slide-in-right_8s_ease-in-out_infinite]" />
-          <div className="absolute top-2/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent animate-[slide-in-right_12s_ease-in-out_infinite_2s]" />
-          <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent animate-[slide-in-right_15s_ease-in-out_infinite_4s]" />
+          <div className="absolute top-1/4 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[slide-in-right_6s_ease-in-out_infinite]" />
+          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[slide-in-right_8s_ease-in-out_infinite_1s]" />
+          <div className="absolute top-3/4 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[slide-in-right_10s_ease-in-out_infinite_2s]" />
+          
+          {/* Diagonal Lines */}
+          <div className="absolute top-0 left-1/4 w-0.5 h-full bg-gradient-to-b from-transparent via-white/20 to-transparent animate-[fade-in_4s_ease-in-out_infinite]" />
+          <div className="absolute top-0 right-1/3 w-0.5 h-full bg-gradient-to-b from-transparent via-white/15 to-transparent animate-[fade-in_5s_ease-in-out_infinite_1s]" />
         </div>
 
-        {/* Subtle Accent Glows */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-          <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-accent/8 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+        {/* Bright Accent Glows */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '3s' }} />
+          <div className="absolute bottom-1/4 left-1/3 w-48 h-48 bg-white/8 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '4s', animationDelay: '1s' }} />
+          <div className="absolute top-2/3 right-1/2 w-32 h-32 bg-white/12 rounded-full blur-xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '2s' }} />
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 space-y-8 max-w-lg animate-fade-in">
-          <div className="space-y-2 mb-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-xs text-accent font-medium">
-              <Shield className="h-3 w-3" />
-              Fintech Security
-            </div>
-            <h2 className="text-3xl font-bold text-foreground">
-              Bankensicherheit für deine Daten
-            </h2>
-            <p className="text-muted-foreground text-lg">
-              EU-Standard, TLS-Verschlüsselung und 3D Secure Protection
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 transition-all duration-300 hover:border-accent/20 hover:shadow-lg">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-xl border border-accent/20 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
-                  <Shield className="h-6 w-6 text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-foreground">DSGVO-konform</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Unsere Server sind abgesichert und befinden sich in der Europäischen Union. 
-                    Vollständige DSGVO-Compliance seit 2016.
-                  </p>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-            </div>
-
-            <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 transition-all duration-300 hover:border-accent/20 hover:shadow-lg">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-xl border border-accent/20 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
-                  <Key className="h-6 w-6 text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-foreground">TLS 1.3 Protokoll</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Alle Daten werden mit modernster Verschlüsselungstechnologie übertragen. 
-                    Ende-zu-Ende Schutz für maximale Sicherheit.
-                  </p>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-            </div>
-
-            <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 transition-all duration-300 hover:border-accent/20 hover:shadow-lg">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-xl border border-accent/20 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
-                  <CreditCard className="h-6 w-6 text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-foreground">3D Secure 2.0</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Jede Online-Zahlung wird mit biometrischer Authentifizierung oder 
-                    Einmalkennwort bestätigt. Banking-Standard.
-                  </p>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-            </div>
-          </div>
-
-          {/* Trust Indicators */}
-          <div className="flex items-center justify-center gap-6 pt-6 border-t border-border/50">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent">256-bit</div>
-              <div className="text-xs text-muted-foreground">SSL Encryption</div>
-            </div>
-            <div className="w-px h-8 bg-border" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent">EU</div>
-              <div className="text-xs text-muted-foreground">Data Centers</div>
-            </div>
-            <div className="w-px h-8 bg-border" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent">24/7</div>
-              <div className="text-xs text-muted-foreground">Monitoring</div>
-            </div>
-          </div>
+        {/* Glossy Moving Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/6 left-0 w-full h-24 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-y-12 animate-[slide-in-right_12s_ease-in-out_infinite]" />
+          <div className="absolute bottom-1/6 left-0 w-full h-16 bg-gradient-to-r from-transparent via-white/3 to-transparent transform skew-y-6 animate-[slide-in-right_15s_ease-in-out_infinite_3s]" />
         </div>
       </div>
     </div>
