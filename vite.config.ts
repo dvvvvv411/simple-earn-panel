@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "next-themes": path.resolve(__dirname, "./src/lib/next-themes-shim"),
     },
   },
 }));

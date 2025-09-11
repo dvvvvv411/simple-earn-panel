@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,11 +24,12 @@ interface Branding {
 export default function Brandings() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBranding, setEditingBranding] = useState<Branding | null>(null);
-  const queryClient = useQueryClient();
+  const [brandings, setBrandings] = useState<Branding[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { data: brandings, isLoading } = useQuery({
-    queryKey: ['brandings'],
-    queryFn: async () => {
+  const fetchBrandings = async () => {
+    setLoading(true);
+    try {
       const { data, error } = await supabase
         .from('brandings')
         .select(`
@@ -43,28 +43,43 @@ export default function Brandings() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Branding[];
-    },
-  });
+      setBrandings((data || []) as Branding[]);
+    } catch (error) {
+      console.error('Fetch error:', error);
+      toast.error('Fehler beim Laden der Brandings');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const deleteBrandingMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('brandings')
-        .delete()
-        .eq('id', id);
-      
+  useEffect(() => {
+    fetchBrandings();
+  }, []);
+
+  const handleEdit = (branding: Branding) => {
+    setEditingBranding(branding);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Sind Sie sicher, dass Sie dieses Branding löschen möchten?')) return;
+    try {
+      const { error } = await supabase.from('brandings').delete().eq('id', id);
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['brandings'] });
+      setBrandings(prev => prev.filter(b => b.id !== id));
       toast.success('Branding erfolgreich gelöscht');
-    },
-    onError: (error) => {
-      toast.error('Fehler beim Löschen des Brandings');
+    } catch (error) {
       console.error('Delete error:', error);
-    },
-  });
+      toast.error('Fehler beim Löschen des Brandings');
+    }
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setEditingBranding(null);
+    // Refresh list after closing the dialog (create/update)
+    fetchBrandings();
+  };
 
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -92,22 +107,6 @@ export default function Brandings() {
     }
   };
 
-  const handleEdit = (branding: Branding) => {
-    setEditingBranding(branding);
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    if (window.confirm('Sind Sie sicher, dass Sie dieses Branding löschen möchten?')) {
-      deleteBrandingMutation.mutate(id);
-    }
-  };
-
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-    setEditingBranding(null);
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -128,7 +127,7 @@ export default function Brandings() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {loading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
             <Card key={i} className="border-border/50 animate-pulse">
@@ -142,7 +141,7 @@ export default function Brandings() {
             </Card>
           ))}
         </div>
-      ) : brandings?.length === 0 ? (
+      ) : brandings.length === 0 ? (
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Package className="h-16 w-16 text-muted-foreground mb-4" />
@@ -162,7 +161,7 @@ export default function Brandings() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {brandings?.map((branding) => (
+          {brandings.map((branding) => (
             <Card key={branding.id} className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-200">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
