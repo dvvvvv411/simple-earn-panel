@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      branding_resend_configs: {
+        Row: {
+          branding_id: string
+          created_at: string
+          from_email: string
+          from_name: string
+          id: string
+          reply_to: string | null
+          updated_at: string
+        }
+        Insert: {
+          branding_id: string
+          created_at?: string
+          from_email: string
+          from_name: string
+          id?: string
+          reply_to?: string | null
+          updated_at?: string
+        }
+        Update: {
+          branding_id?: string
+          created_at?: string
+          from_email?: string
+          from_name?: string
+          id?: string
+          reply_to?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branding_resend_configs_branding_id_fkey"
+            columns: ["branding_id"]
+            isOneToOne: true
+            referencedRelation: "brandings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brandings: {
+        Row: {
+          created_at: string
+          id: string
+          logo_path: string | null
+          name: string
+          type: Database["public"]["Enums"]["branding_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_path?: string | null
+          name: string
+          type: Database["public"]["Enums"]["branding_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_path?: string | null
+          name?: string
+          type?: Database["public"]["Enums"]["branding_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -77,6 +142,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      branding_type: "kryptotrading" | "festgeld" | "sonstiges"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,6 +271,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      branding_type: ["kryptotrading", "festgeld", "sonstiges"],
     },
   },
 } as const
