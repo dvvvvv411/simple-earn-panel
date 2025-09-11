@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 
 const items = [
   { title: "Brandings", url: "/admin/brandings", icon: Package },
