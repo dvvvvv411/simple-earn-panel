@@ -229,9 +229,9 @@ const Auth = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>E-Mail</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <FormControl>
                             <Input 
                               type="email"
                               autoComplete="email"
@@ -239,8 +239,8 @@ const Auth = () => {
                               className="pl-10" 
                               {...field} 
                             />
-                          </div>
-                        </FormControl>
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -259,9 +259,9 @@ const Auth = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>E-Mail</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <FormControl>
                             <Input 
                               type="email"
                               autoComplete="email"
@@ -269,8 +269,8 @@ const Auth = () => {
                               className="pl-10" 
                               {...field} 
                             />
-                          </div>
-                        </FormControl>
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -339,9 +339,9 @@ const Auth = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>E-Mail</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <FormControl>
                             <Input 
                               type="email"
                               autoComplete="email"
@@ -349,8 +349,8 @@ const Auth = () => {
                               className="pl-10" 
                               {...field} 
                             />
-                          </div>
-                        </FormControl>
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -361,9 +361,9 @@ const Auth = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Telefonnummer</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <FormControl>
                             <Input 
                               type="tel"
                               inputMode="tel"
@@ -372,8 +372,8 @@ const Auth = () => {
                               className="pl-10" 
                               {...field} 
                             />
-                          </div>
-                        </FormControl>
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
