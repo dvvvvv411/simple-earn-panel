@@ -333,28 +333,28 @@ const Auth = () => {
                       )}
                     />
                   </div>
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>E-Mail</FormLabel>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                          <FormControl>
-                            <Input 
-                              type="email"
-                              autoComplete="email"
-                              placeholder="E-Mail-Adresse" 
-                              className="pl-10" 
-                              {...field} 
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
+                  {/* Plain email field to avoid Slot/Controller issues */}
+                  <div className="space-y-2">
+                    <label htmlFor="register-email" className="text-sm font-medium leading-none">
+                      E-Mail
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        id="register-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="E-Mail-Adresse"
+                        className="pl-10"
+                        {...registerForm.register("email")}
+                      />
+                    </div>
+                    {registerForm.formState.errors.email && (
+                      <p className="text-sm font-medium text-destructive">
+                        {registerForm.formState.errors.email.message}
+                      </p>
                     )}
-                  />
+                  </div>
                   <FormField
                     control={registerForm.control}
                     name="phone"
