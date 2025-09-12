@@ -27,9 +27,9 @@ export function useCoinGeckoData() {
     try {
       setError(null);
       
-      // Fetch top 8 cryptocurrencies in EUR
+      // Fetch top 10 cryptocurrencies in EUR
       const response = await fetch(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&order=market_cap_desc&per_page=8&page=1&sparkline=false&price_change_percentage=24h'
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&order=market_cap_desc&per_page=10&page=1&sparkline=false&price_change_percentage=24h'
       );
 
       if (!response.ok) {

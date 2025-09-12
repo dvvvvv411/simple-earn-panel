@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { TrendingUp, TrendingDown, Activity, RefreshCw } from "lucide-react";
 import { useCoinGeckoData } from "@/hooks/useCoinGeckoData";
 import { Button } from "@/components/ui/button";
@@ -82,53 +83,55 @@ export function MarketOverviewCard() {
           </div>
         )}
         
-        <div className="space-y-2">
-          {coins.slice(0, 5).map((coin) => {
-            const isPositive = coin.price_change_percentage_24h > 0;
-            
-            return (
-              <div key={coin.id} className="flex items-center justify-between hover:bg-accent/20 p-1.5 rounded-lg transition-colors">
-                <div className="flex items-center gap-2">
-                  <img 
-                    src={coin.image} 
-                    alt={coin.name}
-                    className="h-5 w-5 rounded-full"
-                    onError={(e) => {
-                      e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
-                    }}
-                  />
-                  <div>
-                    <p className="text-sm font-medium truncate max-w-[80px]">{coin.name}</p>
-                    <p className="text-xs text-muted-foreground uppercase">{coin.symbol}</p>
+        <ScrollArea className="h-72">
+          <div className="space-y-2 pr-4">
+            {coins.map((coin) => {
+              const isPositive = coin.price_change_percentage_24h > 0;
+              
+              return (
+                <div key={coin.id} className="flex items-center justify-between hover:bg-accent/20 p-1.5 rounded-lg transition-colors">
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src={coin.image} 
+                      alt={coin.name}
+                      className="h-5 w-5 rounded-full"
+                      onError={(e) => {
+                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
+                      }}
+                    />
+                    <div>
+                      <p className="text-sm font-medium truncate max-w-[80px]">{coin.name}</p>
+                      <p className="text-xs text-muted-foreground uppercase">{coin.symbol}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right">
+                    <p className="text-sm font-semibold">
+                      {formatPrice(coin.current_price)}
+                    </p>
+                    <div className="flex items-center gap-1 justify-end">
+                      {isPositive ? (
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-3 w-3" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }} />
+                          <span className="text-xs font-medium" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                            {formatPercentage(coin.price_change_percentage_24h)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <TrendingDown className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {formatPercentage(coin.price_change_percentage_24h)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <p className="text-sm font-semibold">
-                    {formatPrice(coin.current_price)}
-                  </p>
-                  <div className="flex items-center gap-1 justify-end">
-                    {isPositive ? (
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }} />
-                        <span className="text-xs font-medium" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
-                          {formatPercentage(coin.price_change_percentage_24h)}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <TrendingDown className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {formatPercentage(coin.price_change_percentage_24h)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </ScrollArea>
         
         <div className="pt-2 border-t border-border/40">
           <p className="text-xs text-muted-foreground text-center">

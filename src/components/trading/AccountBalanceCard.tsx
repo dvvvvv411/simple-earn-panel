@@ -125,20 +125,20 @@ export function AccountBalanceCard() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
+        <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
           <Button 
-            size="sm" 
+            size="default" 
             onClick={() => console.log('Geld einzahlen')}
-            className="flex-1"
+            className="flex-1 h-12"
           >
             <Plus className="h-4 w-4 mr-2" />
             Geld einzahlen
           </Button>
           <Button 
             variant="outline" 
-            size="sm" 
+            size="default" 
             onClick={() => console.log('Geld auszahlen')}
-            className="flex-1"
+            className="flex-1 h-12"
           >
             <Minus className="h-4 w-4 mr-2" />
             Geld auszahlen
