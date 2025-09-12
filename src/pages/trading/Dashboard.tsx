@@ -2,6 +2,7 @@ import React from "react";
 import { AccountBalanceCard } from "@/components/trading/AccountBalanceCard";
 import { TradesCard } from "@/components/trading/TradesCard";
 import { MarketOverviewCard } from "@/components/trading/MarketOverviewCard";
+import { WelcomeCard } from "@/components/trading/WelcomeCard";
 
 export default function Dashboard() {
   return (
@@ -12,6 +13,8 @@ export default function Dashboard() {
           Willkommen zurück! Hier ist eine Übersicht über Ihr Trading-Portfolio.
         </p>
       </div>
+
+      <WelcomeCard />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AccountBalanceCard />
