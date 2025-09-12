@@ -58,6 +58,7 @@ interface BrandingDialogProps {
 }
 
 export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogProps) {
+  console.log('BrandingDialog component loaded successfully');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(
     branding?.logo_path 

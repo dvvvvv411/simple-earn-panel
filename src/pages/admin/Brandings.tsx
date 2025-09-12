@@ -22,6 +22,7 @@ interface Branding {
 }
 
 export default function Brandings() {
+  console.log('Brandings page component loaded successfully');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBranding, setEditingBranding] = useState<Branding | null>(null);
   const [brandings, setBrandings] = useState<Branding[]>([]);
