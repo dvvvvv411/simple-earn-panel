@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -65,7 +64,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
       ? `${supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl}`
       : null
   );
-  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<BrandingFormData>({
     resolver: zodResolver(brandingSchema),
@@ -78,8 +77,9 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
     },
   });
 
-  const saveBrandingMutation = useMutation({
-    mutationFn: async (data: BrandingFormData) => {
+  const saveBranding = async (data: BrandingFormData) => {
+    setIsSaving(true);
+    try {
       let logoPath = branding?.logo_path;
 
       // Upload logo if a new file was selected
@@ -135,20 +135,19 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
         });
 
       if (configError) throw configError;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['brandings'] });
+
       toast.success(branding ? 'Branding aktualisiert' : 'Branding erstellt');
       onOpenChange(false);
       form.reset();
       setLogoFile(null);
       setLogoPreview(null);
-    },
-    onError: (error) => {
+    } catch (error) {
       toast.error('Fehler beim Speichern des Brandings');
       console.error('Save error:', error);
-    },
-  });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -168,7 +167,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
   };
 
   const onSubmit = (data: BrandingFormData) => {
-    saveBrandingMutation.mutate(data);
+    saveBranding(data);
   };
 
   return (
@@ -319,9 +318,9 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
               <Button
                 type="submit"
                 variant="hero"
-                disabled={saveBrandingMutation.isPending}
+                disabled={isSaving}
               >
-                {saveBrandingMutation.isPending ? 'Speichern...' : 'Speichern'}
+                {isSaving ? 'Speichern...' : 'Speichern'}
               </Button>
             </div>
           </form>
