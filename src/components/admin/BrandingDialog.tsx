@@ -35,6 +35,7 @@ const brandingSchema = z.object({
   name: z.string().min(1, "Name ist erforderlich"),
   domain: z.string().min(1, "Domain ist erforderlich"),
   type: z.enum(["kryptotrading", "festgeld", "sonstiges"]),
+  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Ungültiges Hex-Farbformat (z.B. #1e90ff)").optional().or(z.literal("")),
   fromName: z.string().min(1, "Absender-Name ist erforderlich"),
   fromEmail: z.string().email("Ungültige E-Mail-Adresse"),
   replyTo: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
@@ -51,6 +52,7 @@ interface BrandingDialogProps {
     name: string;
     domain?: string;
     type: 'kryptotrading' | 'festgeld' | 'sonstiges';
+    accent_color?: string | null;
     logo_path: string | null;
     branding_resend_configs?: {
       from_name: string;
@@ -77,6 +79,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
       name: branding?.name || "",
       domain: branding?.domain || "",
       type: branding?.type || "sonstiges",
+      accentColor: branding?.accent_color || "",
       fromName: branding?.branding_resend_configs?.from_name || "",
       fromEmail: branding?.branding_resend_configs?.from_email || "",
       replyTo: branding?.branding_resend_configs?.reply_to || "",
@@ -112,6 +115,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
             name: data.name,
             domain: data.domain,
             type: data.type,
+            accent_color: data.accentColor || null,
             logo_path: logoPath,
           })
           .eq('id', branding.id);
@@ -124,6 +128,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
             name: data.name,
             domain: data.domain,
             type: data.type,
+            accent_color: data.accentColor || null,
             logo_path: logoPath,
           })
           .select('id')
@@ -241,6 +246,33 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
                         <SelectItem value="sonstiges">Sonstiges</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="accentColor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Akzentfarbe</FormLabel>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={field.value || "#1e90ff"}
+                          onChange={field.onChange}
+                          className="w-12 h-10 p-1 border border-border rounded cursor-pointer"
+                        />
+                        <Input
+                          placeholder="#1e90ff"
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          className="flex-1"
+                        />
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
