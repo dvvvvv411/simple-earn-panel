@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-money-panel.jpg";
 
