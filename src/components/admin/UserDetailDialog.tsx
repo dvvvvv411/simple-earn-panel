@@ -225,7 +225,7 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center p-4 bg-accent/20 rounded-lg">
+              <div className="text-center p-4 bg-green-100 dark:bg-green-900/20 rounded-lg">
                 <Label className="text-sm font-medium text-muted-foreground">Aktuelles Guthaben</Label>
                 <p className={`text-2xl font-bold ${user.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatBalance(user.balance)}
