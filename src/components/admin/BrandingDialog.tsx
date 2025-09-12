@@ -216,8 +216,8 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
     setLogoPreview(null);
   };
 
-  const onSubmit = (data: BrandingFormData) => {
-    saveBranding(data);
+  const onSubmit = async (data: BrandingFormData) => {
+    await saveBranding(data);
   };
 
   return (
