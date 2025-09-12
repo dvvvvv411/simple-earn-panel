@@ -1,8 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, BarChart3, Target, DollarSign, Play } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { TrendingUp, BarChart3, Target, DollarSign } from "lucide-react";
 
 export function TradesCard() {
   // Placeholder data - will be replaced with real data later
@@ -11,8 +10,7 @@ export function TradesCard() {
     successfulTrades: 32,
     failedTrades: 15,
     successRate: 68,
-    totalProfit: 1247.50,
-    averageTradeDuration: "2h 15min"
+    totalProfit: 1247.50
   };
 
   const formatCurrency = (amount: number) => {
@@ -34,13 +32,6 @@ export function TradesCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Button 
-          className="w-full"
-          onClick={() => console.log('Trading starten')}
-        >
-          <Play className="h-4 w-4" />
-          Trading starten
-        </Button>
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-1">
             <p className="text-3xl font-bold text-foreground">{tradeStats.totalTrades}</p>
@@ -64,35 +55,23 @@ export function TradesCard() {
           </div>
         </div>
 
-        <div className="space-y-4 pt-4">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-foreground">{tradeStats.successfulTrades}</p>
-                <p className="text-xs text-muted-foreground">Erfolgreich</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-foreground">{tradeStats.failedTrades}</p>
-                <p className="text-xs text-muted-foreground">Fehlgeschlagen</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 pt-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <BarChart3 className="h-4 w-4 text-primary" />
+        <div className="grid grid-cols-2 gap-6 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+              <Target className="h-4 w-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-lg font-semibold text-foreground">{tradeStats.averageTradeDuration}</p>
-              <p className="text-xs text-muted-foreground">Durchschnittliche Trade-Dauer</p>
+              <p className="text-lg font-semibold text-foreground">{tradeStats.successfulTrades}</p>
+              <p className="text-xs text-muted-foreground">Erfolgreich</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">{tradeStats.failedTrades}</p>
+              <p className="text-xs text-muted-foreground">Fehlgeschlagen</p>
             </div>
           </div>
         </div>
