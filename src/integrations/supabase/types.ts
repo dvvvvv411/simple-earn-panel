@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       branding_resend_configs: {
         Row: {
+          api_key: string | null
           branding_id: string
           created_at: string
           from_email: string
@@ -25,6 +26,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          api_key?: string | null
           branding_id: string
           created_at?: string
           from_email: string
@@ -34,6 +36,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          api_key?: string | null
           branding_id?: string
           created_at?: string
           from_email?: string
@@ -55,6 +58,7 @@ export type Database = {
       brandings: {
         Row: {
           created_at: string
+          domain: string | null
           id: string
           logo_path: string | null
           name: string
@@ -63,6 +67,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          domain?: string | null
           id?: string
           logo_path?: string | null
           name: string
@@ -71,6 +76,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          domain?: string | null
           id?: string
           logo_path?: string | null
           name?: string

@@ -33,10 +33,12 @@ import { toast } from "@/components/ui/sonner";
 
 const brandingSchema = z.object({
   name: z.string().min(1, "Name ist erforderlich"),
+  domain: z.string().min(1, "Domain ist erforderlich"),
   type: z.enum(["kryptotrading", "festgeld", "sonstiges"]),
   fromName: z.string().min(1, "Absender-Name ist erforderlich"),
   fromEmail: z.string().email("Ungültige E-Mail-Adresse"),
   replyTo: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
+  apiKey: z.string().min(1, "Resend API Key ist erforderlich"),
 });
 
 type BrandingFormData = z.infer<typeof brandingSchema>;
@@ -47,12 +49,14 @@ interface BrandingDialogProps {
   branding?: {
     id: string;
     name: string;
+    domain?: string;
     type: 'kryptotrading' | 'festgeld' | 'sonstiges';
     logo_path: string | null;
     branding_resend_configs?: {
       from_name: string;
       from_email: string;
       reply_to?: string;
+      api_key?: string;
     };
   } | null;
 }
@@ -71,10 +75,12 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
     resolver: zodResolver(brandingSchema),
     defaultValues: {
       name: branding?.name || "",
+      domain: branding?.domain || "",
       type: branding?.type || "sonstiges",
       fromName: branding?.branding_resend_configs?.from_name || "",
       fromEmail: branding?.branding_resend_configs?.from_email || "",
       replyTo: branding?.branding_resend_configs?.reply_to || "",
+      apiKey: branding?.branding_resend_configs?.api_key || "",
     },
   });
 
@@ -104,6 +110,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
           .from('brandings')
           .update({
             name: data.name,
+            domain: data.domain,
             type: data.type,
             logo_path: logoPath,
           })
@@ -115,6 +122,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
           .from('brandings')
           .insert({
             name: data.name,
+            domain: data.domain,
             type: data.type,
             logo_path: logoPath,
           })
@@ -133,6 +141,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
           from_name: data.fromName,
           from_email: data.fromEmail,
           reply_to: data.replyTo || null,
+          api_key: data.apiKey,
         });
 
       if (configError) throw configError;
@@ -194,6 +203,20 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
                     <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Branding Name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="domain"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Domain</FormLabel>
+                    <FormControl>
+                      <Input placeholder="example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -301,6 +324,24 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
                     <FormLabel>Antworten an (optional)</FormLabel>
                     <FormControl>
                       <Input placeholder="support@ihredomain.de" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="apiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Resend API Key</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -10,6 +10,7 @@ import { BrandingDialog } from "@/components/admin/BrandingDialog";
 interface Branding {
   id: string;
   name: string;
+  domain?: string;
   type: 'kryptotrading' | 'festgeld' | 'sonstiges';
   logo_path: string | null;
   created_at: string;
@@ -18,6 +19,7 @@ interface Branding {
     from_name: string;
     from_email: string;
     reply_to?: string;
+    api_key?: string;
   };
 }
 
@@ -38,7 +40,8 @@ export default function Brandings() {
           branding_resend_configs (
             from_name,
             from_email,
-            reply_to
+            reply_to,
+            api_key
           )
         `)
         .order('created_at', { ascending: false });
