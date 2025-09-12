@@ -43,26 +43,32 @@ export function AppSidebar() {
     <Sidebar className="border-r border-border/40 bg-background">
       <SidebarContent className="bg-background">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground px-3 py-2">
+          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground px-4 py-4 mt-6">
             Admin Panel
           </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+          <SidebarGroupContent className="mt-2">
+            <SidebarMenu className="space-y-2">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url} 
                       className={({ isActive }) => 
-                        `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 ${
                           isActive 
-                            ? 'bg-primary/10 text-primary border-l-2 border-primary shadow-sm' 
-                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                            ? 'bg-primary/5 text-primary border-l-3 border-primary shadow-sm' 
+                            : 'text-muted-foreground hover:bg-muted/30 hover:text-muted-foreground'
                         }`
                       }
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className={`h-5 w-5 shrink-0 ${
+                        isActive ? 'text-primary' : 'text-primary'
+                      }`} />
+                      {!collapsed && (
+                        <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
+                          {item.title}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -71,12 +77,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        <div className="mt-auto p-3">
+        <div className="mt-auto p-4">
           <SidebarMenuButton 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+            className="w-full flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
           >
-            <LogOut className="h-4 w-4 shrink-0" />
+            <LogOut className="h-5 w-5 shrink-0 text-destructive" />
             {!collapsed && <span>Logout</span>}
           </SidebarMenuButton>
         </div>
