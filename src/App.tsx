@@ -4,9 +4,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import { AdminLayout } from "./components/admin/AdminLayout";
+import { TradingLayout } from "./components/trading/TradingLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Brandings from "./pages/admin/Brandings";
 import UsersPage from "./pages/admin/Users";
+import TradingDashboard from "./pages/trading/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
@@ -20,6 +22,9 @@ const App: React.FC = () => {
             <Route index element={<Navigate to="/admin/brandings" replace />} />
             <Route path="brandings" element={<Brandings />} />
             <Route path="benutzer" element={<UsersPage />} />
+          </Route>
+          <Route path="/kryptotrading" element={<TradingLayout />}>
+            <Route index element={<TradingDashboard />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
