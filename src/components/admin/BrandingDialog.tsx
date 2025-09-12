@@ -180,6 +180,8 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
           from_email: data.fromEmail,
           reply_to: data.replyTo || null,
           api_key: data.apiKey,
+        }, { 
+          onConflict: 'branding_id' 
         });
 
       if (configError) throw configError;
