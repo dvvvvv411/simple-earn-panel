@@ -185,10 +185,12 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
       if (configError) throw configError;
 
       toast.success(branding ? 'Branding aktualisiert' : 'Branding erstellt');
-      onOpenChange(false);
+      
+      // Reset form and close dialog
       form.reset();
       setLogoFile(null);
       setLogoPreview(null);
+      onOpenChange(false);
     } catch (error) {
       toast.error('Fehler beim Speichern des Brandings');
       console.error('Save error:', error);
