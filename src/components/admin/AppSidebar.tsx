@@ -86,7 +86,7 @@ export function AppSidebar() {
                         `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
                           isActive 
                             ? 'bg-primary/10 text-primary border-l-4 border-primary' 
-                            : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                            : 'hover:bg-accent/50 text-muted-foreground'
                         }`
                       }
                     >
@@ -94,7 +94,7 @@ export function AppSidebar() {
                         <>
                           <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                           {!collapsed && (
-                            <span>
+                            <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
                               {item.title}
                             </span>
                           )}
