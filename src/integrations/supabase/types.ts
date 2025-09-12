@@ -90,6 +90,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          balance: number
           branding_id: string | null
           created_at: string
           email: string | null
@@ -100,6 +101,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          balance?: number
           branding_id?: string | null
           created_at?: string
           email?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          balance?: number
           branding_id?: string | null
           created_at?: string
           email?: string | null
@@ -150,6 +153,57 @@ export type Database = {
         }
         Relationships: []
       }
+      user_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          new_balance: number
+          previous_balance: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          new_balance: number
+          previous_balance: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          new_balance?: number
+          previous_balance?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -159,6 +213,16 @@ export type Database = {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
+        }
+        Returns: boolean
+      }
+      update_user_balance: {
+        Args: {
+          admin_user_id: string
+          amount_change: number
+          target_user_id: string
+          transaction_description: string
+          transaction_type: string
         }
         Returns: boolean
       }

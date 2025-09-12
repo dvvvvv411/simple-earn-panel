@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Loader2 } from "lucide-react";
+import { Edit, Trash2, Loader2, Eye } from "lucide-react";
 import type { User } from "@/types/user";
 
 interface UserTableProps {
@@ -13,9 +13,10 @@ interface UserTableProps {
   loading: boolean;
   onUserDeleted: () => void;
   onUserEdit: (user: User) => void;
+  onUserDetail: (user: User) => void;
 }
 
-export function UserTable({ users, loading, onUserDeleted, onUserEdit }: UserTableProps) {
+export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDetail }: UserTableProps) {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const handleDeleteUser = async (userId: string) => {
@@ -58,6 +59,13 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit }: UserTab
     return user.roles[0].role;
   };
 
+  const formatBalance = (balance: number) => {
+    return new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(balance);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -84,6 +92,7 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit }: UserTab
             <TableHead className="text-foreground">E-Mail</TableHead>
             <TableHead className="text-foreground">Telefon</TableHead>
             <TableHead className="text-foreground">Branding</TableHead>
+            <TableHead className="text-foreground">Guthaben</TableHead>
             <TableHead className="text-foreground">Rolle</TableHead>
             <TableHead className="text-foreground">Erstellt</TableHead>
             <TableHead className="text-right text-foreground">Aktionen</TableHead>
@@ -111,6 +120,11 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit }: UserTab
                 )}
               </TableCell>
               <TableCell>
+                <span className={`font-medium ${user.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatBalance(user.balance)}
+                </span>
+              </TableCell>
+              <TableCell>
                 <Badge 
                   variant={getUserRole(user) === 'admin' ? 'default' : 'outline'}
                   className={getUserRole(user) === 'admin' ? 'bg-primary text-primary-foreground' : 'border-border text-muted-foreground'}
@@ -123,6 +137,14 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit }: UserTab
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onUserDetail(user)}
+                    className="h-8 w-8 p-0 border-input hover:bg-accent/50"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"

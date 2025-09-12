@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserCreateDialog } from "@/components/admin/UserCreateDialog";
 import { UserEditDialog } from "@/components/admin/UserEditDialog";
+import { UserDetailDialog } from "@/components/admin/UserDetailDialog";
 import { UserTable } from "@/components/admin/UserTable";
 import { Search, RefreshCw, Loader2 } from "lucide-react";
 import type { User } from "@/types/user";
@@ -16,6 +17,8 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailUser, setDetailUser] = useState<User | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -63,6 +66,11 @@ export default function UsersPage() {
   const handleUserEdit = (user: User) => {
     setEditingUser(user);
     setEditDialogOpen(true);
+  };
+
+  const handleUserDetail = (user: User) => {
+    setDetailUser(user);
+    setDetailDialogOpen(true);
   };
 
   const filteredUsers = users.filter((user) => {
@@ -117,19 +125,27 @@ export default function UsersPage() {
             </Button>
           </div>
 
-          <UserTable 
-            users={filteredUsers}
-            loading={loading}
-            onUserDeleted={fetchUsers}
-            onUserEdit={handleUserEdit}
-          />
+            <UserTable 
+              users={filteredUsers} 
+              loading={loading}
+              onUserDeleted={fetchUsers}
+              onUserEdit={handleUserEdit}
+              onUserDetail={handleUserDetail}
+            />
         </CardContent>
       </Card>
 
-      <UserEditDialog
+      <UserEditDialog 
         user={editingUser}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
+        onUserUpdated={fetchUsers}
+      />
+
+      <UserDetailDialog 
+        user={detailUser}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
         onUserUpdated={fetchUsers}
       />
     </div>
