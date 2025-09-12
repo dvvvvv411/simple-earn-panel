@@ -42,7 +42,7 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
       last_name: "",
       email: "",
       phone: "",
-      branding_id: "",
+      branding_id: "none",
       password: "",
     },
   });
@@ -93,7 +93,7 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
 
       if (authData.user) {
         // Update profile with branding_id if provided
-        if (data.branding_id) {
+        if (data.branding_id && data.branding_id !== "none") {
           const { error: profileError } = await supabase
             .from('profiles')
             .update({ branding_id: data.branding_id })
@@ -224,7 +224,7 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-background border-border">
-                      <SelectItem value="">Kein Branding</SelectItem>
+                      <SelectItem value="none">Kein Branding</SelectItem>
                       {brandings.map((branding) => (
                         <SelectItem key={branding.id} value={branding.id}>
                           {branding.name}

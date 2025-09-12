@@ -57,7 +57,7 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
         first_name: user.first_name || "",
         last_name: user.last_name || "",
         phone: user.phone || "",
-        branding_id: user.branding_id || "",
+        branding_id: user.branding_id || "none",
       });
     }
   }, [user, form]);
@@ -92,7 +92,7 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
           first_name: data.first_name,
           last_name: data.last_name,
           phone: data.phone || null,
-          branding_id: data.branding_id || null,
+          branding_id: data.branding_id === "none" ? null : data.branding_id || null,
         })
         .eq('id', user.id);
 
@@ -194,7 +194,7 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-background border-border">
-                      <SelectItem value="">Kein Branding</SelectItem>
+                      <SelectItem value="none">Kein Branding</SelectItem>
                       {brandings.map((branding) => (
                         <SelectItem key={branding.id} value={branding.id}>
                           {branding.name}
