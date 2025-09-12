@@ -112,15 +112,15 @@ export function MarketOverviewCard() {
                     <div className="flex items-center gap-1 justify-end">
                       {isPositive ? (
                         <div className="flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }} />
-                          <span className="text-xs font-medium" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                          <TrendingUp className="h-3 w-3 text-green-500" />
+                          <span className="text-xs font-medium text-green-500">
                             {formatPercentage(coin.price_change_percentage_24h)}
                           </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1">
-                          <TrendingDown className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs font-medium text-muted-foreground">
+                          <TrendingDown className="h-3 w-3 text-red-500" />
+                          <span className="text-xs font-medium text-red-500">
                             {formatPercentage(coin.price_change_percentage_24h)}
                           </span>
                         </div>
