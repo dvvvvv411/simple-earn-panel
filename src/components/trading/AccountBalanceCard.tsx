@@ -47,39 +47,56 @@ export function AccountBalanceCard() {
 
   if (loading) {
     return (
-      <Card className="bg-card/50 backdrop-blur-sm border-border/40">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Kontostand</CardTitle>
-          <Wallet className="h-4 w-4 text-muted-foreground" />
+      <Card className="border-border bg-card">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
+            Kontostand
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-8 w-32 mb-2" />
-          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-40 mb-4" />
+          <Skeleton className="h-5 w-28" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/60 transition-colors">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Kontostand</CardTitle>
-        <Wallet className="h-4 w-4 text-muted-foreground" />
+    <Card className="border-border bg-card">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Wallet className="h-5 w-5 text-primary" />
+          </div>
+          Kontostand
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold" style={{ color: 'var(--brand-accent, hsl(var(--primary)))' }}>
-          {balance !== null ? formatBalance(balance) : '€0.00'}
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <div className="text-4xl font-bold text-foreground">
+            {balance !== null ? formatBalance(balance) : '€0.00'}
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }} />
+              <span className="font-semibold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                {isPositive ? '+' : ''}{trendPercentage}%
+              </span>
+            </div>
+            <span className="text-muted-foreground">heute</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          {isPositive ? (
-            <TrendingUp className="h-3 w-3 text-green-500" />
-          ) : (
-            <TrendingDown className="h-3 w-3 text-red-500" />
-          )}
-          <span className={isPositive ? "text-green-600" : "text-red-600"}>
-            {isPositive ? '+' : ''}{trendPercentage}%
-          </span>
-          <span>heute</span>
+        
+        <div className="pt-4 border-t border-border">
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Verfügbares Guthaben</span>
+            <span className="font-semibold text-foreground text-lg">
+              {balance !== null ? formatBalance(balance * 0.95) : '€0.00'}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>

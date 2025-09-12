@@ -24,24 +24,28 @@ export function MarketOverviewCard() {
 
   if (loading) {
     return (
-      <Card className="bg-card/50 backdrop-blur-sm border-border/40">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Marktübersicht</CardTitle>
-          <Activity className="h-4 w-4 text-muted-foreground" />
+      <Card className="border-border bg-card">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Activity className="h-5 w-5 text-primary" />
+            </div>
+            Marktübersicht
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-6 w-6 rounded-full" />
+            <div key={i} className="flex items-center justify-between p-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
                 <div>
-                  <Skeleton className="h-4 w-16 mb-1" />
+                  <Skeleton className="h-4 w-20 mb-2" />
                   <Skeleton className="h-3 w-12" />
                 </div>
               </div>
               <div className="text-right">
-                <Skeleton className="h-4 w-20 mb-1" />
-                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-3 w-16" />
               </div>
             </div>
           ))}
@@ -51,19 +55,24 @@ export function MarketOverviewCard() {
   }
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/60 transition-colors">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Marktübersicht</CardTitle>
-        <div className="flex items-center gap-2">
+    <Card className="border-border bg-card">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Activity className="h-5 w-5 text-primary" />
+            </div>
+            Marktübersicht
+          </CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={refetch}
-            className="h-6 w-6 p-0"
+            disabled={loading}
+            className="h-9 w-9 p-0"
           >
-            <RefreshCw className="h-3 w-3" />
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
-          <Activity className="h-4 w-4 text-muted-foreground" />
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -98,20 +107,22 @@ export function MarketOverviewCard() {
                   <p className="text-sm font-semibold">
                     {formatPrice(coin.current_price)}
                   </p>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     {isPositive ? (
-                      <TrendingUp className="h-3 w-3 text-green-500" />
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }} />
+                        <span className="text-sm font-medium" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                          {formatPercentage(coin.price_change_percentage_24h)}
+                        </span>
+                      </div>
                     ) : (
-                      <TrendingDown className="h-3 w-3 text-red-500" />
+                      <div className="flex items-center gap-1">
+                        <TrendingDown className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {formatPercentage(coin.price_change_percentage_24h)}
+                        </span>
+                      </div>
                     )}
-                    <Badge 
-                      variant="outline" 
-                      className={`text-xs ${
-                        isPositive ? 'text-green-600 border-green-200' : 'text-red-600 border-red-200'
-                      }`}
-                    >
-                      {formatPercentage(coin.price_change_percentage_24h)}
-                    </Badge>
                   </div>
                 </div>
               </div>

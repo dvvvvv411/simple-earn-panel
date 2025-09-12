@@ -6,29 +6,29 @@ import { MarketOverviewCard } from "@/components/trading/MarketOverviewCard";
 
 export default function Dashboard() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-3">
+        <h1 className="text-3xl font-bold text-foreground">Trading Dashboard</h1>
+        <p className="text-lg text-muted-foreground">
           Willkommen zurück! Hier ist eine Übersicht über Ihr Trading-Portfolio.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <AccountBalanceCard />
         <TradesCard />
         <RankCard />
         <MarketOverviewCard />
       </div>
 
-      <div className="mt-8 p-4 bg-accent/10 rounded-lg border border-border/40">
-        <h3 className="text-sm font-medium text-foreground mb-2">
-          📊 Trading-Bot in Entwicklung
+      <div className="mt-12 p-6 bg-muted/30 rounded-xl border border-border">
+        <h3 className="text-lg font-semibold text-foreground mb-3">
+          Trading-Bot in Entwicklung
         </h3>
-        <p className="text-xs text-muted-foreground">
-          Unser KI-gestützter Trading-Bot befindet sich noch in der Entwicklung. 
-          Bald können Sie automatisierte Trades basierend auf Marktanalysen durchführen.
-          Alle aktuellen Daten sind Platzhalter und werden durch echte Trading-Metriken ersetzt.
+        <p className="text-muted-foreground leading-relaxed">
+          Unser KI-gestützter Trading-Bot befindet sich derzeit in der Entwicklungsphase. 
+          In Kürze können Sie automatisierte Trades basierend auf fortschrittlichen Marktanalysen durchführen.
+          Alle aktuell angezeigten Daten sind Platzhalter und werden durch echte Trading-Metriken ersetzt.
         </p>
       </div>
     </div>

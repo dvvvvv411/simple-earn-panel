@@ -35,26 +35,26 @@ export function TradingSidebar() {
 
   return (
     <Sidebar variant="inset" className="border-r border-border/40">
-      <SidebarHeader className="h-16 flex items-center px-6 border-b border-border/40">
-        <div className="flex items-center gap-3">
+      <SidebarHeader className="h-20 flex items-center px-6 border-b border-border">
+        <div className="flex items-center gap-4">
           {logoUrl ? (
             <img 
               src={logoUrl} 
               alt={branding?.name || "Logo"} 
-              className="h-8 w-8 object-contain"
+              className="h-12 w-auto max-w-[120px] object-contain"
             />
           ) : (
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground text-sm font-bold">
+            <div className="h-12 w-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
+              <span className="text-lg font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
                 {branding?.name?.charAt(0) || "T"}
               </span>
             </div>
           )}
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-foreground">
+            <span className="text-lg font-bold text-foreground">
               {branding?.name || "Trading Dashboard"}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               Krypto Trading
             </span>
           </div>
@@ -71,10 +71,19 @@ export function TradingSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={location.pathname === item.url}
-                    className="transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className={`h-12 transition-colors hover:bg-accent/50 ${
+                      location.pathname === item.url 
+                        ? 'font-semibold border-r-2' 
+                        : ''
+                    }`}
+                    style={location.pathname === item.url ? {
+                      backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)',
+                      color: 'hsl(var(--brand-accent, var(--primary)))',
+                      borderRightColor: 'hsl(var(--brand-accent, var(--primary)))'
+                    } : {}}
                   >
                     <Link to={item.url} className="flex items-center gap-3">
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
