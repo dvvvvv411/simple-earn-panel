@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -76,16 +76,49 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
   const form = useForm<BrandingFormData>({
     resolver: zodResolver(brandingSchema),
     defaultValues: {
-      name: branding?.name || "",
-      domain: branding?.domain || "",
-      type: branding?.type || "sonstiges",
-      accentColor: branding?.accent_color || "",
-      fromName: branding?.branding_resend_configs?.from_name || "",
-      fromEmail: branding?.branding_resend_configs?.from_email || "",
-      replyTo: branding?.branding_resend_configs?.reply_to || "",
-      apiKey: branding?.branding_resend_configs?.api_key || "",
+      name: "",
+      domain: "",
+      type: "sonstiges",
+      accentColor: "#e91e63",
+      fromName: "",
+      fromEmail: "",
+      replyTo: "",
+      apiKey: "",
     },
   });
+
+  // Reset form values when branding prop changes
+  useEffect(() => {
+    if (branding) {
+      form.reset({
+        name: branding.name || "",
+        domain: branding.domain || "",
+        type: branding.type || "sonstiges",
+        accentColor: branding.accent_color || "#e91e63", // Pinke Fallback-Farbe
+        fromName: branding.branding_resend_configs?.from_name || "",
+        fromEmail: branding.branding_resend_configs?.from_email || "",
+        replyTo: branding.branding_resend_configs?.reply_to || "",
+        apiKey: branding.branding_resend_configs?.api_key || "",
+      });
+      setLogoPreview(branding.logo_path 
+        ? `${supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl}`
+        : null
+      );
+    } else {
+      // Für neues Branding - Fallback-Werte
+      form.reset({
+        name: "",
+        domain: "",
+        type: "sonstiges",
+        accentColor: "#e91e63", // Pinke Fallback-Farbe auch für neue Brandings
+        fromName: "",
+        fromEmail: "",
+        replyTo: "",
+        apiKey: "",
+      });
+      setLogoPreview(null);
+    }
+  }, [branding, form]);
 
   const saveBranding = async (data: BrandingFormData) => {
     setIsSaving(true);
@@ -261,12 +294,12 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
                       <div className="flex gap-2">
                         <Input
                           type="color"
-                          value={field.value || "#1e90ff"}
+                          value={field.value || "#e91e63"}
                           onChange={field.onChange}
                           className="w-12 h-10 p-1 border border-border rounded cursor-pointer"
                         />
                         <Input
-                          placeholder="#1e90ff"
+                          placeholder="#e91e63"
                           value={field.value || ""}
                           onChange={field.onChange}
                           className="flex-1"
