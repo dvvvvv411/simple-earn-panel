@@ -12,6 +12,7 @@ interface Branding {
   name: string;
   domain?: string;
   type: 'kryptotrading' | 'festgeld' | 'sonstiges';
+  accent_color?: string | null;
   logo_path: string | null;
   created_at: string;
   updated_at: string;
