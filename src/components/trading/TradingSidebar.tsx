@@ -1,5 +1,6 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { BarChart3, LogOut } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,14 +10,18 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarHeader,
+  SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { BarChart3, LogOut } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/sonner";
 import { useBranding } from "@/contexts/BrandingContext";
-import { Button } from "@/components/ui/button";
 
-const menuItems = [
+const items = [
   {
     title: "Dashboard",
     url: "/kryptotrading",
@@ -25,86 +30,132 @@ const menuItems = [
 ];
 
 export function TradingSidebar() {
+  const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname;
+  const collapsed = state === 'collapsed';
+  const [userEmail, setUserEmail] = useState<string>("");
   const { branding, logoUrl } = useBranding();
 
+  const isActive = (path: string) => currentPath === path;
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      }
+    };
+    getUserInfo();
+  }, []);
+
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/';
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error) {
+      toast.error('Logout fehlgeschlagen');
+    }
   };
 
   return (
-    <Sidebar variant="inset" className="border-r border-border/40">
-      <SidebarHeader className="h-20 flex items-center px-6 border-b border-border">
-        <div className="flex items-center gap-4">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar">
+      <SidebarHeader className="border-b border-sidebar-border p-6">
+        <div className="flex items-center gap-3">
           {logoUrl ? (
             <img 
               src={logoUrl} 
               alt={branding?.name || "Logo"} 
-              className="h-12 w-auto max-w-[120px] object-contain"
+              className="h-10 w-auto max-w-[120px] object-contain"
             />
           ) : (
-            <div className="h-12 w-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
               <span className="text-lg font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
                 {branding?.name?.charAt(0) || "T"}
               </span>
             </div>
           )}
-          <div className="flex flex-col">
-            <span className="text-lg font-bold text-foreground">
-              {branding?.name || "Trading Dashboard"}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              Krypto Trading
-            </span>
-          </div>
+          {!collapsed && (
+            <div className="flex flex-col">
+              <h2 className="text-lg font-semibold text-sidebar-foreground">
+                {branding?.name || "Trading Dashboard"}
+              </h2>
+              <p className="text-xs text-sidebar-foreground/60">Krypto Trading</p>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="bg-sidebar">
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
+          <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/60 px-4 py-4 mt-2">
+            Navigation
+          </SidebarGroupLabel>
+          <SidebarGroupContent className="mt-2">
+            <SidebarMenu className="space-y-1">
+              {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={location.pathname === item.url}
-                    className={`h-12 transition-colors hover:bg-accent/50 ${
-                      location.pathname === item.url 
-                        ? 'font-semibold border-r-2' 
-                        : ''
-                    }`}
-                    style={location.pathname === item.url ? {
-                      backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)',
-                      color: 'hsl(var(--brand-accent, var(--primary)))',
-                      borderRightColor: 'hsl(var(--brand-accent, var(--primary)))'
-                    } : {}}
-                  >
-                    <Link to={item.url} className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                    </Link>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className={({ isActive }) => 
+                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
+                          isActive 
+                            ? 'bg-primary/10 text-primary border-l-4 border-primary' 
+                            : 'hover:bg-accent/50 text-muted-foreground'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                          {!collapsed && (
+                            <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
+                              {item.title}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <div className="mt-auto p-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLogout}
-            className="w-full justify-start gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Abmelden
-          </Button>
-        </div>
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        {userEmail && !collapsed && (
+          <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-sidebar-accent">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="" />
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                {userEmail.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-sm font-medium text-sidebar-accent-foreground truncate">
+                {userEmail}
+              </span>
+              <span className="text-xs text-sidebar-accent-foreground/60">
+                Trader
+              </span>
+            </div>
+          </div>
+        )}
+        
+        <SidebarMenuButton 
+          onClick={handleLogout}
+          className="w-full flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+        >
+          <LogOut className="h-5 w-5 shrink-0 text-destructive" />
+          {!collapsed && <span>Logout</span>}
+        </SidebarMenuButton>
+      </SidebarFooter>
+      
+      <SidebarRail />
     </Sidebar>
   );
 }
