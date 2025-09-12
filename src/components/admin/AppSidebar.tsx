@@ -85,14 +85,14 @@ export function AppSidebar() {
                       className={({ isActive }) => 
                         `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
                           isActive 
-                            ? 'bg-primary text-primary-foreground shadow-sm' 
-                            : 'hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground'
+                            ? 'bg-primary/10 text-primary border-l-4 border-primary' 
+                            : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
                         }`
                       }
                     >
                       {({ isActive }) => (
                         <>
-                          <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-sidebar-foreground/70'}`} />
+                          <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                           {!collapsed && (
                             <span>
                               {item.title}
