@@ -104,10 +104,21 @@ export function AccountBalanceCard() {
           </div>
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }} />
-              <span className="font-semibold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
-                {isPositive ? '+' : ''}{trendPercentage}%
-              </span>
+              {isPositive ? (
+                <>
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="font-semibold text-green-500">
+                    +{trendPercentage}%
+                  </span>
+                </>
+              ) : (
+                <>
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                  <span className="font-semibold text-red-500">
+                    {trendPercentage}%
+                  </span>
+                </>
+              )}
             </div>
             <span className="text-muted-foreground">heute</span>
           </div>
