@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, TrendingDown, Wallet, Trophy } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 
@@ -122,6 +123,26 @@ export function AccountBalanceCard() {
             <span>{rankData.currentXP.toLocaleString('de-DE')} XP</span>
             <span>{rankData.nextRankXP.toLocaleString('de-DE')} XP benötigt</span>
           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
+          <Button 
+            size="sm" 
+            onClick={() => console.log('Geld einzahlen')}
+            className="flex-1"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Geld einzahlen
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => console.log('Geld auszahlen')}
+            className="flex-1"
+          >
+            <Minus className="h-4 w-4 mr-2" />
+            Geld auszahlen
+          </Button>
         </div>
       </CardContent>
     </Card>

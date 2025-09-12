@@ -1,7 +1,8 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, BarChart3, Target, DollarSign } from "lucide-react";
+import { TrendingUp, BarChart3, Target, DollarSign, Play } from "lucide-react";
 
 export function TradesCard() {
   // Placeholder data - will be replaced with real data later
@@ -10,7 +11,8 @@ export function TradesCard() {
     successfulTrades: 32,
     failedTrades: 15,
     successRate: 68,
-    totalProfit: 1247.50
+    totalProfit: 1247.50,
+    avgTradeDuration: "2h 15min"
   };
 
   const formatCurrency = (amount: number) => {
@@ -47,11 +49,20 @@ export function TradesCard() {
         </div>
 
         <div className="pt-4 border-t border-border">
-          <div className="space-y-1">
-            <p className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
-              +{formatCurrency(tradeStats.totalProfit)}
-            </p>
-            <p className="text-sm text-muted-foreground">Gesamtprofit (Reingewinn)</p>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-1">
+              <p className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                +{formatCurrency(tradeStats.totalProfit)}
+              </p>
+              <p className="text-sm text-muted-foreground">Gesamtprofit (Reingewinn)</p>
+            </div>
+            
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">
+                {tradeStats.avgTradeDuration}
+              </p>
+              <p className="text-sm text-muted-foreground">Durchschnittliche Trade-Dauer</p>
+            </div>
           </div>
         </div>
 
@@ -74,6 +85,16 @@ export function TradesCard() {
               <p className="text-xs text-muted-foreground">Fehlgeschlagen</p>
             </div>
           </div>
+        </div>
+
+        <div className="pt-6">
+          <Button 
+            className="w-full" 
+            onClick={() => console.log('Trading starten')}
+          >
+            <Play className="h-4 w-4 mr-2" />
+            Trading starten
+          </Button>
         </div>
       </CardContent>
     </Card>
