@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { Package, Users, LogOut, Building } from "lucide-react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
