@@ -132,12 +132,6 @@ export function MarketOverviewCard() {
             })}
           </div>
         </ScrollArea>
-        
-        <div className="pt-2 border-t border-border/40">
-          <p className="text-xs text-muted-foreground text-center">
-            Daten von CoinGecko • Aktualisiert alle 2 Min
-          </p>
-        </div>
       </CardContent>
     </Card>
   );
