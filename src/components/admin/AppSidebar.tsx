@@ -56,17 +56,17 @@ export function AppSidebar() {
                       className={({ isActive }) => 
                         `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 ${
                           isActive 
-                            ? 'bg-primary/5 border-l-4 border-primary shadow-sm' 
-                            : 'hover:bg-muted/30'
+                            ? 'bg-primary/5 border-l-4 border-primary shadow-sm !text-primary' 
+                            : 'hover:bg-muted/30 !text-muted-foreground'
                         }`
                       }
                     >
                       <item.icon className="h-5 w-5 shrink-0 text-primary" />
-                      {!collapsed && (
-                        <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
-                          {item.title}
-                        </span>
-                      )}
+                       {!collapsed && (
+                         <span>
+                           {item.title}
+                         </span>
+                       )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
