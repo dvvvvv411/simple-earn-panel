@@ -1,8 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, BarChart3, Target, DollarSign, Play } from "lucide-react";
+import { TrendingUp, BarChart3, Target, DollarSign } from "lucide-react";
 
 export function TradesCard() {
   // Placeholder data - will be replaced with real data later
@@ -85,16 +84,6 @@ export function TradesCard() {
               <p className="text-xs text-muted-foreground">Fehlgeschlagen</p>
             </div>
           </div>
-        </div>
-
-        <div className="pt-6">
-          <Button 
-            className="w-full" 
-            onClick={() => console.log('Trading starten')}
-          >
-            <Play className="h-4 w-4 mr-2" />
-            Trading starten
-          </Button>
         </div>
       </CardContent>
     </Card>
