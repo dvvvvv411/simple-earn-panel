@@ -75,30 +75,30 @@ export function MarketOverviewCard() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {error && (
           <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
             {error}
           </div>
         )}
         
-        <div className="space-y-3">
-          {coins.slice(0, 6).map((coin) => {
+        <div className="space-y-2">
+          {coins.slice(0, 5).map((coin) => {
             const isPositive = coin.price_change_percentage_24h > 0;
             
             return (
-              <div key={coin.id} className="flex items-center justify-between hover:bg-accent/20 p-2 rounded-lg transition-colors">
-                <div className="flex items-center gap-3">
+              <div key={coin.id} className="flex items-center justify-between hover:bg-accent/20 p-1.5 rounded-lg transition-colors">
+                <div className="flex items-center gap-2">
                   <img 
                     src={coin.image} 
                     alt={coin.name}
-                    className="h-6 w-6 rounded-full"
+                    className="h-5 w-5 rounded-full"
                     onError={(e) => {
                       e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
                     }}
                   />
                   <div>
-                    <p className="text-sm font-medium">{coin.name}</p>
+                    <p className="text-sm font-medium truncate max-w-[80px]">{coin.name}</p>
                     <p className="text-xs text-muted-foreground uppercase">{coin.symbol}</p>
                   </div>
                 </div>
@@ -107,18 +107,18 @@ export function MarketOverviewCard() {
                   <p className="text-sm font-semibold">
                     {formatPrice(coin.current_price)}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 justify-end">
                     {isPositive ? (
                       <div className="flex items-center gap-1">
                         <TrendingUp className="h-3 w-3" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }} />
-                        <span className="text-sm font-medium" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                        <span className="text-xs font-medium" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
                           {formatPercentage(coin.price_change_percentage_24h)}
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1">
                         <TrendingDown className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm font-medium text-muted-foreground">
+                        <span className="text-xs font-medium text-muted-foreground">
                           {formatPercentage(coin.price_change_percentage_24h)}
                         </span>
                       </div>
