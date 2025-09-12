@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { hexToHsl } from "@/lib/utils";
 
 interface Branding {
   id: string;
@@ -29,9 +28,8 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (branding?.accent_color) {
-      // Convert hex to HSL for CSS custom property
-      const hslValue = hexToHsl(branding.accent_color);
-      document.documentElement.style.setProperty('--brand-accent', hslValue);
+      // Set CSS custom property for dynamic accent color
+      document.documentElement.style.setProperty('--brand-accent', branding.accent_color);
     }
   }, [branding]);
 
