@@ -1,7 +1,6 @@
 import React from "react";
 import { AccountBalanceCard } from "@/components/trading/AccountBalanceCard";
 import { TradesCard } from "@/components/trading/TradesCard";
-import { RankCard } from "@/components/trading/RankCard";
 import { MarketOverviewCard } from "@/components/trading/MarketOverviewCard";
 
 export default function Dashboard() {
@@ -17,7 +16,6 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <AccountBalanceCard />
         <TradesCard />
-        <RankCard />
         <MarketOverviewCard />
       </div>
 
