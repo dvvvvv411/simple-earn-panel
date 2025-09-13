@@ -14,34 +14,41 @@ interface CryptoCandlestickChartProps {
 }
 
 const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol }) => {
-  const { coins, getOHLCData, loading } = useCoinMarketCap();
-  const ohlcData = getOHLCData(symbol);
+  const { coins, loading } = useCoinMarketCap();
   
   const currentCoin = useMemo(() => {
     return coins.find(coin => coin.symbol.toUpperCase() === symbol.toUpperCase());
   }, [coins, symbol]);
 
+  // Generate mock chart data from current price for visualization
   const chartData = useMemo(() => {
-    if (!ohlcData || ohlcData.length === 0) return [];
+    if (!currentCoin) return [];
     
-    // Use ALL data points for natural curve (no slice!)
-    const data = ohlcData.map((item) => ({
-      time: new Date(item.timestamp).toLocaleTimeString('de-DE', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }),
-      timestamp: item.timestamp,
-      price: item.close
-    }));
+    const currentPrice = currentCoin.current_price;
+    const change24h = currentCoin.price_change_percentage_24h;
+    const data: ChartData[] = [];
+    const now = Date.now();
     
-    // Debug logging
-    console.log(`Chart data points: ${data.length}`);
-    if (data.length > 0) {
-      console.log(`Price range: ${Math.min(...data.map(d => d.price)).toFixed(2)} - ${Math.max(...data.map(d => d.price)).toFixed(2)}`);
+    // Generate 24 mock data points based on current price and 24h change
+    for (let i = 23; i >= 0; i--) {
+      const timestamp = now - (i * 60 * 60 * 1000);
+      const progress = (23 - i) / 23; // 0 to 1
+      const priceVariation = (Math.random() - 0.5) * currentPrice * 0.02; // ±2% random variation
+      const trendPrice = currentPrice - (change24h / 100 * currentPrice * (1 - progress));
+      const price = trendPrice + priceVariation;
+      
+      data.push({
+        time: new Date(timestamp).toLocaleTimeString('de-DE', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        }),
+        timestamp,
+        price: Math.max(price, currentPrice * 0.8) // Ensure minimum price
+      });
     }
     
     return data;
-  }, [ohlcData]);
+  }, [currentCoin]);
 
   const currentPrice = currentCoin?.current_price || 0;
   

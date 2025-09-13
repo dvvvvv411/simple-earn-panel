@@ -42,7 +42,6 @@ interface FormattedCoinData {
 interface CoinMarketCapContextType {
   coins: FormattedCoinData[];
   getPriceData: (symbol: string) => LivePriceData | null;
-  getOHLCData: (symbol: string) => OHLCData[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -55,7 +54,7 @@ const SYMBOLS = ['BTC', 'ETH', 'SOL', 'ADA', 'DOT', 'LINK', 'XRP', 'LTC', 'BCH',
 export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
   const [coins, setCoins] = useState<FormattedCoinData[]>([]);
   const [priceData, setPriceData] = useState<Map<string, LivePriceData>>(new Map());
-  const [ohlcData, setOhlcData] = useState<Map<string, OHLCData[]>>(new Map());
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -104,34 +103,6 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
         setPriceData(newPriceData);
       }
 
-      // Fetch OHLC data for main symbols (BTC, ETH, SOL only to save credits)
-      const mainSymbols = ['BTC', 'ETH', 'SOL'];
-      for (const symbol of mainSymbols) {
-        try {
-          const ohlcResponse = await fetchCoinMarketCapData('ohlcv', {
-            symbol: symbol,
-            convert: 'EUR',
-            count: 24,
-            interval: 'hourly'
-          });
-
-          if (ohlcResponse?.data?.quotes && mountedRef.current) {
-            const transformedData: OHLCData[] = ohlcResponse.data.quotes.map((item: any) => ({
-              timestamp: new Date(item.time_open).getTime(),
-              open: item.quote.EUR.open,
-              high: item.quote.EUR.high,
-              low: item.quote.EUR.low,
-              close: item.quote.EUR.close
-            }));
-            setOhlcData(prev => new Map(prev.set(symbol, transformedData)));
-          }
-        } catch (err) {
-          console.warn(`Failed to fetch OHLC for ${symbol}:`, err);
-          // Generate fallback data
-          const fallbackData = generateFallbackOHLC();
-          setOhlcData(prev => new Map(prev.set(symbol, fallbackData)));
-        }
-      }
 
       setError(null);
     } catch (err) {
@@ -148,28 +119,6 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const generateFallbackOHLC = (): OHLCData[] => {
-    const fallbackData: OHLCData[] = [];
-    const now = Date.now();
-    const basePrice = 50000;
-    let currentPrice = basePrice;
-    
-    for (let i = 23; i >= 0; i--) {
-      const timestamp = now - (i * 60 * 60 * 1000);
-      const volatility = Math.random() * 2000 + 500;
-      const priceChange = (Math.random() - 0.5) * volatility;
-      currentPrice = Math.max(currentPrice + priceChange, basePrice * 0.8);
-      
-      fallbackData.push({
-        timestamp,
-        open: parseFloat(currentPrice.toFixed(2)),
-        high: parseFloat((currentPrice * 1.02).toFixed(2)),
-        low: parseFloat((currentPrice * 0.98).toFixed(2)),
-        close: parseFloat(currentPrice.toFixed(2))
-      });
-    }
-    return fallbackData;
-  };
 
   const generateFallbackData = () => {
     // Generate fallback coins data
@@ -202,8 +151,8 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
     // Initial fetch
     fetchAllData();
     
-    // Set up 20-second interval
-    intervalRef.current = setInterval(fetchAllData, 20000);
+    // Set up 60-second interval
+    intervalRef.current = setInterval(fetchAllData, 60000);
     
     return () => {
       mountedRef.current = false;
@@ -217,9 +166,6 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
     return priceData.get(symbol.toUpperCase()) || null;
   };
 
-  const getOHLCData = (symbol: string): OHLCData[] => {
-    return ohlcData.get(symbol.toUpperCase()) || [];
-  };
 
   const refetch = () => {
     setLoading(true);
@@ -231,7 +177,6 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
       value={{
         coins,
         getPriceData,
-        getOHLCData,
         loading,
         error,
         refetch
