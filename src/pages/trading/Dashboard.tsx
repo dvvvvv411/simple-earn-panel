@@ -157,18 +157,52 @@ export default function Dashboard() {
         <MarketOverviewCard />
       </div>
 
-      {/* Trading Bots Section */}
-      {bots.length > 0 && (
+      {/* Active Trading Bots Section */}
+      {bots.filter(bot => bot.status === 'active').length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">Meine Trading-Bots</h2>
             <span className="text-sm text-muted-foreground">
-              {bots.filter(bot => bot.status === 'active').length} aktiv von {bots.length} gesamt
+              {bots.filter(bot => bot.status === 'active').length} aktive Bots
             </span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bots.map((bot) => (
+            {bots.filter(bot => bot.status === 'active').map((bot) => (
+              <BotCard 
+                key={bot.id} 
+                bot={bot} 
+                onUpdate={handleBalanceUpdate}
+                onBotCompleted={(completedBot) => {
+                  console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
+                  setCompletedBot({
+                    ...completedBot,
+                    buy_price: completedBot.buy_price || null,
+                    sell_price: completedBot.sell_price || null,
+                    leverage: completedBot.leverage || 1,
+                    position_type: completedBot.position_type || 'LONG'
+                  });
+                  setShowSuccessDialog(true);
+                  setTimeout(() => fetchUserBalance(), 500);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Trading History Section */}
+      {bots.filter(bot => bot.status === 'completed').length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-foreground">Trading-Historie</h2>
+            <span className="text-sm text-muted-foreground">
+              Letzte 3 abgeschlossene Trades
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bots.filter(bot => bot.status === 'completed').slice(0, 3).map((bot) => (
               <BotCard 
                 key={bot.id} 
                 bot={bot} 
