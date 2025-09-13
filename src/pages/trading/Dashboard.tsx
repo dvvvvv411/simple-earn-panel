@@ -71,6 +71,7 @@ export default function Dashboard() {
   }, []);
 
   const handleBalanceUpdate = () => {
+    console.log('Triggering balance update');
     fetchUserBalance();
     refetchBots();
   };

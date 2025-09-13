@@ -16,6 +16,14 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: Ac
   const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
 
+  // Sync local state with prop balance immediately
+  useEffect(() => {
+    setBalance(propBalance);
+    if (propBalance > 0) {
+      setLoading(false);
+    }
+  }, [propBalance]);
+
   useEffect(() => {
     loadBalance();
   }, []);
