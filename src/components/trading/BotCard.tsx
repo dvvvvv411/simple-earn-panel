@@ -37,17 +37,23 @@ interface BotCardProps {
 }
 
 export function BotCard({ bot, onUpdate }: BotCardProps) {
+  const [localBot, setLocalBot] = useState<TradingBot>(bot);
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [runtime, setRuntime] = useState<string>('');
   const { toast } = useToast();
   const { coins, getPriceData } = useCoinMarketCap();
-  const priceData = getPriceData(bot.symbol);
+  const priceData = getPriceData(localBot.symbol);
+
+  // Sync local bot state when prop changes
+  useEffect(() => {
+    setLocalBot(bot);
+  }, [bot]);
 
   // Get current coin data
   const currentCoin = useMemo(() => {
-    return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
-  }, [coins, bot.symbol]);
+    return coins.find(coin => coin.symbol.toUpperCase() === localBot.symbol.toUpperCase());
+  }, [coins, localBot.symbol]);
 
   // Format price to exactly 2 decimal places
   const formatPrice = (price: number) => {
@@ -60,8 +66,8 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   };
 
   // Calculate profit/loss
-  const totalReturn = bot.current_balance - bot.start_amount;
-  const returnPercentage = ((totalReturn / bot.start_amount) * 100);
+  const totalReturn = localBot.current_balance - localBot.start_amount;
+  const returnPercentage = ((totalReturn / localBot.start_amount) * 100);
   const isProfit = totalReturn >= 0;
 
   // Get latest trade
@@ -70,7 +76,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   // Calculate runtime
   const calculateRuntime = () => {
     const now = new Date();
-    const startTime = new Date(bot.created_at);
+    const startTime = new Date(localBot.created_at);
     const diffMs = now.getTime() - startTime.getTime();
     
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -113,6 +119,10 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         },
         (payload) => {
           console.log('Bot status updated:', payload);
+          // Immediately update local bot state for instant UI updates
+          if (payload.new) {
+            setLocalBot(prev => ({ ...prev, ...(payload.new as Partial<TradingBot>) }));
+          }
           // Trigger dashboard update when bot status changes to completed
           if (payload.new?.status === 'completed') {
             console.log('Bot completed, triggering balance update');
@@ -125,7 +135,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [bot.id, onUpdate]);
+  }, [localBot.id, onUpdate]);
 
   // Update runtime every minute
   useEffect(() => {
@@ -135,13 +145,13 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
     const interval = setInterval(updateRuntime, 60000); // Update every minute
     
     return () => clearInterval(interval);
-  }, [bot.created_at]);
+  }, [localBot.created_at]);
 
   const fetchTrades = async () => {
     const { data, error } = await supabase
       .from('bot_trades')
       .select('*')
-      .eq('bot_id', bot.id)
+      .eq('bot_id', localBot.id)
       .order('started_at', { ascending: false })
       .limit(5);
 

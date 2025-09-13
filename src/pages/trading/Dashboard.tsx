@@ -34,13 +34,13 @@ export default function Dashboard() {
   useEffect(() => {
     fetchUserBalance();
 
-    // Set up real-time subscription for balance updates
+    // Set up real-time subscription for balance updates and bot changes
     const setupRealtimeSubscription = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const channel = supabase
-        .channel('balance-updates')
+        .channel('dashboard-updates')
         .on(
           'postgres_changes',
           {
@@ -56,6 +56,25 @@ export default function Dashboard() {
             }
           }
         )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'trading_bots',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Trading bot updated via realtime:', payload);
+            // Immediately refetch bots when any bot changes
+            refetchBots();
+            // Also refresh balance when bot is completed
+            if (payload.eventType === 'UPDATE' && payload.new?.status === 'completed') {
+              console.log('Bot completed, refreshing balance');
+              fetchUserBalance();
+            }
+          }
+        )
         .subscribe();
 
       return () => {
@@ -68,7 +87,7 @@ export default function Dashboard() {
     return () => {
       cleanup.then(cleanupFn => cleanupFn?.());
     };
-  }, []);
+  }, [refetchBots]);
 
   const handleBalanceUpdate = () => {
     console.log('Triggering balance update');
