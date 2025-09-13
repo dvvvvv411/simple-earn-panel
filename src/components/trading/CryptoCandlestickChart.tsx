@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useCoinGecko } from '@/contexts/CoinGeckoContext';
 import { useCoinMarketCap } from '@/contexts/CoinMarketCapContext';
 
 interface ChartData {
@@ -15,38 +14,36 @@ interface CryptoCandlestickChartProps {
 }
 
 const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol }) => {
-  // Use CoinGecko for chart data
-  const { getChartData, chartLoading } = useCoinGecko();
-  // Use CoinMarketCap for live price data (red box)
-  const { getPriceData } = useCoinMarketCap();
+  const { coins, getOHLCData, loading } = useCoinMarketCap();
+  const ohlcData = getOHLCData(symbol);
   
-  const coinGeckoData = getChartData(symbol);
-  const livePriceData = getPriceData(symbol);
+  const currentCoin = useMemo(() => {
+    return coins.find(coin => coin.symbol.toUpperCase() === symbol.toUpperCase());
+  }, [coins, symbol]);
 
   const chartData = useMemo(() => {
-    if (!coinGeckoData || coinGeckoData.length === 0) return [];
+    if (!ohlcData || ohlcData.length === 0) return [];
     
-    // Use CoinGecko chart data for natural curves
-    const data = coinGeckoData.map((item) => ({
+    // Use ALL data points for natural curve (no slice!)
+    const data = ohlcData.map((item) => ({
       time: new Date(item.timestamp).toLocaleTimeString('de-DE', { 
         hour: '2-digit', 
         minute: '2-digit' 
       }),
       timestamp: item.timestamp,
-      price: item.price
+      price: item.close
     }));
     
-    console.log(`Chart data points from CoinGecko: ${data.length}`);
+    // Debug logging
+    console.log(`Chart data points: ${data.length}`);
     if (data.length > 0) {
       console.log(`Price range: ${Math.min(...data.map(d => d.price)).toFixed(2)} - ${Math.max(...data.map(d => d.price)).toFixed(2)}`);
     }
     
     return data;
-  }, [coinGeckoData]);
+  }, [ohlcData]);
 
-  // Use live price from CoinMarketCap for the red price box
-  const currentPrice = livePriceData?.price || 0;
-  const priceChange24h = livePriceData?.change24h || 0;
+  const currentPrice = currentCoin?.current_price || 0;
   
   // Determine if trend is positive or negative
   const isPositiveTrend = useMemo(() => {
@@ -56,7 +53,7 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
     return lastPrice >= firstPrice;
   }, [chartData]);
 
-  if (chartLoading) {
+  if (loading) {
     return (
       <div className="space-y-2">
         <div className="h-4 bg-muted animate-pulse rounded"></div>
@@ -90,20 +87,20 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
         </div>
         <div className="text-right">
           <div className={`text-lg font-mono font-bold transition-colors duration-300 ${
-            priceChange24h > 0 
+            currentCoin?.price_change_percentage_24h && currentCoin.price_change_percentage_24h > 0 
               ? 'text-green-500' 
-              : priceChange24h < 0 
+              : currentCoin?.price_change_percentage_24h && currentCoin.price_change_percentage_24h < 0 
                 ? 'text-red-500' 
                 : 'text-foreground'
           }`}>
             €{currentPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="text-xs text-muted-foreground">{symbol}/EUR</div>
-          {priceChange24h !== 0 && (
+          {currentCoin?.price_change_percentage_24h && (
             <div className={`text-xs ${
-              priceChange24h > 0 ? 'text-green-500' : 'text-red-500'
+              currentCoin.price_change_percentage_24h > 0 ? 'text-green-500' : 'text-red-500'
             }`}>
-              {priceChange24h > 0 ? '+' : ''}{priceChange24h.toFixed(2)}%
+              {currentCoin.price_change_percentage_24h > 0 ? '+' : ''}{currentCoin.price_change_percentage_24h.toFixed(2)}%
             </div>
           )}
         </div>

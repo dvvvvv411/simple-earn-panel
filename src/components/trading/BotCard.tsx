@@ -40,8 +40,13 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { getPriceData } = useCoinMarketCap();
+  const { coins, getPriceData } = useCoinMarketCap();
   const priceData = getPriceData(bot.symbol);
+
+  // Get current coin data
+  const currentCoin = useMemo(() => {
+    return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
+  }, [coins, bot.symbol]);
 
   // Format price to exactly 2 decimal places
   const formatPrice = (price: number) => {
@@ -58,10 +63,8 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const returnPercentage = ((totalReturn / bot.start_amount) * 100);
   const isProfit = totalReturn >= 0;
 
-  // Get latest trade - safely handle empty trades array
-  const latestTrade = trades && trades.length > 0 
-    ? trades.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())[0]
-    : null;
+  // Get latest trade
+  const latestTrade = trades.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())[0];
 
   useEffect(() => {
     fetchTrades();

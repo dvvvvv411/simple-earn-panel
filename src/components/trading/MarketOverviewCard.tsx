@@ -4,11 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TrendingUp, TrendingDown, Activity, RefreshCw } from "lucide-react";
-import { useCoinGecko } from "@/contexts/CoinGeckoContext";
+import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { Button } from "@/components/ui/button";
 
 export function MarketOverviewCard() {
-  const { marketCoins, marketLoading, marketError, refetchMarket } = useCoinGecko();
+  const { coins, loading, error, refetch } = useCoinMarketCap();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -23,7 +23,7 @@ export function MarketOverviewCard() {
     return `${percentage > 0 ? '+' : ''}${percentage.toFixed(2)}%`;
   };
 
-  if (marketLoading) {
+  if (loading) {
     return (
       <Card className="border-border bg-card">
         <CardHeader className="pb-4">
@@ -68,24 +68,24 @@ export function MarketOverviewCard() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={refetchMarket}
-            disabled={marketLoading}
+            onClick={refetch}
+            disabled={loading}
             className="h-9 w-9 p-0"
           >
-            <RefreshCw className={`h-4 w-4 ${marketLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-2">
-        {marketError && (
+        {error && (
           <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
-            {marketError}
+            {error}
           </div>
         )}
         
         <ScrollArea className="h-72">
           <div className="space-y-2 pr-4">
-            {marketCoins.map((coin) => {
+            {coins.map((coin) => {
               const isPositive = coin.price_change_percentage_24h > 0;
               
               return (

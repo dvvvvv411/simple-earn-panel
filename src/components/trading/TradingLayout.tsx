@@ -5,15 +5,13 @@ import { TradingSidebar } from "./TradingSidebar";
 import { TradingGuard } from "./TradingGuard";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { CoinMarketCapProvider } from "@/contexts/CoinMarketCapContext";
-import { CoinGeckoProvider } from "@/contexts/CoinGeckoContext";
 
 export function TradingLayout() {
   return (
     <TradingGuard>
       <BrandingProvider>
-        <CoinGeckoProvider>
-          <CoinMarketCapProvider>
-            <SidebarProvider>
+        <CoinMarketCapProvider>
+          <SidebarProvider>
             <div className="min-h-screen flex w-full bg-background">
               <TradingSidebar />
               
@@ -35,9 +33,8 @@ export function TradingLayout() {
                 </main>
               </div>
             </div>
-            </SidebarProvider>
-          </CoinMarketCapProvider>
-        </CoinGeckoProvider>
+          </SidebarProvider>
+        </CoinMarketCapProvider>
       </BrandingProvider>
     </TradingGuard>
   );
