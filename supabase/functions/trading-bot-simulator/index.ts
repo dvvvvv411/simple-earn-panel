@@ -74,12 +74,14 @@ serve(async (req) => {
 });
 
 async function startTradingLoop(bot_id: string, initial_price: number) {
-  console.log(`🔄 Starting one-time trade for bot ${bot_id} with initial price ${initial_price}`);
+  console.log(`🔄 Starting trading simulation for bot ${bot_id} with initial price ${initial_price}`);
   let currentPrice = initial_price;
   
-  // For testing: Execute first trade after 30 seconds
-  console.log('⚡ Scheduling one-time trade in 30 seconds...');
-  await new Promise(resolve => setTimeout(resolve, 30000));
+  // Production: Execute trade after 30-60 minutes
+  const tradingDurationMs = Math.random() * (3600000 - 1800000) + 1800000; // 30-60 minutes in milliseconds
+  const tradingDurationMinutes = Math.round(tradingDurationMs / 60000);
+  console.log(`⏰ Bot will complete in ${tradingDurationMinutes} minutes (${tradingDurationMs}ms)`);
+  await new Promise(resolve => setTimeout(resolve, tradingDurationMs));
   
   try {
     console.log('🎯 Executing one-time trade...');
