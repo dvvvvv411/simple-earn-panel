@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Trophy, BarChart3, Activity } from 'lucide-react';
 import { useBranding } from '@/contexts/BrandingContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TradingBot {
   id: string;
@@ -19,6 +20,15 @@ interface TradingBot {
   position_type: string;
 }
 
+interface BotTradeDetails {
+  buy_price: number;
+  sell_price: number;
+  leverage: number;
+  trade_type: string;
+  profit_amount: number;
+  profit_percentage: number;
+}
+
 interface TradingSuccessDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -28,7 +38,40 @@ interface TradingSuccessDialogProps {
 export function TradingSuccessDialog({ open, onOpenChange, completedBot }: TradingSuccessDialogProps) {
   const { branding } = useBranding();
   const accentColor = branding?.accent_color || '#10b981';
+  const [tradeDetails, setTradeDetails] = useState<BotTradeDetails | null>(null);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch trade details from bot_trades table
+  useEffect(() => {
+    if (open && completedBot) {
+      setLoading(true);
+      const fetchTradeDetails = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('bot_trades')
+            .select('buy_price, sell_price, leverage, trade_type, profit_amount, profit_percentage')
+            .eq('bot_id', completedBot.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (error) {
+            console.error('Error fetching trade details:', error);
+          } else {
+            setTradeDetails(data);
+          }
+        } catch (error) {
+          console.error('Error fetching trade details:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchTradeDetails();
+    }
+  }, [open, completedBot]);
+
+  // Confetti animation
   useEffect(() => {
     if (open && completedBot && branding?.accent_color) {
       // Convert hex to RGB for confetti colors
@@ -59,8 +102,8 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
 
   if (!completedBot) return null;
 
-  const profit = completedBot.current_balance - completedBot.start_amount;
-  const profitPercentage = ((profit / completedBot.start_amount) * 100).toFixed(2);
+  const profit = tradeDetails?.profit_amount ?? (completedBot.current_balance - completedBot.start_amount);
+  const profitPercentage = tradeDetails?.profit_percentage?.toFixed(2) ?? ((profit / completedBot.start_amount) * 100).toFixed(2);
   const isProfit = profit > 0;
 
   return (
@@ -76,6 +119,10 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
             <Trophy className="w-8 h-8 text-white" />
           </div>
           
+          <div className="text-center mb-2">
+            <span className="text-2xl">🎉 🎉</span>
+          </div>
+          
           <DialogTitle 
             className="text-2xl font-bold bg-clip-text text-transparent text-center"
             style={{ 
@@ -84,7 +131,7 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
               WebkitTextFillColor: 'transparent'
             }}
           >
-            🎉 Glückwunsch! 🎉
+            Glückwunsch!
           </DialogTitle>
           
           <div className="text-center space-y-2">
@@ -127,11 +174,11 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Position</span>
-                <div className="font-semibold">{completedBot.position_type || 'LONG'}</div>
+                <div className="font-semibold">{tradeDetails?.trade_type || completedBot.position_type || 'LONG'}</div>
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Hebel</span>
-                <div className="font-semibold">{completedBot.leverage || 1}x</div>
+                <div className="font-semibold">{tradeDetails?.leverage || completedBot.leverage || 1}x</div>
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Laufzeit</span>
@@ -141,11 +188,11 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Einkaufspreis</span>
-                <div className="font-semibold">{completedBot.buy_price?.toFixed(4) || 'N/A'} $</div>
+                <div className="font-semibold">{tradeDetails?.buy_price?.toFixed(4) || completedBot.buy_price?.toFixed(4) || 'N/A'} $</div>
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Verkaufspreis</span>
-                <div className="font-semibold">{completedBot.sell_price?.toFixed(4) || 'N/A'} $</div>
+                <div className="font-semibold">{tradeDetails?.sell_price?.toFixed(4) || completedBot.sell_price?.toFixed(4) || 'N/A'} $</div>
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Startsumme</span>
