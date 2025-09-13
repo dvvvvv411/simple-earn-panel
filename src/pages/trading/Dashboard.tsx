@@ -279,16 +279,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="mt-12 p-6 bg-muted/30 rounded-xl border border-border">
-        <h3 className="text-lg font-semibold text-foreground mb-3">
-          Trading-Bot in Entwicklung
-        </h3>
-        <p className="text-muted-foreground leading-relaxed">
-          Unser KI-gestützter Trading-Bot befindet sich derzeit in der Entwicklungsphase. 
-          In Kürze können Sie automatisierte Trades basierend auf fortschrittlichen Marktanalysen durchführen.
-          Alle aktuell angezeigten Daten sind Platzhalter und werden durch echte Trading-Metriken ersetzt.
-        </p>
-      </div>
 
       <TradingSuccessDialog
         open={showSuccessDialog}
