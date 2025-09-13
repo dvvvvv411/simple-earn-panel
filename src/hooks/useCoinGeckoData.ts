@@ -18,8 +18,8 @@ export function useCoinGeckoData() {
   useEffect(() => {
     fetchCoinData();
     
-    // Refresh data every 2 minutes
-    const interval = setInterval(fetchCoinData, 120000);
+    // Refresh data every 5 minutes to reduce API calls
+    const interval = setInterval(fetchCoinData, 300000);
     return () => clearInterval(interval);
   }, []);
 

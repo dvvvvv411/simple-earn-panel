@@ -52,7 +52,10 @@ export function useLiveCoinPrice(symbol: string) {
     } catch (err) {
       console.error('Error fetching live price:', err);
       if (mountedRef.current) {
-        setError('Fehler beim Laden des Live-Preises');
+        // Keep last known data instead of showing error immediately
+        if (!priceData) {
+          setError('Fehler beim Laden des Live-Preises');
+        }
       }
     } finally {
       if (mountedRef.current) {
@@ -67,8 +70,8 @@ export function useLiveCoinPrice(symbol: string) {
     // Initial fetch
     fetchLivePrice();
     
-    // Set up 2-second interval for live updates
-    intervalRef.current = setInterval(fetchLivePrice, 2000);
+    // Set up 15-second interval for live updates to avoid rate limiting
+    intervalRef.current = setInterval(fetchLivePrice, 15000);
     
     return () => {
       mountedRef.current = false;
