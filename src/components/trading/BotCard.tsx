@@ -16,6 +16,10 @@ interface TradingBot {
   status: 'active' | 'paused' | 'stopped' | 'completed';
   created_at: string;
   updated_at: string;
+  buy_price?: number | null;
+  sell_price?: number | null;
+  leverage?: number;
+  position_type?: string;
 }
 
 interface BotTrade {

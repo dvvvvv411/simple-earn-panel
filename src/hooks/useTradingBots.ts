@@ -10,6 +10,10 @@ interface TradingBot {
   status: 'active' | 'paused' | 'stopped' | 'completed';
   created_at: string;
   updated_at: string;
+  buy_price: number | null;
+  sell_price: number | null;
+  leverage: number;
+  position_type: string;
 }
 
 export function useTradingBots() {
@@ -39,7 +43,14 @@ export function useTradingBots() {
         setError('Fehler beim Laden der Trading-Bots');
         setBots([]);
       } else {
-        setBots((data || []) as TradingBot[]);
+        const transformedData = (data || []).map((bot: any) => ({
+          ...bot,
+          buy_price: bot.buy_price || null,
+          sell_price: bot.sell_price || null,
+          leverage: bot.leverage || 1,
+          position_type: bot.position_type || 'LONG'
+        }));
+        setBots(transformedData as TradingBot[]);
       }
     } catch (err) {
       console.error('Unexpected error fetching bots:', err);

@@ -17,6 +17,10 @@ interface TradingBot {
   status: 'active' | 'paused' | 'stopped' | 'completed';
   created_at: string;
   updated_at: string;
+  buy_price: number | null;
+  sell_price: number | null;
+  leverage: number;
+  position_type: string;
 }
 
 export default function Dashboard() {
@@ -82,7 +86,14 @@ export default function Dashboard() {
                 (payload.old as any)?.status === 'active' && 
                 (payload.new as any)?.status === 'completed') {
               console.log('🎯 Dashboard: Bot completed! Showing success dialog');
-              setCompletedBot(payload.new as TradingBot);
+              const bot = payload.new as any;
+              setCompletedBot({
+                ...bot,
+                buy_price: bot.buy_price || null,
+                sell_price: bot.sell_price || null,
+                leverage: bot.leverage || 1,
+                position_type: bot.position_type || 'LONG'
+              });
               setShowSuccessDialog(true);
               setTimeout(() => fetchUserBalance(), 500); // Small delay to ensure DB consistency
             }
@@ -164,7 +175,13 @@ export default function Dashboard() {
                 onUpdate={handleBalanceUpdate}
                 onBotCompleted={(completedBot) => {
                   console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
-                  setCompletedBot(completedBot);
+                  setCompletedBot({
+                    ...completedBot,
+                    buy_price: completedBot.buy_price || null,
+                    sell_price: completedBot.sell_price || null,
+                    leverage: completedBot.leverage || 1,
+                    position_type: completedBot.position_type || 'LONG'
+                  });
                   setShowSuccessDialog(true);
                   setTimeout(() => fetchUserBalance(), 500);
                 }}
