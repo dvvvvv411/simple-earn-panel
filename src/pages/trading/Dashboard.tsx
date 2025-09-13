@@ -6,10 +6,24 @@ import { WelcomeCard } from "@/components/trading/WelcomeCard";
 import { BotCard } from "@/components/trading/BotCard";
 import { useTradingBots } from "@/hooks/useTradingBots";
 import { supabase } from "@/integrations/supabase/client";
+import { TradingSuccessDialog } from "@/components/trading/TradingSuccessDialog";
+
+interface TradingBot {
+  id: string;
+  cryptocurrency: string;
+  symbol: string;
+  start_amount: number;
+  current_balance: number;
+  status: 'active' | 'paused' | 'stopped' | 'completed';
+  created_at: string;
+  updated_at: string;
+}
 
 export default function Dashboard() {
   const [userBalance, setUserBalance] = useState<number>(25000.50);
   const { bots, loading: botsLoading, refetch: refetchBots } = useTradingBots();
+  const [completedBot, setCompletedBot] = useState<TradingBot | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   // Fetch user balance
   const fetchUserBalance = async () => {
@@ -64,8 +78,12 @@ export default function Dashboard() {
             refetchBots();
             
             // Special handling for completed bots
-            if (payload.eventType === 'UPDATE' && (payload.new as any)?.status === 'completed') {
-              console.log('🎯 Dashboard: Bot completed, triggering balance refresh');
+            if (payload.eventType === 'UPDATE' && 
+                (payload.old as any)?.status === 'active' && 
+                (payload.new as any)?.status === 'completed') {
+              console.log('🎯 Dashboard: Bot completed! Showing success dialog');
+              setCompletedBot(payload.new as TradingBot);
+              setShowSuccessDialog(true);
               setTimeout(() => fetchUserBalance(), 500); // Small delay to ensure DB consistency
             }
           }
@@ -160,6 +178,17 @@ export default function Dashboard() {
           Alle aktuell angezeigten Daten sind Platzhalter und werden durch echte Trading-Metriken ersetzt.
         </p>
       </div>
+
+      <TradingSuccessDialog
+        open={showSuccessDialog}
+        onOpenChange={(open) => {
+          setShowSuccessDialog(open);
+          if (!open) {
+            setCompletedBot(null);
+          }
+        }}
+        completedBot={completedBot}
+      />
     </div>
   );
 }
