@@ -27,19 +27,13 @@ serve(async (req) => {
     
     console.log(`Starting trade simulation for bot ${bot_id} at price ${current_price}`);
 
-    // Simulate trade execution after random delay (30-60 minutes in reality, but 30-60 seconds for demo)
-    const tradeDelayMs = Math.random() * (60000 - 30000) + 30000; // 30-60 seconds for demo
-    console.log(`Trade will execute in ${tradeDelayMs / 1000} seconds`);
-
-    // Schedule the trade execution
-    setTimeout(async () => {
-      await simulateTrade(bot_id, current_price);
-    }, tradeDelayMs);
+    // Start background trading simulation
+    EdgeRuntime.waitUntil(startTradingLoop(bot_id, current_price));
 
     return new Response(JSON.stringify({ 
       success: true, 
       message: `Trade simulation started for bot ${bot_id}`,
-      estimated_execution_time: new Date(Date.now() + tradeDelayMs).toISOString()
+      status: 'active'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -52,6 +46,42 @@ serve(async (req) => {
     });
   }
 });
+
+async function startTradingLoop(bot_id: string, initial_price: number) {
+  let currentPrice = initial_price;
+  
+  while (true) {
+    try {
+      // Check if bot is still active
+      const { data: bot } = await supabase
+        .from('trading_bots')
+        .select('status')
+        .eq('id', bot_id)
+        .single();
+
+      if (!bot || bot.status !== 'active') {
+        console.log(`Bot ${bot_id} stopped or not found`);
+        break;
+      }
+
+      // Wait 30-60 minutes for trade (converted to milliseconds)
+      const tradeDelayMs = Math.random() * (60 * 60000 - 30 * 60000) + 30 * 60000; // 30-60 minutes
+      console.log(`Next trade in ${(tradeDelayMs / 60000).toFixed(1)} minutes`);
+      
+      await new Promise(resolve => setTimeout(resolve, tradeDelayMs));
+      
+      // Simulate realistic price movement (±5% max)
+      const priceVariance = Math.random() * 0.1 - 0.05; // -5% to +5%
+      currentPrice = currentPrice * (1 + priceVariance);
+      
+      await simulateTrade(bot_id, currentPrice);
+      
+    } catch (error) {
+      console.error('Error in trading loop:', error);
+      await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 1 minute before retry
+    }
+  }
+}
 
 async function simulateTrade(bot_id: string, entry_price: number) {
   try {
@@ -96,7 +126,7 @@ async function simulateTrade(bot_id: string, entry_price: number) {
     const profitAmount = tradeAmount * (actualProfitPercentage / 100);
     const newBalance = bot.current_balance + profitAmount;
 
-    console.log(`Trade details: ${tradeType} ${leverage}x leverage, Entry: ${currentPrice}, Exit: ${exitPrice}, Profit: ${actualProfitPercentage.toFixed(2)}%`);
+    console.log(`Trade details: ${tradeType} ${leverage.toFixed(1)}x leverage, Entry: ${currentPrice.toFixed(4)}, Exit: ${exitPrice.toFixed(4)}, Profit: ${actualProfitPercentage.toFixed(2)}%`);
 
     // Create trade record
     const { data: trade, error: tradeError } = await supabase
@@ -136,25 +166,6 @@ async function simulateTrade(bot_id: string, entry_price: number) {
     }
 
     console.log(`Trade completed successfully for bot ${bot_id}. New balance: ${newBalance.toFixed(2)}`);
-
-    // Schedule next trade if bot is still active
-    const { data: updatedBot } = await supabase
-      .from('trading_bots')
-      .select('status')
-      .eq('id', bot_id)
-      .single();
-
-    if (updatedBot?.status === 'active') {
-      // Schedule next trade in 30-60 minutes (for demo: 2-5 minutes)
-      const nextTradeDelay = Math.random() * (300000 - 120000) + 120000; // 2-5 minutes for demo
-      console.log(`Scheduling next trade in ${nextTradeDelay / 1000} seconds`);
-      
-      setTimeout(async () => {
-        // Fetch current price (simulate price movement)
-        const newCurrentPrice = exitPrice * (1 + (Math.random() * 0.04 - 0.02)); // ±2% movement
-        await simulateTrade(bot_id, newCurrentPrice);
-      }, nextTradeDelay);
-    }
 
   } catch (error) {
     console.error('Error in simulateTrade:', error);

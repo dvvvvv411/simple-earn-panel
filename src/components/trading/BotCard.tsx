@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bot, TrendingUp, TrendingDown } from "lucide-react";
+import { Bot, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCoinMarketCap } from '@/contexts/CoinMarketCapContext';
@@ -39,6 +39,7 @@ interface BotCardProps {
 export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [runtime, setRuntime] = useState<string>('');
   const { toast } = useToast();
   const { coins, getPriceData } = useCoinMarketCap();
   const priceData = getPriceData(bot.symbol);
@@ -66,6 +67,22 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   // Get latest trade
   const latestTrade = trades.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())[0];
 
+  // Calculate runtime
+  const calculateRuntime = () => {
+    const now = new Date();
+    const startTime = new Date(bot.created_at);
+    const diffMs = now.getTime() - startTime.getTime();
+    
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  };
+
   useEffect(() => {
     fetchTrades();
     
@@ -91,6 +108,16 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
       supabase.removeChannel(channel);
     };
   }, [bot.id]);
+
+  // Update runtime every minute
+  useEffect(() => {
+    const updateRuntime = () => setRuntime(calculateRuntime());
+    updateRuntime(); // Initial calculation
+    
+    const interval = setInterval(updateRuntime, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, [bot.created_at]);
 
   const fetchTrades = async () => {
     const { data, error } = await supabase
@@ -121,9 +148,15 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
             </Badge>
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-medium text-green-600">Aktiv</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-sm font-medium text-green-600">Aktiv</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              <span>Läuft seit: {runtime}</span>
+            </div>
           </div>
         </div>
         

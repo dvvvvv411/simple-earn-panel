@@ -66,7 +66,8 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
           cryptocurrency: selectedCoin.name,
           symbol: selectedCoin.symbol.toUpperCase(),
           start_amount: investmentAmount,
-          current_balance: investmentAmount
+          current_balance: investmentAmount,
+          status: 'active'
         })
         .select()
         .single();
