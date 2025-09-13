@@ -246,8 +246,8 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                                </div>
                              </div>
                            </div>
-                           <div className="text-right text-sm min-w-[90px]">
-                             <div className="font-medium">
+                           <div className="text-right text-sm">
+                             <div className="font-medium font-mono tabular-nums">
                                {coin.current_price.toLocaleString('de-DE', { 
                                  style: 'currency', 
                                  currency: 'EUR',
@@ -255,7 +255,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                                  maximumFractionDigits: 2
                                })}
                              </div>
-                             <div className={`text-xs ${
+                             <div className={`text-xs font-mono tabular-nums ${
                                coin.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
                              }`}>
                                {coin.price_change_percentage_24h >= 0 ? '+' : ''}{coin.price_change_percentage_24h.toFixed(2)}%
