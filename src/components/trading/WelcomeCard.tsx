@@ -44,8 +44,8 @@ export function WelcomeCard() {
           50% { transform: translateY(-15px) rotate(-3deg); }
         }
         @keyframes shimmer {
-          0% { transform: translateX(-150%); }
-          100% { transform: translateX(150%); }
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
         @keyframes pulse-glow {
           0%, 100% { opacity: 0.3; transform: scale(1); }
@@ -87,7 +87,7 @@ export function WelcomeCard() {
           {/* Shimmer Overlay */}
           <div className="absolute inset-0 overflow-hidden">
             <div 
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-1/3 skew-x-12"
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full skew-x-12"
               style={animationStyles.shimmer}
             ></div>
           </div>
