@@ -162,6 +162,12 @@ export default function Dashboard() {
                 key={bot.id} 
                 bot={bot} 
                 onUpdate={handleBalanceUpdate}
+                onBotCompleted={(completedBot) => {
+                  console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
+                  setCompletedBot(completedBot);
+                  setShowSuccessDialog(true);
+                  setTimeout(() => fetchUserBalance(), 500);
+                }}
               />
             ))}
           </div>

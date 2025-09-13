@@ -15,6 +15,7 @@ interface TradingBot {
   current_balance: number;
   status: 'active' | 'paused' | 'stopped' | 'completed';
   created_at: string;
+  updated_at: string;
 }
 
 interface BotTrade {
@@ -34,9 +35,10 @@ interface BotTrade {
 interface BotCardProps {
   bot: TradingBot;
   onUpdate: () => void;
+  onBotCompleted?: (bot: TradingBot) => void;
 }
 
-export function BotCard({ bot, onUpdate }: BotCardProps) {
+export function BotCard({ bot, onUpdate, onBotCompleted }: BotCardProps) {
   const [localBot, setLocalBot] = useState<TradingBot>(bot);
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,8 +57,15 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
       oldBalance: localBot.current_balance,
       newBalance: bot.current_balance
     });
+    
+    // Check if bot just completed (status changed from active to completed)
+    if (localBot.status === 'active' && bot.status === 'completed') {
+      console.log('🎯 BotCard: Bot completed! Triggering confetti popup for bot:', bot.id);
+      onBotCompleted?.(bot);
+    }
+    
     setLocalBot(bot);
-  }, [bot]);
+  }, [bot, localBot.status, onBotCompleted]);
 
   // Get current coin data
   const currentCoin = useMemo(() => {
