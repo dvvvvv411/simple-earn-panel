@@ -5,6 +5,7 @@ import { Bot, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCoinGeckoData } from '@/hooks/useCoinGeckoData';
+import { useLiveCoinPrice } from '@/hooks/useLiveCoinPrice';
 import CryptoCandlestickChart from './CryptoCandlestickChart';
 
 interface TradingBot {
@@ -41,8 +42,9 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { coins } = useCoinGeckoData();
+  const { formattedPrice, change24h, isLive } = useLiveCoinPrice(bot.symbol);
 
-  // Get current price from CoinGecko data
+  // Get current price from CoinGecko data (fallback)
   const currentCoin = useMemo(() => {
     return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
   }, [coins, bot.symbol]);
@@ -113,6 +115,18 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-sm font-medium text-green-600">Aktiv</span>
+          </div>
+        </div>
+        
+        {/* Live Price Display */}
+        <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/20">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+            <span className="text-xs font-medium text-green-600">LIVE</span>
+            <span className="text-sm font-semibold">{formattedPrice}</span>
+          </div>
+          <div className={`text-xs font-medium ${change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}%
           </div>
         </div>
       </CardHeader>
