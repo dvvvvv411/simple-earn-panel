@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap } from "lucide-react";
+import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight } from "lucide-react";
 import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -336,6 +336,58 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
 
           {/* Right Column - Preview & Info */}
           <div className="space-y-6">
+            {/* Crypto Selection Call-to-Action */}
+            {!selectedCoin && (
+              <Card className="relative overflow-hidden border-dashed border-2 border-primary/30">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
+                <CardContent className="relative p-8 text-center">
+                  <div className="flex justify-center mb-6">
+                    <div className="relative">
+                      {/* Rotating Crypto Icons */}
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center animate-pulse">
+                        <div className="animate-spin">
+                          <Bitcoin className="w-8 h-8 text-primary" />
+                        </div>
+                      </div>
+                      {/* Animated indicators around the icon */}
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary animate-bounce" />
+                      <div className="absolute -bottom-1 -left-1 w-3 h-3 rounded-full bg-primary/60 animate-bounce delay-100" />
+                    </div>
+                  </div>
+                  
+                  {/* Animated Arrow pointing left */}
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="animate-bounce">
+                      <ArrowRight className="w-6 h-6 text-primary rotate-180" />
+                    </div>
+                    <div className="text-sm font-medium text-primary">
+                      Dropdown auswählen
+                    </div>
+                  </div>
+                  
+                  {/* Call-to-Action Text */}
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">
+                    Wählen Sie eine Kryptowährung
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Starten Sie Ihren ersten Trading-Bot
+                  </p>
+                  
+                  {/* Feature Highlights */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <Sparkles className="w-3 h-3" />
+                      <span>Über 100 Kryptowährungen verfügbar</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>Live-Marktdaten & Preise</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             {selectedCoin && (
               <Card className="relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
