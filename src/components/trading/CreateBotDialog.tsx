@@ -230,39 +230,37 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                     </SelectItem>
                   ) : (
                     coins.map((coin) => (
-                      <SelectItem key={coin.id} value={coin.id}>
-                         <div className="flex items-center justify-between py-1">
-                           <div className="flex items-center gap-3">
-                             <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
-                             <div>
-                               <div className="flex items-center gap-2">
-                                 <span className="font-medium">{coin.name}</span>
-                                 <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                   {coin.symbol.toUpperCase()}
-                                 </span>
-                               </div>
-                               <div className="text-xs text-muted-foreground">
-                                 Rang #{coin.market_cap_rank}
-                               </div>
-                             </div>
-                           </div>
-                           <div className="text-right text-sm">
-                             <div className="font-medium font-mono tabular-nums">
-                               {coin.current_price.toLocaleString('de-DE', { 
-                                 style: 'currency', 
-                                 currency: 'EUR',
-                                 minimumFractionDigits: 2,
-                                 maximumFractionDigits: 2
-                               })}
-                             </div>
-                             <div className={`text-xs font-mono tabular-nums ${
-                               coin.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
-                             }`}>
-                               {coin.price_change_percentage_24h >= 0 ? '+' : ''}{coin.price_change_percentage_24h.toFixed(2)}%
-                             </div>
-                           </div>
-                         </div>
-                      </SelectItem>
+                       <SelectItem key={coin.id} value={coin.id} className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-3">
+                              <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{coin.name}</span>
+                                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                    {coin.symbol.toUpperCase()}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Rang #{coin.market_cap_rank}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold font-mono tabular-nums">
+                                {coin.current_price.toLocaleString('de-DE', { 
+                                  style: 'currency', 
+                                  currency: 'EUR',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                              </p>
+                              <p className={`text-xs font-mono tabular-nums ${
+                                coin.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {coin.price_change_percentage_24h >= 0 ? '+' : ''}{coin.price_change_percentage_24h.toFixed(2)}%
+                              </p>
+                            </div>
+                       </SelectItem>
                     ))
                   )}
                 </SelectContent>
