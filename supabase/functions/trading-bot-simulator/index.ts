@@ -92,9 +92,73 @@ async function startTradingLoop(bot_id: string, initial_price: number) {
   console.log(`🏁 Trading completed for bot ${bot_id}`);
 }
 
-async function simulateTrade(bot_id: string, entry_price: number) {
+async function findOptimalTradePrices(symbol: string, currentPrice: number, botCreatedAt: string) {
+  console.log(`🔍 Finding optimal trade prices for ${symbol}`);
+  
+  // For the 30-second test phase, simulate realistic market movements
+  // In production, this would use actual CoinMarketCap OHLCV data
+  
+  // Calculate time since bot creation (in minutes)
+  const botStartTime = new Date(botCreatedAt);
+  const currentTime = new Date();
+  const timeDifferenceMs = currentTime.getTime() - botStartTime.getTime();
+  const timeDifferenceMinutes = Math.max(timeDifferenceMs / (1000 * 60), 0.5); // At least 30 seconds
+  
+  console.log(`⏰ Bot running time: ${timeDifferenceMinutes.toFixed(1)} minutes`);
+  
+  // Generate realistic price movements based on timeframe
+  // Longer timeframes allow for bigger movements
+  const maxMovementPercent = Math.min(timeDifferenceMinutes * 0.1, 2.0); // Max 2% movement
+  
+  // Simulate historical price range within the timeframe
+  const volatility = Math.random() * maxMovementPercent; // 0% to maxMovementPercent
+  const direction = Math.random() > 0.5 ? 1 : -1; // Up or down
+  
+  // Create realistic entry and exit prices
+  let entryPrice: number;
+  let exitPrice: number;
+  let tradeType: 'long' | 'short';
+  let marketMovementPercent: number;
+  
+  if (direction > 0) {
+    // Market went up - perfect for LONG position
+    entryPrice = currentPrice * (1 - volatility / 100); // Enter at lower price
+    exitPrice = currentPrice; // Exit at current higher price
+    tradeType = 'long';
+    marketMovementPercent = ((exitPrice - entryPrice) / entryPrice) * 100;
+  } else {
+    // Market went down - perfect for SHORT position  
+    entryPrice = currentPrice * (1 + volatility / 100); // Enter at higher price (short sell)
+    exitPrice = currentPrice; // Exit at current lower price (buy back)
+    tradeType = 'short';
+    marketMovementPercent = ((entryPrice - exitPrice) / entryPrice) * 100;
+  }
+  
+  // Ensure minimum movement for leverage calculation
+  if (Math.abs(marketMovementPercent) < 0.1) {
+    marketMovementPercent = 0.1 * Math.sign(marketMovementPercent);
+    if (tradeType === 'long') {
+      exitPrice = entryPrice * (1 + marketMovementPercent / 100);
+    } else {
+      exitPrice = entryPrice * (1 - marketMovementPercent / 100);
+    }
+  }
+  
+  console.log(`🎯 Optimal trade found: ${tradeType.toUpperCase()} position`);
+  console.log(`📊 Entry: ${entryPrice.toFixed(4)} → Exit: ${exitPrice.toFixed(4)}`);
+  console.log(`📈 Market movement: ${marketMovementPercent.toFixed(2)}%`);
+  
+  return {
+    entryPrice,
+    exitPrice,
+    tradeType,
+    marketMovementPercent: Math.abs(marketMovementPercent)
+  };
+}
+
+async function simulateTrade(bot_id: string, initial_price: number) {
   try {
-    console.log(`Executing trade for bot ${bot_id}`);
+    console.log(`🎯 Executing time-traveling trade simulation for bot ${bot_id}`);
 
     // Get bot information
     const { data: bot, error: botError } = await supabase
@@ -105,52 +169,71 @@ async function simulateTrade(bot_id: string, entry_price: number) {
       .single();
 
     if (botError || !bot) {
-      console.error('Bot not found or not active:', botError);
+      console.error('❌ Bot not found or not active:', botError);
       return;
     }
 
-    // Generate trade parameters
-    const tradeType = Math.random() > 0.5 ? 'long' : 'short';
-    const targetProfitPercentage = Math.random() * 2 + 1; // 1-3% profit
-    const leverage = Math.random() * 9 + 1; // 1-10x leverage
-    
-    // Calculate realistic price movement
-    const priceVariance = Math.random() * 0.02 - 0.01; // -1% to +1% natural movement
-    const currentPrice = entry_price * (1 + priceVariance);
-    
-    // Calculate exit price based on trade type and desired profit
-    let exitPrice: number;
-    if (tradeType === 'long') {
-      exitPrice = currentPrice * (1 + (targetProfitPercentage / 100) / leverage);
-    } else {
-      exitPrice = currentPrice * (1 - (targetProfitPercentage / 100) / leverage);
-    }
+    console.log(`📊 Bot found: ${bot.cryptocurrency} (${bot.symbol}), Start Amount: ${bot.start_amount}`);
 
-    // Calculate profit amount - Use full start amount for single trade
-    const tradeAmount = bot.start_amount; // Use 100% of start amount
-    const actualProfitPercentage = tradeType === 'long' 
-      ? ((exitPrice - currentPrice) / currentPrice) * 100 * leverage
-      : ((currentPrice - exitPrice) / currentPrice) * 100 * leverage;
+    // Get historical price data for the bot's timeframe (simulate "time-traveling")
+    const { entryPrice, exitPrice, tradeType, marketMovementPercent } = await findOptimalTradePrices(
+      bot.symbol, 
+      initial_price,
+      bot.created_at
+    );
+
+    // Calculate target profit (1-3%)
+    const targetProfitPercentage = Math.random() * 2 + 1; // 1-3% profit
     
-    const profitAmount = tradeAmount * (actualProfitPercentage / 100);
+    // Calculate required leverage to achieve target profit from market movement
+    const requiredLeverage = Math.abs(targetProfitPercentage / marketMovementPercent);
+    const leverage = Math.min(Math.max(requiredLeverage, 1), 10); // Keep leverage between 1x-10x
+    
+    // Adjust target profit based on capped leverage
+    const actualTargetProfit = Math.abs(marketMovementPercent * leverage);
+
+    console.log(`📈 Market Movement: ${marketMovementPercent.toFixed(2)}%, Required Leverage: ${leverage.toFixed(1)}x`);
+    console.log(`🎯 Target Profit: ${actualTargetProfit.toFixed(2)}%`);
+
+    // Calculate trade amounts and profits
+    const tradeAmount = bot.start_amount; // Use 100% of start amount
+    const profitAmount = tradeAmount * (actualTargetProfit / 100);
     const newBalance = bot.start_amount + profitAmount;
 
-    console.log(`Trade details: ${tradeType} ${leverage.toFixed(1)}x leverage, Entry: ${currentPrice.toFixed(4)}, Exit: ${exitPrice.toFixed(4)}, Profit: ${actualProfitPercentage.toFixed(2)}%`);
+    // Determine buy/sell prices based on trade type
+    let buyPrice: number, sellPrice: number;
+    if (tradeType === 'long') {
+      buyPrice = entryPrice;
+      sellPrice = exitPrice;
+    } else {
+      buyPrice = exitPrice; // Short: sell high first, buy back lower
+      sellPrice = entryPrice;
+    }
 
-    // Create trade record
+    console.log(`💰 Trade details: ${tradeType.toUpperCase()} ${leverage.toFixed(1)}x leverage`);
+    console.log(`📊 Entry: ${entryPrice.toFixed(4)}, Exit: ${exitPrice.toFixed(4)}`);
+    console.log(`💵 Buy: ${buyPrice.toFixed(4)}, Sell: ${sellPrice.toFixed(4)}`);
+    console.log(`📈 Profit: ${actualTargetProfit.toFixed(2)}% (${profitAmount.toFixed(2)})`);
+
+    // Generate realistic trade timestamps within the simulation period
+    const tradeStartTime = new Date(Date.now() - Math.random() * 20000); // Started 0-20 seconds ago
+    const tradeEndTime = new Date(); // Completed now
+
+    // Create trade record with correct buy/sell prices
     const { data: trade, error: tradeError } = await supabase
       .from('bot_trades')
       .insert({
         bot_id: bot_id,
         trade_type: tradeType,
-        buy_price: tradeType === 'long' ? currentPrice : exitPrice,
-        sell_price: tradeType === 'long' ? exitPrice : currentPrice,
+        buy_price: parseFloat(buyPrice.toFixed(4)),
+        sell_price: parseFloat(sellPrice.toFixed(4)),
         leverage: parseFloat(leverage.toFixed(2)),
         amount: parseFloat(tradeAmount.toFixed(2)),
         profit_amount: parseFloat(profitAmount.toFixed(2)),
-        profit_percentage: parseFloat(actualProfitPercentage.toFixed(2)),
+        profit_percentage: parseFloat(actualTargetProfit.toFixed(2)),
         status: 'completed',
-        completed_at: new Date().toISOString()
+        started_at: tradeStartTime.toISOString(),
+        completed_at: tradeEndTime.toISOString()
       })
       .select()
       .single();
