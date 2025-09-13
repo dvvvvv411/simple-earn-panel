@@ -178,7 +178,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              {bot.status === 'completed' ? (
+              {localBot.status === 'completed' ? (
                 <>
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
                   <span className="text-sm font-medium text-blue-600">Abgeschlossen</span>
@@ -192,13 +192,13 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="w-3 h-3" />
-              <span>{bot.status === 'completed' ? 'Abgeschlossen nach:' : 'Läuft seit:'} {runtime}</span>
+              <span>{localBot.status === 'completed' ? 'Abgeschlossen nach:' : 'Läuft seit:'} {runtime}</span>
             </div>
           </div>
         </div>
         
         {/* Live Price Display - Only for active bots */}
-        {bot.status !== 'completed' && (
+        {localBot.status !== 'completed' && (
           <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/20">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${priceData ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
@@ -231,7 +231,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         </div>
 
         {/* Live Chart - Only for active bots */}
-        {bot.status !== 'completed' && (
+        {localBot.status !== 'completed' && (
           <div className="space-y-2">
             <CryptoCandlestickChart 
               symbol={bot.symbol}
@@ -265,7 +265,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         {latestTrade && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
-              {bot.status === 'completed' ? 'Trade Details' : 'Aktueller Trade'}
+              {localBot.status === 'completed' ? 'Trade Details' : 'Aktueller Trade'}
             </p>
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
@@ -300,7 +300,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         )}
 
         {/* Status Indicator */}
-        {bot.status === 'completed' ? (
+        {localBot.status === 'completed' ? (
           <div className="flex items-center gap-2 text-xs text-blue-600">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
             <span>Trade abgeschlossen - Ergebnis wurde zu Ihrem Kontostand hinzugefügt</span>
