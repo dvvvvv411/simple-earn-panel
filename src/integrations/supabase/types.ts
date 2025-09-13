@@ -193,10 +193,14 @@ export type Database = {
       }
       trading_bots: {
         Row: {
+          buy_price: number | null
           created_at: string
           cryptocurrency: string
           current_balance: number
           id: string
+          leverage: number | null
+          position_type: string | null
+          sell_price: number | null
           start_amount: number
           status: string
           symbol: string
@@ -204,10 +208,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          buy_price?: number | null
           created_at?: string
           cryptocurrency: string
           current_balance?: number
           id?: string
+          leverage?: number | null
+          position_type?: string | null
+          sell_price?: number | null
           start_amount: number
           status?: string
           symbol: string
@@ -215,10 +223,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          buy_price?: number | null
           created_at?: string
           cryptocurrency?: string
           current_balance?: number
           id?: string
+          leverage?: number | null
+          position_type?: string | null
+          sell_price?: number | null
           start_amount?: number
           status?: string
           symbol?: string
