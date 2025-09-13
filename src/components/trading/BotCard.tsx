@@ -86,9 +86,9 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   useEffect(() => {
     fetchTrades();
     
-    // Set up realtime subscription for trades
+    // Set up realtime subscription for both trades and bot status
     const channel = supabase
-      .channel('bot-trades-changes')
+      .channel('bot-updates-channel')
       .on(
         'postgres_changes',
         {
@@ -102,12 +102,24 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           onUpdate(); // Refresh bot data
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'trading_bots',
+          filter: `id=eq.${bot.id}`
+        },
+        () => {
+          onUpdate(); // Refresh bot data when status changes
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [bot.id]);
+  }, [bot.id, onUpdate]);
 
   // Update runtime every minute
   useEffect(() => {
