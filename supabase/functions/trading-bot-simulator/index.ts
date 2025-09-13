@@ -74,65 +74,22 @@ serve(async (req) => {
 });
 
 async function startTradingLoop(bot_id: string, initial_price: number) {
-  console.log(`🔄 Starting trading loop for bot ${bot_id} with initial price ${initial_price}`);
+  console.log(`🔄 Starting one-time trade for bot ${bot_id} with initial price ${initial_price}`);
   let currentPrice = initial_price;
   
   // For testing: Execute first trade after 30 seconds
-  console.log('⚡ Scheduling first test trade in 30 seconds...');
+  console.log('⚡ Scheduling one-time trade in 30 seconds...');
   await new Promise(resolve => setTimeout(resolve, 30000));
   
   try {
-    console.log('🎯 Executing first test trade...');
+    console.log('🎯 Executing one-time trade...');
     await simulateTrade(bot_id, currentPrice);
+    console.log(`✅ One-time trade completed for bot ${bot_id}`);
   } catch (error) {
-    console.error('❌ Error in first test trade:', error);
+    console.error('❌ Error in one-time trade:', error);
   }
   
-  while (true) {
-    try {
-      console.log(`🔍 Checking bot ${bot_id} status...`);
-      
-      // Check if bot is still active
-      const { data: bot, error: botCheckError } = await supabase
-        .from('trading_bots')
-        .select('status')
-        .eq('id', bot_id)
-        .single();
-
-      if (botCheckError) {
-        console.error(`❌ Error checking bot status:`, botCheckError);
-        break;
-      }
-
-      if (!bot || bot.status !== 'active') {
-        console.log(`🛑 Bot ${bot_id} stopped or not found. Status: ${bot?.status}`);
-        break;
-      }
-
-      console.log(`✅ Bot ${bot_id} is still active`);
-
-      // Wait 30-60 minutes for trade (converted to milliseconds)
-      const tradeDelayMs = Math.random() * (60 * 60000 - 30 * 60000) + 30 * 60000; // 30-60 minutes
-      console.log(`⏰ Next trade in ${(tradeDelayMs / 60000).toFixed(1)} minutes`);
-      
-      await new Promise(resolve => setTimeout(resolve, tradeDelayMs));
-      
-      // Simulate realistic price movement (±5% max)
-      const priceVariance = Math.random() * 0.1 - 0.05; // -5% to +5%
-      currentPrice = currentPrice * (1 + priceVariance);
-      console.log(`📈 Updated price: ${currentPrice.toFixed(4)}`);
-      
-      await simulateTrade(bot_id, currentPrice);
-      
-    } catch (error) {
-      console.error('💥 Error in trading loop:', error);
-      console.error('🔍 Error details:', error.stack);
-      console.log('⏳ Waiting 1 minute before retry...');
-      await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 1 minute before retry
-    }
-  }
-  
-  console.log(`🏁 Trading loop ended for bot ${bot_id}`);
+  console.log(`🏁 Trading completed for bot ${bot_id}`);
 }
 
 async function simulateTrade(bot_id: string, entry_price: number) {
@@ -169,14 +126,14 @@ async function simulateTrade(bot_id: string, entry_price: number) {
       exitPrice = currentPrice * (1 - (targetProfitPercentage / 100) / leverage);
     }
 
-    // Calculate profit amount
-    const tradeAmount = bot.current_balance * 0.1; // Use 10% of balance per trade
+    // Calculate profit amount - Use full start amount for single trade
+    const tradeAmount = bot.start_amount; // Use 100% of start amount
     const actualProfitPercentage = tradeType === 'long' 
       ? ((exitPrice - currentPrice) / currentPrice) * 100 * leverage
       : ((currentPrice - exitPrice) / currentPrice) * 100 * leverage;
     
     const profitAmount = tradeAmount * (actualProfitPercentage / 100);
-    const newBalance = bot.current_balance + profitAmount;
+    const newBalance = bot.start_amount + profitAmount;
 
     console.log(`Trade details: ${tradeType} ${leverage.toFixed(1)}x leverage, Entry: ${currentPrice.toFixed(4)}, Exit: ${exitPrice.toFixed(4)}, Profit: ${actualProfitPercentage.toFixed(2)}%`);
 
@@ -203,21 +160,22 @@ async function simulateTrade(bot_id: string, entry_price: number) {
       return;
     }
 
-    // Update bot balance
+    // Update bot balance and set status to completed
     const { error: updateError } = await supabase
       .from('trading_bots')
       .update({ 
         current_balance: parseFloat(newBalance.toFixed(2)),
+        status: 'completed',
         updated_at: new Date().toISOString()
       })
       .eq('id', bot_id);
 
     if (updateError) {
-      console.error('Error updating bot balance:', updateError);
+      console.error('Error updating bot balance and status:', updateError);
       return;
     }
 
-    console.log(`Trade completed successfully for bot ${bot_id}. New balance: ${newBalance.toFixed(2)}`);
+    console.log(`Trade completed successfully for bot ${bot_id}. New balance: ${newBalance.toFixed(2)}, Status: completed`);
 
   } catch (error) {
     console.error('Error in simulateTrade:', error);

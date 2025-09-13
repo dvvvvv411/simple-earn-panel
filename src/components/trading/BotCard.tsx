@@ -13,7 +13,7 @@ interface TradingBot {
   symbol: string;
   start_amount: number;
   current_balance: number;
-  status: 'active' | 'paused' | 'stopped';
+  status: 'active' | 'paused' | 'stopped' | 'completed';
   created_at: string;
 }
 
@@ -150,12 +150,21 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-medium text-green-600">Aktiv</span>
+              {bot.status === 'completed' ? (
+                <>
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="text-sm font-medium text-blue-600">Abgeschlossen</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm font-medium text-green-600">Aktiv</span>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="w-3 h-3" />
-              <span>Läuft seit: {runtime}</span>
+              <span>{bot.status === 'completed' ? 'Abgeschlossen nach:' : 'Läuft seit:'} {runtime}</span>
             </div>
           </div>
         </div>
@@ -219,10 +228,12 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           </div>
         </div>
 
-        {/* Latest Trade Info */}
+        {/* Trade Details */}
         {latestTrade && (
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Aktueller Trade</p>
+            <p className="text-xs text-muted-foreground">
+              {bot.status === 'completed' ? 'Trade Details' : 'Aktueller Trade'}
+            </p>
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <Badge variant={latestTrade.trade_type === 'long' ? 'default' : 'secondary'} className="text-xs">
@@ -247,18 +258,26 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
             
             {latestTrade.status === 'completed' && latestTrade.sell_price && (
               <div className="text-xs text-muted-foreground space-y-1">
-                <div>Einstieg: {latestTrade.buy_price.toFixed(4)} EUR</div>
-                <div>Ausstieg: {latestTrade.sell_price.toFixed(4)} EUR</div>
+                <div>Kaufpreis: {formatPrice(latestTrade.buy_price)}</div>
+                <div>Verkaufspreis: {formatPrice(latestTrade.sell_price)}</div>
+                <div>Gewinn: {latestTrade.profit_amount ? formatPrice(latestTrade.profit_amount) : '€0,00'}</div>
               </div>
             )}
           </div>
         )}
 
-        {/* Active Indicator */}
-        <div className="flex items-center gap-2 text-xs text-green-600">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span>Bot arbeitet aktiv...</span>
-        </div>
+        {/* Status Indicator */}
+        {bot.status === 'completed' ? (
+          <div className="flex items-center gap-2 text-xs text-blue-600">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <span>Trade abgeschlossen</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-green-600">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span>Bot arbeitet aktiv...</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
