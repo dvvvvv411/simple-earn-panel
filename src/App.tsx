@@ -1,6 +1,7 @@
 import React from "react";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { CoinMarketCapProvider } from "./contexts/CoinMarketCapContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -14,22 +15,24 @@ import NotFound from "./pages/NotFound";
 const App: React.FC = () => {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="/admin/brandings" replace />} />
-            <Route path="brandings" element={<Brandings />} />
-            <Route path="benutzer" element={<UsersPage />} />
-          </Route>
-          <Route path="/kryptotrading" element={<TradingLayout />}>
-            <Route index element={<TradingDashboard />} />
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <CoinMarketCapProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="/admin/brandings" replace />} />
+              <Route path="brandings" element={<Brandings />} />
+              <Route path="benutzer" element={<UsersPage />} />
+            </Route>
+            <Route path="/kryptotrading" element={<TradingLayout />}>
+              <Route index element={<TradingDashboard />} />
+            </Route>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </CoinMarketCapProvider>
     </ThemeProvider>
   );
 };

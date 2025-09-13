@@ -80,29 +80,21 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
           market_cap_rank: index + 1
         }));
         setCoins(formattedCoins);
-      }
 
-      // Batch fetch quotes for all symbols
-      const quotesResponse = await fetchCoinMarketCapData('quotes', {
-        symbol: SYMBOLS.join(','),
-        convert: 'EUR'
-      });
-
-      if (quotesResponse?.data && mountedRef.current) {
+        // Generate price data from listings response
         const newPriceData = new Map<string, LivePriceData>();
-        SYMBOLS.forEach(symbol => {
-          const coinData = quotesResponse.data[symbol];
-          if (coinData) {
+        formattedCoins.forEach(coin => {
+          const symbol = coin.symbol.toUpperCase();
+          if (SYMBOLS.includes(symbol)) {
             newPriceData.set(symbol, {
-              price: coinData.quote.EUR.price,
-              change24h: coinData.quote.EUR.percent_change_24h,
+              price: coin.current_price,
+              change24h: coin.price_change_percentage_24h,
               lastUpdate: Date.now()
             });
           }
         });
         setPriceData(newPriceData);
       }
-
 
       setError(null);
     } catch (err) {
