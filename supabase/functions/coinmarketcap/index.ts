@@ -20,27 +20,59 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    console.log('Fetching API key from Supabase vault...')
-    // Get API key from secrets
-    const { data: secrets, error: secretError } = await supabase
-      .from('vault.decrypted_secrets')
-      .select('decrypted_secret')
-      .eq('name', 'COINMARKETCAP_API_KEY')
-      .single()
+    // Get the authorization header to determine the user
+    const authHeader = req.headers.get('Authorization')
+    let apiKey = null
 
-    if (secretError) {
-      console.error('Error fetching secret from vault:', secretError)
-      throw new Error(`Failed to retrieve API key: ${secretError.message}`)
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      
+      // Get user from token
+      const { data: userData } = await supabase.auth.getUser(token)
+      
+      if (userData.user) {
+        console.log('Fetching API key from user branding...')
+        
+        // Get user's branding and API key
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select(`
+            branding_id,
+            brandings (
+              coinmarketcap_api_key
+            )
+          `)
+          .eq('id', userData.user.id)
+          .single()
+
+        if (profile?.brandings?.coinmarketcap_api_key) {
+          apiKey = profile.brandings.coinmarketcap_api_key
+          console.log('API key found in user branding')
+        }
+      }
     }
 
-    if (!secrets?.decrypted_secret) {
-      console.error('No secret found with name COINMARKETCAP_API_KEY')
-      throw new Error('CoinMarketCap API key not found in vault')
+    // Fallback: try to get from first branding that has an API key
+    if (!apiKey) {
+      console.log('No user-specific API key found, checking for any available branding API key...')
+      
+      const { data: branding } = await supabase
+        .from('brandings')
+        .select('coinmarketcap_api_key')
+        .not('coinmarketcap_api_key', 'is', null)
+        .limit(1)
+        .single()
+
+      if (branding?.coinmarketcap_api_key) {
+        apiKey = branding.coinmarketcap_api_key
+        console.log('Fallback API key found in branding')
+      }
     }
 
-    console.log('API key retrieved successfully')
-
-    const apiKey = secrets.decrypted_secret
+    if (!apiKey) {
+      console.error('No CoinMarketCap API key found in any branding')
+      throw new Error('CoinMarketCap API key not configured')
+    }
     const url = new URL(req.url)
     const pathname = url.pathname
 

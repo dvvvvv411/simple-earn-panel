@@ -36,6 +36,7 @@ const brandingSchema = z.object({
   domain: z.string().min(1, "Domain ist erforderlich"),
   type: z.enum(["kryptotrading", "festgeld", "sonstiges"]),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Ungültiges Hex-Farbformat (z.B. #1e90ff)").optional().or(z.literal("")),
+  coinmarketcapApiKey: z.string().optional(),
   fromName: z.string().min(1, "Absender-Name ist erforderlich"),
   fromEmail: z.string().email("Ungültige E-Mail-Adresse"),
   replyTo: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
@@ -53,6 +54,7 @@ interface BrandingDialogProps {
     domain?: string;
     type: 'kryptotrading' | 'festgeld' | 'sonstiges';
     accent_color?: string | null;
+    coinmarketcap_api_key?: string | null;
     logo_path: string | null;
     branding_resend_configs?: {
       from_name: string;
@@ -80,6 +82,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
       domain: "",
       type: "sonstiges",
       accentColor: "#e91e63",
+      coinmarketcapApiKey: "",
       fromName: "",
       fromEmail: "",
       replyTo: "",
@@ -95,6 +98,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
         domain: branding.domain || "",
         type: branding.type || "sonstiges",
         accentColor: branding.accent_color || "#e91e63", // Pinke Fallback-Farbe
+        coinmarketcapApiKey: branding.coinmarketcap_api_key || "",
         fromName: branding.branding_resend_configs?.from_name || "",
         fromEmail: branding.branding_resend_configs?.from_email || "",
         replyTo: branding.branding_resend_configs?.reply_to || "",
@@ -111,6 +115,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
         domain: "",
         type: "sonstiges",
         accentColor: "#e91e63", // Pinke Fallback-Farbe auch für neue Brandings
+        coinmarketcapApiKey: "",
         fromName: "",
         fromEmail: "",
         replyTo: "",
@@ -149,6 +154,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
             domain: data.domain,
             type: data.type,
             accent_color: data.accentColor || null,
+            coinmarketcap_api_key: data.coinmarketcapApiKey || null,
             logo_path: logoPath,
           })
           .eq('id', branding.id);
@@ -162,6 +168,7 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
             domain: data.domain,
             type: data.type,
             accent_color: data.accentColor || null,
+            coinmarketcap_api_key: data.coinmarketcapApiKey || null,
             logo_path: logoPath,
           })
           .select('id')
@@ -350,6 +357,24 @@ export function BrandingDialog({ open, onOpenChange, branding }: BrandingDialogP
                   </div>
                 )}
               </div>
+
+              <FormField
+                control={form.control}
+                name="coinmarketcapApiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CoinMarketCap API Key</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Ihr CoinMarketCap API Key"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Separator />

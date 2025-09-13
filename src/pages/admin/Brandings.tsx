@@ -13,6 +13,7 @@ interface Branding {
   domain?: string;
   type: 'kryptotrading' | 'festgeld' | 'sonstiges';
   accent_color?: string | null;
+  coinmarketcap_api_key?: string | null;
   logo_path: string | null;
   created_at: string;
   updated_at: string;

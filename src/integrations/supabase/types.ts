@@ -114,6 +114,7 @@ export type Database = {
       brandings: {
         Row: {
           accent_color: string | null
+          coinmarketcap_api_key: string | null
           created_at: string
           domain: string | null
           id: string
@@ -124,6 +125,7 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          coinmarketcap_api_key?: string | null
           created_at?: string
           domain?: string | null
           id?: string
@@ -134,6 +136,7 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          coinmarketcap_api_key?: string | null
           created_at?: string
           domain?: string | null
           id?: string
