@@ -88,7 +88,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
     
     // Set up realtime subscription for both trades and bot status
     const channel = supabase
-      .channel('bot-updates-channel')
+      .channel(`bot-updates-${bot.id}`)
       .on(
         'postgres_changes',
         {
@@ -97,7 +97,8 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           table: 'bot_trades',
           filter: `bot_id=eq.${bot.id}`
         },
-        () => {
+        (payload) => {
+          console.log('Bot trade event:', payload);
           fetchTrades();
           onUpdate(); // Refresh bot data
         }
@@ -110,8 +111,13 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           table: 'trading_bots',
           filter: `id=eq.${bot.id}`
         },
-        () => {
-          onUpdate(); // Refresh bot data when status changes
+        (payload) => {
+          console.log('Bot status updated:', payload);
+          // Trigger dashboard update when bot status changes to completed
+          if (payload.new?.status === 'completed') {
+            console.log('Bot completed, triggering balance update');
+            onUpdate();
+          }
         }
       )
       .subscribe();

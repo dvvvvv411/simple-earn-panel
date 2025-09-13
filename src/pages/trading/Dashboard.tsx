@@ -33,6 +33,41 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchUserBalance();
+
+    // Set up real-time subscription for balance updates
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('balance-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Balance updated via realtime:', payload);
+            if (payload.new && typeof payload.new.balance === 'number') {
+              setUserBalance(payload.new.balance);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    const cleanup = setupRealtimeSubscription();
+    
+    return () => {
+      cleanup.then(cleanupFn => cleanupFn?.());
+    };
   }, []);
 
   const handleBalanceUpdate = () => {
