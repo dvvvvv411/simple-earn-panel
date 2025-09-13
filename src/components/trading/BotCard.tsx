@@ -41,12 +41,20 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [runtime, setRuntime] = useState<string>('');
+  const [lastCompletedCheck, setLastCompletedCheck] = useState<string | null>(null);
   const { toast } = useToast();
   const { coins, getPriceData } = useCoinMarketCap();
   const priceData = getPriceData(localBot.symbol);
 
   // Sync local bot state when prop changes
   useEffect(() => {
+    console.log('🔄 BotCard: Prop bot changed:', { 
+      botId: bot.id, 
+      oldStatus: localBot.status, 
+      newStatus: bot.status,
+      oldBalance: localBot.current_balance,
+      newBalance: bot.current_balance
+    });
     setLocalBot(bot);
   }, [bot]);
 
@@ -118,11 +126,39 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           filter: `id=eq.${bot.id}`
         },
         (payload) => {
-          console.log('Bot status updated:', payload);
+          console.log('🔥 Real-time bot update received:', { 
+            botId: bot.id, 
+            oldStatus: localBot.status,
+            newStatus: payload.new?.status,
+            oldBalance: localBot.current_balance,
+            newBalance: payload.new?.current_balance
+          });
+          
           // Immediately update local bot state for instant UI updates
           if (payload.new) {
-            setLocalBot(prev => ({ ...prev, ...(payload.new as Partial<TradingBot>) }));
+            const updatedBot = payload.new as TradingBot;
+            setLocalBot(prev => ({ ...prev, ...updatedBot }));
+            
+            // Fallback reload check for completed bots
+            if (updatedBot.status === 'completed' && localBot.status !== 'completed') {
+              console.log('🎯 Bot completed! Setting up fallback reload check...');
+              setLastCompletedCheck(updatedBot.id);
+              
+              // Check if UI updated after 3 seconds, reload if not
+              setTimeout(() => {
+                console.log('⏰ Checking if UI updated for completed bot...');
+                // Get current DOM state to check if UI actually updated
+                const statusElement = document.querySelector(`[data-bot-id="${updatedBot.id}"] .status-indicator`);
+                if (statusElement?.textContent?.includes('Aktiv')) {
+                  console.log('❌ UI did not update, forcing page reload!');
+                  window.location.reload();
+                } else {
+                  console.log('✅ UI updated correctly, no reload needed');
+                }
+              }, 3000);
+            }
           }
+          
           // Trigger dashboard update when bot status changes to completed
           if (payload.new?.status === 'completed') {
             console.log('Bot completed, triggering balance update');
@@ -165,7 +201,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   // Removed pause/stop functionality - bots are always active
 
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative overflow-hidden" data-bot-id={localBot.id}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -177,7 +213,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 status-indicator">
               {localBot.status === 'completed' ? (
                 <>
                   <div className="w-2 h-2 rounded-full bg-blue-500" />

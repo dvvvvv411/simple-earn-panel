@@ -7,7 +7,7 @@ interface TradingBot {
   symbol: string;
   start_amount: number;
   current_balance: number;
-  status: 'active' | 'paused' | 'stopped';
+  status: 'active' | 'paused' | 'stopped' | 'completed';
   created_at: string;
   updated_at: string;
 }
