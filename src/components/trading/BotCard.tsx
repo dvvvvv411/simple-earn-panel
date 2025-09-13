@@ -40,13 +40,8 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { coins, getPriceData } = useCoinMarketCap();
+  const { getPriceData } = useCoinMarketCap();
   const priceData = getPriceData(bot.symbol);
-
-  // Get current coin data
-  const currentCoin = useMemo(() => {
-    return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
-  }, [coins, bot.symbol]);
 
   // Format price to exactly 2 decimal places
   const formatPrice = (price: number) => {

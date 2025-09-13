@@ -40,9 +40,7 @@ interface FormattedCoinData {
 }
 
 interface CoinMarketCapContextType {
-  coins: FormattedCoinData[];
   getPriceData: (symbol: string) => LivePriceData | null;
-  getOHLCData: (symbol: string) => OHLCData[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -53,9 +51,7 @@ const CoinMarketCapContext = createContext<CoinMarketCapContextType | undefined>
 const SYMBOLS = ['BTC', 'ETH', 'SOL']; // Reduced to save API costs
 
 export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
-  const [coins, setCoins] = useState<FormattedCoinData[]>([]);
   const [priceData, setPriceData] = useState<Map<string, LivePriceData>>(new Map());
-  const [ohlcData, setOhlcData] = useState<Map<string, OHLCData[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,7 +59,7 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
 
   const fetchAllData = async () => {
     try {
-      // ONLY ONE API CALL - listings contains all needed data
+      // ONLY FETCH LIVE PRICE DATA for BTC/ETH/SOL
       const listingsResponse = await fetchCoinMarketCapData('listings', {
         start: 1,
         limit: 10,
@@ -71,18 +67,7 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
       });
 
       if (listingsResponse?.data && mountedRef.current) {
-        const formattedCoins: FormattedCoinData[] = listingsResponse.data.map((coin: CoinData, index: number) => ({
-          id: coin.id.toString(),
-          symbol: coin.symbol.toLowerCase(),
-          name: coin.name,
-          image: `https://s2.coinmarketcap.com/static/img/coins/32x32/${coin.id}.png`,
-          current_price: coin.quote.EUR.price,
-          price_change_percentage_24h: coin.quote.EUR.percent_change_24h,
-          market_cap_rank: index + 1
-        }));
-        setCoins(formattedCoins);
-
-        // Extract price data from listings instead of separate quotes call
+        // Extract ONLY price data for live price display
         const newPriceData = new Map<string, LivePriceData>();
         listingsResponse.data.forEach((coin: CoinData) => {
           if (SYMBOLS.includes(coin.symbol)) {
@@ -94,20 +79,14 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
           }
         });
         setPriceData(newPriceData);
-
-        // Generate fallback OHLC data instead of API calls
-        SYMBOLS.forEach(symbol => {
-          const fallbackData = generateFallbackOHLC();
-          setOhlcData(prev => new Map(prev.set(symbol, fallbackData)));
-        });
       }
 
       setError(null);
     } catch (err) {
       console.error('Error fetching CoinMarketCap data:', err);
       if (mountedRef.current) {
-        setError('Failed to load market data');
-        generateFallbackData();
+        setError('Failed to load live prices');
+        generateFallbackPriceData();
       }
     } finally {
       if (mountedRef.current) {
@@ -116,47 +95,13 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const generateFallbackOHLC = (): OHLCData[] => {
-    const fallbackData: OHLCData[] = [];
-    const now = Date.now();
-    const basePrice = 50000;
-    let currentPrice = basePrice;
-    
-    for (let i = 23; i >= 0; i--) {
-      const timestamp = now - (i * 60 * 60 * 1000);
-      const volatility = Math.random() * 2000 + 500;
-      const priceChange = (Math.random() - 0.5) * volatility;
-      currentPrice = Math.max(currentPrice + priceChange, basePrice * 0.8);
-      
-      fallbackData.push({
-        timestamp,
-        open: parseFloat(currentPrice.toFixed(2)),
-        high: parseFloat((currentPrice * 1.02).toFixed(2)),
-        low: parseFloat((currentPrice * 0.98).toFixed(2)),
-        close: parseFloat(currentPrice.toFixed(2))
-      });
-    }
-    return fallbackData;
-  };
-
-  const generateFallbackData = () => {
-    // Generate fallback coins data
-    const fallbackCoins: FormattedCoinData[] = SYMBOLS.map((symbol, index) => ({
-      id: (index + 1).toString(),
-      symbol: symbol.toLowerCase(),
-      name: symbol === 'BTC' ? 'Bitcoin' : symbol === 'ETH' ? 'Ethereum' : symbol === 'SOL' ? 'Solana' : symbol,
-      image: `https://s2.coinmarketcap.com/static/img/coins/32x32/${index + 1}.png`,
-      current_price: Math.random() * 50000 + 1000,
-      price_change_percentage_24h: (Math.random() - 0.5) * 20,
-      market_cap_rank: index + 1
-    }));
-    setCoins(fallbackCoins);
-
-    // Generate fallback price data
+  const generateFallbackPriceData = () => {
+    // Generate fallback price data ONLY
     const fallbackPriceData = new Map<string, LivePriceData>();
     SYMBOLS.forEach(symbol => {
+      const basePrice = symbol === 'BTC' ? 50000 : symbol === 'ETH' ? 3000 : 100;
       fallbackPriceData.set(symbol, {
-        price: Math.random() * 50000 + 1000,
+        price: basePrice + (Math.random() - 0.5) * basePrice * 0.1,
         change24h: (Math.random() - 0.5) * 20,
         lastUpdate: Date.now()
       });
@@ -185,10 +130,6 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
     return priceData.get(symbol.toUpperCase()) || null;
   };
 
-  const getOHLCData = (symbol: string): OHLCData[] => {
-    return ohlcData.get(symbol.toUpperCase()) || [];
-  };
-
   const refetch = () => {
     setLoading(true);
     fetchAllData();
@@ -197,9 +138,7 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
   return (
     <CoinMarketCapContext.Provider
       value={{
-        coins,
         getPriceData,
-        getOHLCData,
         loading,
         error,
         refetch
