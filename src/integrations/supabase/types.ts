@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      bot_trades: {
+        Row: {
+          amount: number
+          bot_id: string
+          buy_price: number
+          completed_at: string | null
+          created_at: string
+          id: string
+          leverage: number
+          profit_amount: number | null
+          profit_percentage: number | null
+          sell_price: number | null
+          started_at: string
+          status: string
+          trade_type: string
+        }
+        Insert: {
+          amount: number
+          bot_id: string
+          buy_price: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          leverage?: number
+          profit_amount?: number | null
+          profit_percentage?: number | null
+          sell_price?: number | null
+          started_at?: string
+          status?: string
+          trade_type: string
+        }
+        Update: {
+          amount?: number
+          bot_id?: string
+          buy_price?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          leverage?: number
+          profit_amount?: number | null
+          profit_percentage?: number | null
+          sell_price?: number | null
+          started_at?: string
+          status?: string
+          trade_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_trades_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "trading_bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branding_resend_configs: {
         Row: {
           api_key: string | null
@@ -131,6 +187,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trading_bots: {
+        Row: {
+          created_at: string
+          cryptocurrency: string
+          current_balance: number
+          id: string
+          start_amount: number
+          status: string
+          symbol: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cryptocurrency: string
+          current_balance?: number
+          id?: string
+          start_amount: number
+          status?: string
+          symbol: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cryptocurrency?: string
+          current_balance?: number
+          id?: string
+          start_amount?: number
+          status?: string
+          symbol?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

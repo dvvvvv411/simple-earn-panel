@@ -5,9 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { CreateBotDialog } from "./CreateBotDialog";
 
-export function AccountBalanceCard() {
-  const [balance, setBalance] = useState<number | null>(null);
+interface AccountBalanceCardProps {
+  balance: number;
+  onBalanceUpdate: () => void;
+}
+
+export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: AccountBalanceCardProps) {
+  const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -154,6 +160,14 @@ export function AccountBalanceCard() {
             <Minus className="h-4 w-4 mr-2" />
             Geld auszahlen
           </Button>
+        </div>
+
+        {/* Bot Creation Button */}
+        <div className="pt-4 border-t border-border">
+          <CreateBotDialog 
+            userBalance={balance || 0} 
+            onBotCreated={onBalanceUpdate}
+          />
         </div>
       </CardContent>
     </Card>

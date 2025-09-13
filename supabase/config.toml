@@ -1,1 +1,4 @@
 project_id = "fyloldkiuxtcdiazbtwn"
+
+[functions.trading-bot-simulator]
+verify_jwt = false
