@@ -181,17 +181,32 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           </div>
         </div>
         
-        {/* Live Price Display */}
-        <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/20">
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${priceData ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-            <span className="text-xs font-medium text-green-600">LIVE</span>
-            <span className="text-sm font-semibold">{priceData ? formatPrice(priceData.price) : '€0,00'}</span>
+        {/* Live Price Display - Only for active bots */}
+        {bot.status !== 'completed' && (
+          <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/20">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${priceData ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+              <span className="text-xs font-medium text-green-600">LIVE</span>
+              <span className="text-sm font-semibold">{priceData ? formatPrice(priceData.price) : '€0,00'}</span>
+            </div>
+            <div className={`text-xs font-medium ${(priceData?.change24h || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {(priceData?.change24h || 0) >= 0 ? '+' : ''}{(priceData?.change24h || 0).toFixed(2)}%
+            </div>
           </div>
-          <div className={`text-xs font-medium ${(priceData?.change24h || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {(priceData?.change24h || 0) >= 0 ? '+' : ''}{(priceData?.change24h || 0).toFixed(2)}%
+        )}
+
+        {/* Completion Summary - Only for completed bots */}
+        {bot.status === 'completed' && (
+          <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-blue-500" />
+              <span className="text-sm font-medium text-blue-700">Trade erfolgreich abgeschlossen</span>
+            </div>
+            <div className="text-xs text-blue-600">
+              Ergebnis wurde zu Ihrem Kontostand hinzugefügt
+            </div>
           </div>
-        </div>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -211,12 +226,14 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           </div>
         </div>
 
-        {/* Live Chart */}
-        <div className="space-y-2">
-          <CryptoCandlestickChart 
-            symbol={bot.symbol}
-          />
-        </div>
+        {/* Live Chart - Only for active bots */}
+        {bot.status !== 'completed' && (
+          <div className="space-y-2">
+            <CryptoCandlestickChart 
+              symbol={bot.symbol}
+            />
+          </div>
+        )}
 
         {/* Profit/Loss */}
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
@@ -282,7 +299,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         {bot.status === 'completed' ? (
           <div className="flex items-center gap-2 text-xs text-blue-600">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <span>Trade abgeschlossen</span>
+            <span>Trade abgeschlossen - Ergebnis wurde zu Ihrem Kontostand hinzugefügt</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 text-xs text-green-600">

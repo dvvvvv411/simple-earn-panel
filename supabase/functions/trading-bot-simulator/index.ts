@@ -258,7 +258,41 @@ async function simulateTrade(bot_id: string, initial_price: number) {
       return;
     }
 
-    console.log(`Trade completed successfully for bot ${bot_id}. New balance: ${newBalance.toFixed(2)}, Status: completed`);
+    console.log(`✅ Bot updated successfully. New balance: ${newBalance.toFixed(2)}, Status: completed`);
+
+    // Return the bot's final balance to the user's account
+    console.log(`💰 Returning ${newBalance.toFixed(2)} EUR to user account (${bot.user_id})`);
+    
+    try {
+      const { error: balanceError } = await supabase.rpc('update_user_balance', {
+        target_user_id: bot.user_id,
+        amount_change: parseFloat(newBalance.toFixed(2)),
+        transaction_type: 'credit',
+        transaction_description: `Trading-Bot Abschluss: ${bot.cryptocurrency} - Startbetrag + Gewinn`,
+        admin_user_id: bot.user_id
+      });
+
+      if (balanceError) {
+        console.error('❌ Error returning balance to user account:', balanceError);
+        // Rollback bot status if balance return failed
+        await supabase
+          .from('trading_bots')
+          .update({ status: 'active' })
+          .eq('id', bot_id);
+        return;
+      }
+
+      console.log(`✅ Successfully returned ${newBalance.toFixed(2)} EUR to user account`);
+      console.log(`🎉 Trade completed successfully for bot ${bot_id}. Final balance returned to user.`);
+      
+    } catch (error) {
+      console.error('💥 Critical error returning balance:', error);
+      // Rollback bot status
+      await supabase
+        .from('trading_bots')
+        .update({ status: 'active' })
+        .eq('id', bot_id);
+    }
 
   } catch (error) {
     console.error('Error in simulateTrade:', error);
