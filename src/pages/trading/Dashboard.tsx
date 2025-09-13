@@ -6,6 +6,7 @@ import { WelcomeCard } from "@/components/trading/WelcomeCard";
 import { BotCard } from "@/components/trading/BotCard";
 import { CreateBotCard } from "@/components/trading/CreateBotCard";
 import { useTradingBots } from "@/hooks/useTradingBots";
+import { useTradingStats } from "@/hooks/useTradingStats";
 import { supabase } from "@/integrations/supabase/client";
 import { TradingSuccessDialog } from "@/components/trading/TradingSuccessDialog";
 
@@ -27,6 +28,7 @@ interface TradingBot {
 export default function Dashboard() {
   const [userBalance, setUserBalance] = useState<number>(25000.50);
   const { bots, loading: botsLoading, refetch: refetchBots } = useTradingBots();
+  const { stats: tradingStats, loading: statsLoading } = useTradingStats();
   const [completedBot, setCompletedBot] = useState<TradingBot | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [previousBots, setPreviousBots] = useState<TradingBot[]>([]);
@@ -202,7 +204,7 @@ export default function Dashboard() {
           balance={userBalance} 
           onBalanceUpdate={handleBalanceUpdate}
         />
-        <TradesCard />
+        <TradesCard stats={tradingStats} loading={statsLoading} />
         <MarketOverviewCard />
       </div>
 
