@@ -28,6 +28,7 @@ export default function Dashboard() {
   const { bots, loading: botsLoading, refetch: refetchBots } = useTradingBots();
   const [completedBot, setCompletedBot] = useState<TradingBot | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [previousBots, setPreviousBots] = useState<TradingBot[]>([]);
 
   // Fetch user balance
   const fetchUserBalance = async () => {
@@ -48,6 +49,36 @@ export default function Dashboard() {
       console.error('Error fetching user balance:', error);
     }
   };
+
+  // Watch for newly completed bots (fallback detection)
+  useEffect(() => {
+    if (bots.length > 0 && previousBots.length > 0) {
+      // Find bots that just changed from active to completed
+      const newlyCompleted = bots.filter(bot => {
+        const previousBot = previousBots.find(prev => prev.id === bot.id);
+        return previousBot && 
+               previousBot.status === 'active' && 
+               bot.status === 'completed';
+      });
+
+      if (newlyCompleted.length > 0) {
+        console.log('🔥 Dashboard: Fallback detected newly completed bot:', newlyCompleted[0].id);
+        const bot = newlyCompleted[0];
+        setCompletedBot({
+          ...bot,
+          buy_price: bot.buy_price || null,
+          sell_price: bot.sell_price || null,
+          leverage: bot.leverage || 1,
+          position_type: bot.position_type || 'LONG'
+        });
+        setShowSuccessDialog(true);
+        setTimeout(() => fetchUserBalance(), 500);
+      }
+    }
+    
+    // Update previous bots for next comparison
+    setPreviousBots([...bots]);
+  }, [bots]);
 
   useEffect(() => {
     fetchUserBalance();
@@ -75,27 +106,44 @@ export default function Dashboard() {
               botId: (payload.new as any)?.id || (payload.old as any)?.id,
               oldStatus: (payload.old as any)?.status,
               newStatus: (payload.new as any)?.status,
+              oldData: payload.old,
+              newData: payload.new,
               timestamp: new Date().toISOString()
             });
             
             // IMMEDIATE refetch on ANY trading_bots change
             refetchBots();
             
-            // Special handling for completed bots
-            if (payload.eventType === 'UPDATE' && 
-                (payload.old as any)?.status === 'active' && 
-                (payload.new as any)?.status === 'completed') {
-              console.log('🎯 Dashboard: Bot completed! Showing success dialog');
-              const bot = payload.new as any;
-              setCompletedBot({
-                ...bot,
-                buy_price: bot.buy_price || null,
-                sell_price: bot.sell_price || null,
-                leverage: bot.leverage || 1,
-                position_type: bot.position_type || 'LONG'
+            // Enhanced debugging for completion logic
+            if (payload.eventType === 'UPDATE') {
+              const oldStatus = (payload.old as any)?.status;
+              const newStatus = (payload.new as any)?.status;
+              
+              console.log('🔍 Dashboard: Checking completion condition:', {
+                isUpdate: payload.eventType === 'UPDATE',
+                oldStatus,
+                newStatus,
+                oldIsActive: oldStatus === 'active',
+                newIsCompleted: newStatus === 'completed',
+                conditionMet: oldStatus === 'active' && newStatus === 'completed'
               });
-              setShowSuccessDialog(true);
-              setTimeout(() => fetchUserBalance(), 500); // Small delay to ensure DB consistency
+              
+              // Special handling for completed bots
+              if (oldStatus === 'active' && newStatus === 'completed') {
+                console.log('🎯 Dashboard: Bot completed! Showing success dialog');
+                const bot = payload.new as any;
+                setCompletedBot({
+                  ...bot,
+                  buy_price: bot.buy_price || null,
+                  sell_price: bot.sell_price || null,
+                  leverage: bot.leverage || 1,
+                  position_type: bot.position_type || 'LONG'
+                });
+                setShowSuccessDialog(true);
+                setTimeout(() => fetchUserBalance(), 500); // Small delay to ensure DB consistency
+              } else {
+                console.log('❌ Dashboard: Completion condition NOT met for this update');
+              }
             }
           }
         )
