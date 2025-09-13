@@ -4,14 +4,12 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TradingSidebar } from "./TradingSidebar";
 import { TradingGuard } from "./TradingGuard";
 import { BrandingProvider } from "@/contexts/BrandingContext";
-import { CoinMarketCapProvider } from "@/contexts/CoinMarketCapContext";
 
 export function TradingLayout() {
   return (
     <TradingGuard>
       <BrandingProvider>
-        <CoinMarketCapProvider>
-          <SidebarProvider>
+        <SidebarProvider>
             <div className="min-h-screen flex w-full bg-background">
               <TradingSidebar />
               
@@ -34,7 +32,6 @@ export function TradingLayout() {
               </div>
             </div>
           </SidebarProvider>
-        </CoinMarketCapProvider>
       </BrandingProvider>
     </TradingGuard>
   );

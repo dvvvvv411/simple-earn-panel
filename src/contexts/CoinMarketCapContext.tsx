@@ -50,7 +50,7 @@ interface CoinMarketCapContextType {
 
 const CoinMarketCapContext = createContext<CoinMarketCapContextType | undefined>(undefined);
 
-const SYMBOLS = ['BTC', 'ETH', 'SOL', 'ADA', 'DOT', 'LINK', 'XRP', 'LTC', 'BCH', 'BNB'];
+const SYMBOLS = ['BTC', 'ETH', 'SOL']; // Reduced to save API costs
 
 export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
   const [coins, setCoins] = useState<FormattedCoinData[]>([]);
@@ -63,7 +63,7 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
 
   const fetchAllData = async () => {
     try {
-      // Fetch listings data
+      // ONLY ONE API CALL - listings contains all needed data
       const listingsResponse = await fetchCoinMarketCapData('listings', {
         start: 1,
         limit: 10,
@@ -81,56 +81,25 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
           market_cap_rank: index + 1
         }));
         setCoins(formattedCoins);
-      }
 
-      // Batch fetch quotes for all symbols
-      const quotesResponse = await fetchCoinMarketCapData('quotes', {
-        symbol: SYMBOLS.join(','),
-        convert: 'EUR'
-      });
-
-      if (quotesResponse?.data && mountedRef.current) {
+        // Extract price data from listings instead of separate quotes call
         const newPriceData = new Map<string, LivePriceData>();
-        SYMBOLS.forEach(symbol => {
-          const coinData = quotesResponse.data[symbol];
-          if (coinData) {
-            newPriceData.set(symbol, {
-              price: coinData.quote.EUR.price,
-              change24h: coinData.quote.EUR.percent_change_24h,
+        listingsResponse.data.forEach((coin: CoinData) => {
+          if (SYMBOLS.includes(coin.symbol)) {
+            newPriceData.set(coin.symbol, {
+              price: coin.quote.EUR.price,
+              change24h: coin.quote.EUR.percent_change_24h,
               lastUpdate: Date.now()
             });
           }
         });
         setPriceData(newPriceData);
-      }
 
-      // Fetch OHLC data for main symbols (BTC, ETH, SOL only to save credits)
-      const mainSymbols = ['BTC', 'ETH', 'SOL'];
-      for (const symbol of mainSymbols) {
-        try {
-          const ohlcResponse = await fetchCoinMarketCapData('ohlcv', {
-            symbol: symbol,
-            convert: 'EUR',
-            count: 24,
-            interval: 'hourly'
-          });
-
-          if (ohlcResponse?.data?.quotes && mountedRef.current) {
-            const transformedData: OHLCData[] = ohlcResponse.data.quotes.map((item: any) => ({
-              timestamp: new Date(item.time_open).getTime(),
-              open: item.quote.EUR.open,
-              high: item.quote.EUR.high,
-              low: item.quote.EUR.low,
-              close: item.quote.EUR.close
-            }));
-            setOhlcData(prev => new Map(prev.set(symbol, transformedData)));
-          }
-        } catch (err) {
-          console.warn(`Failed to fetch OHLC for ${symbol}:`, err);
-          // Generate fallback data
+        // Generate fallback OHLC data instead of API calls
+        SYMBOLS.forEach(symbol => {
           const fallbackData = generateFallbackOHLC();
           setOhlcData(prev => new Map(prev.set(symbol, fallbackData)));
-        }
+        });
       }
 
       setError(null);
@@ -138,7 +107,6 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
       console.error('Error fetching CoinMarketCap data:', err);
       if (mountedRef.current) {
         setError('Failed to load market data');
-        // Set fallback data
         generateFallbackData();
       }
     } finally {
@@ -202,8 +170,8 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
     // Initial fetch
     fetchAllData();
     
-    // Set up 20-second interval
-    intervalRef.current = setInterval(fetchAllData, 20000);
+    // Set up 60-second interval to save API costs
+    intervalRef.current = setInterval(fetchAllData, 60000);
     
     return () => {
       mountedRef.current = false;
