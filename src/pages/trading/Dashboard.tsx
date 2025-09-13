@@ -9,7 +9,6 @@ import { useTradingBots } from "@/hooks/useTradingBots";
 import { useTradingStats } from "@/hooks/useTradingStats";
 import { supabase } from "@/integrations/supabase/client";
 import { TradingSuccessDialog } from "@/components/trading/TradingSuccessDialog";
-import { useDashboardLoading } from "@/components/trading/TradingLayout";
 
 interface TradingBot {
   id: string;
@@ -33,12 +32,10 @@ export default function Dashboard() {
   const [completedBot, setCompletedBot] = useState<TradingBot | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [previousBots, setPreviousBots] = useState<TradingBot[]>([]);
-  const { setIsBalanceLoading } = useDashboardLoading();
 
   // Fetch user balance
   const fetchUserBalance = async () => {
     try {
-      setIsBalanceLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
@@ -54,7 +51,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching user balance:', error);
     } finally {
-      setIsBalanceLoading(false);
+      // Balance loading is now handled in TradingLayout
     }
   };
 

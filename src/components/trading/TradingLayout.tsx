@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TradingSidebar } from "./TradingSidebar";
@@ -6,6 +6,7 @@ import { TradingGuard } from "./TradingGuard";
 import { BrandingProvider, useBranding } from "@/contexts/BrandingContext";
 import { CoinMarketCapProvider } from "@/contexts/CoinMarketCapContext";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Context for managing dashboard-level loading states
 interface DashboardLoadingContextType {
@@ -35,14 +36,40 @@ function DashboardLoadingProvider({ children }: { children: React.ReactNode }) {
 
 function TradingContent() {
   const { loading: brandingLoading } = useBranding();
-  const { isBalanceLoading } = useDashboardLoading();
+  const { isBalanceLoading, setIsBalanceLoading } = useDashboardLoading();
+
+  // Fetch user balance on component mount
+  useEffect(() => {
+    const fetchUserBalance = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('balance')
+            .eq('id', session.user.id)
+            .single();
+          
+          // Balance loaded successfully, set loading to false
+          setIsBalanceLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching user balance:', error);
+        // Even on error, stop loading to prevent infinite loop
+        setIsBalanceLoading(false);
+      }
+    };
+
+    if (!isBalanceLoading) return; // Prevent multiple calls
+    fetchUserBalance();
+  }, [setIsBalanceLoading, isBalanceLoading]);
 
   // Show loading spinner until both branding and balance are loaded
   const isLoading = brandingLoading || isBalanceLoading;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen w-screen flex items-center justify-center bg-background fixed inset-0">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           <p className="text-muted-foreground">Trading-Dashboard wird geladen...</p>
