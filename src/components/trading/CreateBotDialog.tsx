@@ -230,7 +230,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                     </SelectItem>
                   ) : (
                     coins.map((coin) => (
-                       <SelectItem key={coin.id} value={coin.id} className="flex items-center justify-between w-full">
+                       <SelectItem key={coin.id} value={coin.id}>
                             <div className="flex items-center gap-3">
                               <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
                               <div>
@@ -244,21 +244,6 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                                   Rang #{coin.market_cap_rank}
                                 </div>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-semibold font-mono tabular-nums">
-                                {coin.current_price.toLocaleString('de-DE', { 
-                                  style: 'currency', 
-                                  currency: 'EUR',
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </p>
-                              <p className={`text-xs font-mono tabular-nums ${
-                                coin.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
-                              }`}>
-                                {coin.price_change_percentage_24h >= 0 ? '+' : ''}{coin.price_change_percentage_24h.toFixed(2)}%
-                              </p>
                             </div>
                        </SelectItem>
                     ))
