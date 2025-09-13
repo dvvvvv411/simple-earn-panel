@@ -38,12 +38,11 @@ export function useBinanceWebSocket(symbols: string[] = ['BTC']) {
     // Format symbols for Binance stream and add EURUSDT for conversion
     const binanceSymbols = symbols.map(formatSymbolForBinance);
     const allSymbols = [...binanceSymbols, 'eurusdt'];
-    const streams = allSymbols.map(symbol => `${symbol}@ticker`).join('/');
     
-    // Use combined stream for multiple symbols
+    // Use combined stream for multiple symbols - fix URL format
     const wsUrl = allSymbols.length === 1 
-      ? `wss://stream.binance.com:9443/ws/${streams}`
-      : `wss://stream.binance.com:9443/stream?streams=${streams}`;
+      ? `wss://stream.binance.com:9443/ws/${allSymbols[0]}@ticker`
+      : `wss://stream.binance.com:9443/stream?streams=${allSymbols.map(s => `${s}@ticker`).join('/')}`;
 
     try {
       wsRef.current = new WebSocket(wsUrl);
