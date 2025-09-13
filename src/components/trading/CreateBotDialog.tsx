@@ -323,7 +323,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
           <div className="space-y-6">
             {/* Crypto Selection Call-to-Action */}
             {!selectedCoin && (
-              <Card className="relative overflow-hidden border-dashed border-2 border-primary/30">
+              <Card className="hidden lg:block relative overflow-hidden border-dashed border-2 border-primary/30">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
                 <CardContent className="relative p-3 text-center">
                   <div className="flex justify-center mb-2">
