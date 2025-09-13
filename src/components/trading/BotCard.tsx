@@ -201,18 +201,6 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           </div>
         )}
 
-        {/* Completion Summary - Only for completed bots */}
-        {bot.status === 'completed' && (
-          <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
-              <span className="text-sm font-medium text-blue-700">Trade erfolgreich abgeschlossen</span>
-            </div>
-            <div className="text-xs text-blue-600">
-              Ergebnis wurde zu Ihrem Kontostand hinzugefügt
-            </div>
-          </div>
-        )}
       </CardHeader>
 
       <CardContent className="space-y-4">
