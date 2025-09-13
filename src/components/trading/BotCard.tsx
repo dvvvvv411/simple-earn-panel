@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Bot, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useBinanceWebSocket } from '@/hooks/useBinanceWebSocket';
+import { useCoinGeckoData } from '@/hooks/useCoinGeckoData';
+import { useLiveCoinPrice } from '@/hooks/useLiveCoinPrice';
 import CryptoCandlestickChart from './CryptoCandlestickChart';
 
 interface TradingBot {
@@ -40,12 +41,13 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { getSymbolData, formatPrice, isConnected } = useBinanceWebSocket([bot.symbol]);
-  
-  // Get live price data from Binance
-  const symbolData = getSymbolData(bot.symbol);
-  const formattedPrice = symbolData ? formatPrice(symbolData.lastPrice) : '€0.00';
-  const change24h = symbolData ? parseFloat(symbolData.priceChangePercent) : 0;
+  const { coins } = useCoinGeckoData();
+  const { formattedPrice, change24h, isLive } = useLiveCoinPrice(bot.symbol);
+
+  // Get current price from CoinGecko data (fallback)
+  const currentCoin = useMemo(() => {
+    return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
+  }, [coins, bot.symbol]);
 
   // Calculate profit/loss
   const totalReturn = bot.current_balance - bot.start_amount;
@@ -119,7 +121,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         {/* Live Price Display */}
         <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/20">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${isConnected && symbolData ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+            <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
             <span className="text-xs font-medium text-green-600">LIVE</span>
             <span className="text-sm font-semibold">{formattedPrice}</span>
           </div>
