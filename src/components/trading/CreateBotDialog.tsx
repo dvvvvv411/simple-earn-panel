@@ -13,10 +13,16 @@ import { supabase } from "@/integrations/supabase/client";
 interface CreateBotDialogProps {
   userBalance: number;
   onBotCreated: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogProps) {
-  const [open, setOpen] = useState(false);
+export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange }: CreateBotDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // Use controlled state if provided, otherwise use internal state
+  const dialogOpen = open !== undefined ? open : isOpen;
+  const setDialogOpen = onOpenChange || setIsOpen;
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
@@ -138,7 +144,7 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
         description: `Trading-Bot für ${selectedCoin.name} wurde erfolgreich gestartet.`,
       });
 
-      setOpen(false);
+      setDialogOpen(false);
       setSelectedCrypto("");
       setAmount("");
       onBotCreated();
@@ -156,13 +162,16 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full" size="sm">
-          <Bot className="w-4 h-4 mr-2" />
-          Bot erstellen
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Only show trigger if not controlled externally */}
+      {open === undefined && (
+        <DialogTrigger asChild>
+          <Button className="w-full" size="sm">
+            <Bot className="w-4 h-4 mr-2" />
+            Bot erstellen
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -250,7 +259,7 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
           <div className="flex gap-2 pt-4">
             <Button
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => setDialogOpen(false)}
               className="flex-1"
             >
               Abbrechen

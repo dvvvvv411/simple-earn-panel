@@ -170,13 +170,6 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: Ac
           </Button>
         </div>
 
-        {/* Bot Creation Button */}
-        <div className="pt-4 border-t border-border">
-          <CreateBotDialog 
-            userBalance={balance || 0} 
-            onBotCreated={onBalanceUpdate}
-          />
-        </div>
       </CardContent>
     </Card>
   );

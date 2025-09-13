@@ -4,6 +4,7 @@ import { TradesCard } from "@/components/trading/TradesCard";
 import { MarketOverviewCard } from "@/components/trading/MarketOverviewCard";
 import { WelcomeCard } from "@/components/trading/WelcomeCard";
 import { BotCard } from "@/components/trading/BotCard";
+import { CreateBotCard } from "@/components/trading/CreateBotCard";
 import { useTradingBots } from "@/hooks/useTradingBots";
 import { supabase } from "@/integrations/supabase/client";
 import { TradingSuccessDialog } from "@/components/trading/TradingSuccessDialog";
@@ -205,39 +206,44 @@ export default function Dashboard() {
         <MarketOverviewCard />
       </div>
 
-      {/* Active Trading Bots Section */}
-      {bots.filter(bot => bot.status === 'active').length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Meine Trading-Bots</h2>
-            <span className="text-sm text-muted-foreground">
-              {bots.filter(bot => bot.status === 'active').length} aktive Bots
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bots.filter(bot => bot.status === 'active').map((bot) => (
-              <BotCard 
-                key={bot.id} 
-                bot={bot} 
-                onUpdate={handleBalanceUpdate}
-                onBotCompleted={(completedBot) => {
-                  console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
-                  setCompletedBot({
-                    ...completedBot,
-                    buy_price: completedBot.buy_price || null,
-                    sell_price: completedBot.sell_price || null,
-                    leverage: completedBot.leverage || 1,
-                    position_type: completedBot.position_type || 'LONG'
-                  });
-                  setShowSuccessDialog(true);
-                  setTimeout(() => fetchUserBalance(), 500);
-                }}
-              />
-            ))}
-          </div>
+      {/* Trading Bots Section - Always visible */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-foreground">Meine Trading-Bots</h2>
+          <span className="text-sm text-muted-foreground">
+            {bots.filter(bot => bot.status === 'active').length} aktive Bots
+          </span>
         </div>
-      )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Create Bot Card - Always first */}
+          <CreateBotCard 
+            userBalance={userBalance}
+            onBotCreated={handleBalanceUpdate}
+          />
+          
+          {/* Active Trading Bots */}
+          {bots.filter(bot => bot.status === 'active').map((bot) => (
+            <BotCard 
+              key={bot.id} 
+              bot={bot} 
+              onUpdate={handleBalanceUpdate}
+              onBotCompleted={(completedBot) => {
+                console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
+                setCompletedBot({
+                  ...completedBot,
+                  buy_price: completedBot.buy_price || null,
+                  sell_price: completedBot.sell_price || null,
+                  leverage: completedBot.leverage || 1,
+                  position_type: completedBot.position_type || 'LONG'
+                });
+                setShowSuccessDialog(true);
+                setTimeout(() => fetchUserBalance(), 500);
+              }}
+            />
+          ))}
+        </div>
+      </div>
 
       {/* Trading History Section */}
       {bots.filter(bot => bot.status === 'completed').length > 0 && (
