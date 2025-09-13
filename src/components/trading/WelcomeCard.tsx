@@ -1,20 +1,12 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Trophy } from "lucide-react";
-import { useBranding } from "@/contexts/BrandingContext";
-import { getContrastColor } from "@/lib/utils";
 
 export function WelcomeCard() {
   // Simulated streak data - in real app this would come from user data
   const currentStreak = 5;
   const weeklyGoal = 7;
   const userName = "Trader"; // This would come from user context
-  const { branding } = useBranding();
-  
-  // Dynamic icon color based on branding
-  const flameIconColor = branding?.accent_color 
-    ? getContrastColor(branding.accent_color)
-    : 'text-orange-300';
 
   const animationStyles = {
     floating: {
@@ -149,7 +141,7 @@ export function WelcomeCard() {
             
             <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-white/20">
               <Flame 
-                className={`w-5 h-5 ${flameIconColor} drop-shadow-sm`}
+                className="w-5 h-5 text-white drop-shadow-sm"
                 style={animationStyles.pulseGlow}
               />
               <div className="text-right">
