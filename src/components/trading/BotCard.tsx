@@ -96,17 +96,34 @@ export function BotCard({ bot, onUpdate, onBotCompleted }: BotCardProps) {
 
   // Calculate runtime
   const calculateRuntime = () => {
-    const now = new Date();
-    const startTime = new Date(localBot.created_at);
-    const diffMs = now.getTime() - startTime.getTime();
-    
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
+    // For completed bots, show actual trade duration
+    if (localBot.status === 'completed' && latestTrade && latestTrade.completed_at) {
+      const startTime = new Date(latestTrade.started_at);
+      const endTime = new Date(latestTrade.completed_at);
+      const diffMs = endTime.getTime() - startTime.getTime();
+      
+      const minutes = Math.floor(diffMs / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+      
+      if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+      } else {
+        return `${seconds}s`;
+      }
     } else {
-      return `${minutes}m`;
+      // For active bots, show time since creation
+      const now = new Date();
+      const startTime = new Date(localBot.created_at);
+      const diffMs = now.getTime() - startTime.getTime();
+      
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+      } else {
+        return `${minutes}m`;
+      }
     }
   };
 
