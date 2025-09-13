@@ -33,21 +33,35 @@ serve(async (req) => {
       if (userData.user) {
         console.log('Fetching API key from user branding...')
         
-        // Get user's branding and API key
-        const { data: profile } = await supabase
+        // First get user's profile to get branding_id
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select(`
-            branding_id,
-            brandings (
-              coinmarketcap_api_key
-            )
-          `)
+          .select('branding_id')
           .eq('id', userData.user.id)
           .single()
 
-        if (profile?.brandings?.coinmarketcap_api_key) {
-          apiKey = profile.brandings.coinmarketcap_api_key
-          console.log('API key found in user branding')
+        if (profileError) {
+          console.error('Error fetching user profile:', profileError)
+        } else if (profile?.branding_id) {
+          console.log('User branding_id found:', profile.branding_id)
+          
+          // Then get the branding with API key
+          const { data: branding, error: brandingError } = await supabase
+            .from('brandings')
+            .select('coinmarketcap_api_key')
+            .eq('id', profile.branding_id)
+            .single()
+
+          if (brandingError) {
+            console.error('Error fetching branding:', brandingError)
+          } else if (branding?.coinmarketcap_api_key) {
+            apiKey = branding.coinmarketcap_api_key
+            console.log('API key found in user branding')
+          } else {
+            console.log('No API key found in user branding')
+          }
+        } else {
+          console.log('User has no branding_id set')
         }
       }
     }
