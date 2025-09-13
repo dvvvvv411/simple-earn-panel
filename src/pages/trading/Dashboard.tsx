@@ -89,35 +89,9 @@ export default function Dashboard() {
           console.log('📡 Dashboard: Realtime subscription status:', status);
         });
 
-      // Fallback polling for active bots (safety net)
-      const pollInterval = setInterval(async () => {
-        try {
-          const { data: activeBots } = await supabase
-            .from('trading_bots')
-            .select('id, status')
-            .eq('user_id', user.id)
-            .eq('status', 'active');
-          
-          if (activeBots && activeBots.length > 0) {
-            console.log('🔄 Dashboard: Polling check for active bots:', activeBots.length);
-            refetchBots();
-          }
-        } catch (error) {
-          console.error('❌ Dashboard: Polling error:', error);
-        }
-      }, 5000); // Poll every 5 seconds for active bots
-
-      // Hard reload fallback as last resort
-      const hardReloadTimer = setTimeout(() => {
-        console.log('⚡ Dashboard: Hard reload fallback triggered after 30 seconds');
-        window.location.reload();
-      }, 30000);
-
       return () => {
         console.log('🧹 Dashboard: Cleaning up subscriptions');
         supabase.removeChannel(channel);
-        clearInterval(pollInterval);
-        clearTimeout(hardReloadTimer);
       };
     };
 
