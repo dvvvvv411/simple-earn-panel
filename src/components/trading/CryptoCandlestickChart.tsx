@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ComposedChart, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useCoinGeckoOHLC } from '@/hooks/useCoinGeckoOHLC';
 import { useCoinGeckoData } from '@/hooks/useCoinGeckoData';
 
-interface CandleData {
+interface ChartData {
   time: string;
   timestamp: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
+  price: number;
 }
 
 interface CryptoCandlestickChartProps {
@@ -34,62 +31,19 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
         minute: '2-digit' 
       }),
       timestamp: item.timestamp,
-      open: item.open,
-      high: item.high,
-      low: item.low,
-      close: item.close
+      price: item.close
     }));
   }, [ohlcData]);
 
   const currentPrice = currentCoin?.current_price || 0;
-
-  const Candlestick = (props: any) => {
-    const { index } = props;
-    if (!chartData[index]) return null;
-    
-    const data = chartData[index];
-    const { open, high, low, close } = data;
-    const isGreen = close >= open;
-    
-    // Calculate positions
-    const chartHeight = 120;
-    const minPrice = Math.min(...chartData.map(d => d.low));
-    const maxPrice = Math.max(...chartData.map(d => d.high));
-    const priceRange = maxPrice - minPrice;
-    
-    const x = (index / chartData.length) * 100;
-    const width = 100 / chartData.length * 0.6;
-    
-    const highY = ((maxPrice - high) / priceRange) * chartHeight;
-    const lowY = ((maxPrice - low) / priceRange) * chartHeight;
-    const openY = ((maxPrice - open) / priceRange) * chartHeight;
-    const closeY = ((maxPrice - close) / priceRange) * chartHeight;
-    
-    const bodyTop = Math.min(openY, closeY);
-    const bodyHeight = Math.abs(openY - closeY);
-    
-    return (
-      <g transform={`translate(${x}%, 0)`}>
-        {/* Wick line */}
-        <line
-          x1="50%"
-          y1={highY}
-          x2="50%"
-          y2={lowY}
-          stroke={isGreen ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))"}
-          strokeWidth={1}
-        />
-        {/* Candle body */}
-        <rect
-          x="20%"
-          y={bodyTop}
-          width="60%"
-          height={Math.max(bodyHeight, 1)}
-          fill={isGreen ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))"}
-        />
-      </g>
-    );
-  };
+  
+  // Determine if trend is positive or negative
+  const isPositiveTrend = useMemo(() => {
+    if (chartData.length < 2) return true;
+    const firstPrice = chartData[0].price;
+    const lastPrice = chartData[chartData.length - 1].price;
+    return lastPrice >= firstPrice;
+  }, [chartData]);
 
   if (ohlcLoading || coinsLoading) {
     return (
@@ -141,7 +95,21 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
       
       <ChartContainer config={chartConfig} className="h-[120px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+          <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <defs>
+              <linearGradient id={`gradient-${symbol}`} x1="0" y1="0" x2="0" y2="1">
+                <stop 
+                  offset="0%" 
+                  stopColor={isPositiveTrend ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))"} 
+                  stopOpacity={0.8}
+                />
+                <stop 
+                  offset="100%" 
+                  stopColor={isPositiveTrend ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))"} 
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+            </defs>
             <XAxis 
               dataKey="time" 
               axisLine={false}
@@ -149,33 +117,29 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
               tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
               interval="preserveStartEnd"
             />
-            <YAxis 
-              domain={['dataMin - 1', 'dataMax + 1']}
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-              width={40}
-            />
+            <YAxis hide />
             <ChartTooltip
               content={<ChartTooltipContent />}
-              formatter={(value: any, name: string) => [
+              formatter={(value: any) => [
                 `€${parseFloat(value).toFixed(2)}`,
-                name
+                "Preis"
               ]}
             />
-            <ReferenceLine 
-              y={currentPrice} 
-              stroke="hsl(var(--primary))" 
-              strokeDasharray="2 2" 
-              strokeWidth={1}
+            <Area
+              type="monotone"
+              dataKey="price"
+              stroke={isPositiveTrend ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))"}
+              strokeWidth={2}
+              fill={`url(#gradient-${symbol})`}
+              dot={false}
+              activeDot={{ 
+                r: 4, 
+                fill: isPositiveTrend ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))",
+                strokeWidth: 2,
+                stroke: "hsl(var(--background))"
+              }}
             />
-            {chartData.map((_, index) => (
-              <Candlestick
-                key={index}
-                index={index}
-              />
-            ))}
-          </ComposedChart>
+          </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
     </div>
