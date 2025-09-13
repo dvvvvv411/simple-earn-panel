@@ -44,8 +44,8 @@ export function WelcomeCard() {
           50% { transform: translateY(-15px) rotate(-3deg); }
         }
         @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
+          0% { transform: translateX(-150%); }
+          100% { transform: translateX(150%); }
         }
         @keyframes pulse-glow {
           0%, 100% { opacity: 0.3; transform: scale(1); }
