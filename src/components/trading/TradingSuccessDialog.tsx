@@ -25,56 +25,18 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
 
   useEffect(() => {
     if (open && completedBot) {
-      // Initial burst
+      // Single elegant confetti burst
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#10b981', '#059669', '#34d399', '#6ee7b7', '#fbbf24']
+        particleCount: 50,
+        spread: 50,
+        origin: { y: 0.7 },
+        colors: ['#10b981', '#059669', '#34d399'],
+        ticks: 80,
+        gravity: 0.8,
+        scalar: 0.8
       });
-
-      // Continuous confetti for 3 seconds
-      const duration = 3000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-      function randomInRange(min: number, max: number) {
-        return Math.random() * (max - min) + min;
-      }
-
-      const interval = setInterval(function() {
-        const timeLeft = animationEnd - Date.now();
-
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
-
-        const particleCount = 50 * (timeLeft / duration);
-        
-        confetti(Object.assign({}, defaults, {
-          particleCount,
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-          colors: ['#10b981', '#059669', '#34d399']
-        }));
-        
-        confetti(Object.assign({}, defaults, {
-          particleCount,
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-          colors: ['#fbbf24', '#f59e0b', '#d97706']
-        }));
-      }, 250);
-
-      // Auto close after 10 seconds
-      const autoCloseTimer = setTimeout(() => {
-        onOpenChange(false);
-      }, 10000);
-
-      return () => {
-        clearInterval(interval);
-        clearTimeout(autoCloseTimer);
-      };
     }
-  }, [open, completedBot, onOpenChange]);
+  }, [open, completedBot]);
 
   if (!completedBot) return null;
 
@@ -165,7 +127,7 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
             className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-3"
             size="lg"
           >
-            Wow! Weiter traden 🎯
+            Verstanden
           </Button>
         </div>
       </DialogContent>
