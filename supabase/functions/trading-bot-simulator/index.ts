@@ -17,30 +17,56 @@ interface TradeSimulation {
 }
 
 serve(async (req) => {
+  console.log('🚀 Trading bot simulator function started');
+  console.log('📨 Request method:', req.method);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('⚡ Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { bot_id, current_price }: TradeSimulation = await req.json();
+    console.log('📋 Reading request body...');
+    const body = await req.json();
+    console.log('📊 Request body:', body);
     
-    console.log(`Starting trade simulation for bot ${bot_id} at price ${current_price}`);
+    const { bot_id, current_price }: TradeSimulation = body;
+    
+    if (!bot_id || !current_price) {
+      console.error('❌ Missing required parameters:', { bot_id, current_price });
+      return new Response(JSON.stringify({ 
+        error: 'Missing bot_id or current_price' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    console.log(`🤖 Starting trade simulation for bot ${bot_id} at price ${current_price}`);
 
     // Start background trading simulation
+    console.log('⏳ Starting background trading loop...');
     EdgeRuntime.waitUntil(startTradingLoop(bot_id, current_price));
+    console.log('✅ Background task registered with EdgeRuntime.waitUntil');
 
     return new Response(JSON.stringify({ 
       success: true, 
       message: `Trade simulation started for bot ${bot_id}`,
-      status: 'active'
+      status: 'active',
+      timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in trading-bot-simulator:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('💥 Critical error in trading-bot-simulator:', error);
+    console.error('🔍 Error stack:', error.stack);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -48,39 +74,65 @@ serve(async (req) => {
 });
 
 async function startTradingLoop(bot_id: string, initial_price: number) {
+  console.log(`🔄 Starting trading loop for bot ${bot_id} with initial price ${initial_price}`);
   let currentPrice = initial_price;
+  
+  // For testing: Execute first trade after 30 seconds
+  console.log('⚡ Scheduling first test trade in 30 seconds...');
+  await new Promise(resolve => setTimeout(resolve, 30000));
+  
+  try {
+    console.log('🎯 Executing first test trade...');
+    await simulateTrade(bot_id, currentPrice);
+  } catch (error) {
+    console.error('❌ Error in first test trade:', error);
+  }
   
   while (true) {
     try {
+      console.log(`🔍 Checking bot ${bot_id} status...`);
+      
       // Check if bot is still active
-      const { data: bot } = await supabase
+      const { data: bot, error: botCheckError } = await supabase
         .from('trading_bots')
         .select('status')
         .eq('id', bot_id)
         .single();
 
-      if (!bot || bot.status !== 'active') {
-        console.log(`Bot ${bot_id} stopped or not found`);
+      if (botCheckError) {
+        console.error(`❌ Error checking bot status:`, botCheckError);
         break;
       }
 
+      if (!bot || bot.status !== 'active') {
+        console.log(`🛑 Bot ${bot_id} stopped or not found. Status: ${bot?.status}`);
+        break;
+      }
+
+      console.log(`✅ Bot ${bot_id} is still active`);
+
       // Wait 30-60 minutes for trade (converted to milliseconds)
       const tradeDelayMs = Math.random() * (60 * 60000 - 30 * 60000) + 30 * 60000; // 30-60 minutes
-      console.log(`Next trade in ${(tradeDelayMs / 60000).toFixed(1)} minutes`);
+      console.log(`⏰ Next trade in ${(tradeDelayMs / 60000).toFixed(1)} minutes`);
       
       await new Promise(resolve => setTimeout(resolve, tradeDelayMs));
       
       // Simulate realistic price movement (±5% max)
       const priceVariance = Math.random() * 0.1 - 0.05; // -5% to +5%
       currentPrice = currentPrice * (1 + priceVariance);
+      console.log(`📈 Updated price: ${currentPrice.toFixed(4)}`);
       
       await simulateTrade(bot_id, currentPrice);
       
     } catch (error) {
-      console.error('Error in trading loop:', error);
+      console.error('💥 Error in trading loop:', error);
+      console.error('🔍 Error details:', error.stack);
+      console.log('⏳ Waiting 1 minute before retry...');
       await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 1 minute before retry
     }
   }
+  
+  console.log(`🏁 Trading loop ended for bot ${bot_id}`);
 }
 
 async function simulateTrade(bot_id: string, entry_price: number) {

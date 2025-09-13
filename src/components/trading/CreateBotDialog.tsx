@@ -104,20 +104,33 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
       }
 
       // Start the trading simulation
-      const { error: functionError } = await supabase.functions.invoke('trading-bot-simulator', {
+      console.log('🤖 Starting trading simulation for bot:', bot.id);
+      console.log('📊 Current price:', selectedCoin.current_price);
+      
+      const { data: functionResponse, error: functionError } = await supabase.functions.invoke('trading-bot-simulator', {
         body: { 
           bot_id: bot.id,
           current_price: selectedCoin.current_price 
         }
       });
 
+      console.log('🔄 Function response:', functionResponse);
+      console.log('❌ Function error:', functionError);
+
       if (functionError) {
-        console.error('Function invocation error:', functionError);
+        console.error('Function invocation error details:', {
+          message: functionError.message,
+          details: functionError.details,
+          hint: functionError.hint,
+          code: functionError.code
+        });
         toast({
           title: "Warnung",
-          description: "Bot wurde erstellt, aber Trading-Simulation konnte nicht gestartet werden.",
+          description: `Bot wurde erstellt, aber Trading-Simulation konnte nicht gestartet werden: ${functionError.message}`,
           variant: "destructive"
         });
+      } else {
+        console.log('✅ Trading simulation started successfully');
       }
 
       toast({
