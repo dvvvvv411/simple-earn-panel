@@ -25,7 +25,8 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
   const chartData = useMemo(() => {
     if (!ohlcData || ohlcData.length === 0) return [];
     
-    return ohlcData.slice(-24).map((item) => ({
+    // Use ALL data points for natural curve (no slice!)
+    const data = ohlcData.map((item) => ({
       time: new Date(item.timestamp).toLocaleTimeString('de-DE', { 
         hour: '2-digit', 
         minute: '2-digit' 
@@ -33,6 +34,14 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
       timestamp: item.timestamp,
       price: item.close
     }));
+    
+    // Debug logging
+    console.log(`Chart data points: ${data.length}`);
+    if (data.length > 0) {
+      console.log(`Price range: ${Math.min(...data.map(d => d.price)).toFixed(2)} - ${Math.max(...data.map(d => d.price)).toFixed(2)}`);
+    }
+    
+    return data;
   }, [ohlcData]);
 
   const currentPrice = currentCoin?.current_price || 0;
@@ -120,9 +129,12 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-              interval="preserveStartEnd"
+              interval={Math.floor(chartData.length / 6) || 1}
             />
-            <YAxis hide />
+            <YAxis 
+              hide 
+              domain={['dataMin', 'dataMax']}
+            />
             <ChartTooltip
               content={<ChartTooltipContent />}
               formatter={(value: any) => [
@@ -137,6 +149,8 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
               strokeWidth={2}
               fill={`url(#gradient-${symbol})`}
               dot={false}
+              connectNulls={false}
+              isAnimationActive={false}
               activeDot={{ 
                 r: 4, 
                 fill: currentColor,
