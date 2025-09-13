@@ -220,7 +220,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                 <SelectTrigger className="h-12 text-base">
                   <SelectValue placeholder="Wählen Sie eine Kryptowährung..." />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
+                <SelectContent className="max-h-[300px] min-w-[500px]">
                   {loading ? (
                     <SelectItem value="loading" disabled>
                       <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                     </SelectItem>
                   ) : (
                     coins.map((coin) => (
-                      <SelectItem key={coin.id} value={coin.id}>
+                      <SelectItem key={coin.id} value={coin.id} className="pl-3 pr-4 py-3">
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center gap-3">
                             <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
@@ -246,7 +246,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             <div className="text-sm font-semibold font-mono tabular-nums">
                               {coin.current_price.toLocaleString('de-DE', { 
                                 style: 'currency', 
