@@ -34,28 +34,15 @@ export default function Dashboard() {
   useEffect(() => {
     fetchUserBalance();
 
-    // Set up real-time subscription for balance updates and bot changes
+    // Set up robust real-time subscription for trading_bots changes
     const setupRealtimeSubscription = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      console.log('🔥 Dashboard: Setting up realtime subscription for user:', user.id);
+
       const channel = supabase
-        .channel('dashboard-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Balance updated via realtime:', payload);
-            if (payload.new && typeof payload.new.balance === 'number') {
-              setUserBalance(payload.new.balance);
-            }
-          }
-        )
+        .channel('dashboard-trading-bots')
         .on(
           'postgres_changes',
           {
@@ -65,20 +52,72 @@ export default function Dashboard() {
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('Trading bot updated via realtime:', payload);
-            // Immediately refetch bots when any bot changes
+            console.log('🚀 Dashboard: Trading bot realtime event received:', {
+              event: payload.eventType,
+              botId: (payload.new as any)?.id || (payload.old as any)?.id,
+              oldStatus: (payload.old as any)?.status,
+              newStatus: (payload.new as any)?.status,
+              timestamp: new Date().toISOString()
+            });
+            
+            // IMMEDIATE refetch on ANY trading_bots change
             refetchBots();
-            // Also refresh balance when bot is completed
-            if (payload.eventType === 'UPDATE' && payload.new?.status === 'completed') {
-              console.log('Bot completed, refreshing balance');
-              fetchUserBalance();
+            
+            // Special handling for completed bots
+            if (payload.eventType === 'UPDATE' && (payload.new as any)?.status === 'completed') {
+              console.log('🎯 Dashboard: Bot completed, triggering balance refresh');
+              setTimeout(() => fetchUserBalance(), 500); // Small delay to ensure DB consistency
             }
           }
         )
-        .subscribe();
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('💰 Dashboard: Balance updated via realtime:', payload.new?.balance);
+            if (payload.new && typeof payload.new.balance === 'number') {
+              setUserBalance(payload.new.balance);
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Dashboard: Realtime subscription status:', status);
+        });
+
+      // Fallback polling for active bots (safety net)
+      const pollInterval = setInterval(async () => {
+        try {
+          const { data: activeBots } = await supabase
+            .from('trading_bots')
+            .select('id, status')
+            .eq('user_id', user.id)
+            .eq('status', 'active');
+          
+          if (activeBots && activeBots.length > 0) {
+            console.log('🔄 Dashboard: Polling check for active bots:', activeBots.length);
+            refetchBots();
+          }
+        } catch (error) {
+          console.error('❌ Dashboard: Polling error:', error);
+        }
+      }, 5000); // Poll every 5 seconds for active bots
+
+      // Hard reload fallback as last resort
+      const hardReloadTimer = setTimeout(() => {
+        console.log('⚡ Dashboard: Hard reload fallback triggered after 30 seconds');
+        window.location.reload();
+      }, 30000);
 
       return () => {
+        console.log('🧹 Dashboard: Cleaning up subscriptions');
         supabase.removeChannel(channel);
+        clearInterval(pollInterval);
+        clearTimeout(hardReloadTimer);
       };
     };
 

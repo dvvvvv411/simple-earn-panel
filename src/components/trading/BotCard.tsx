@@ -117,55 +117,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           onUpdate(); // Refresh bot data
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'trading_bots',
-          filter: `id=eq.${bot.id}`
-        },
-        (payload) => {
-          console.log('🔥 Real-time bot update received:', { 
-            botId: bot.id, 
-            oldStatus: localBot.status,
-            newStatus: payload.new?.status,
-            oldBalance: localBot.current_balance,
-            newBalance: payload.new?.current_balance
-          });
-          
-          // Immediately update local bot state for instant UI updates
-          if (payload.new) {
-            const updatedBot = payload.new as TradingBot;
-            setLocalBot(prev => ({ ...prev, ...updatedBot }));
-            
-            // Fallback reload check for completed bots
-            if (updatedBot.status === 'completed' && localBot.status !== 'completed') {
-              console.log('🎯 Bot completed! Setting up fallback reload check...');
-              setLastCompletedCheck(updatedBot.id);
-              
-              // Check if UI updated after 3 seconds, reload if not
-              setTimeout(() => {
-                console.log('⏰ Checking if UI updated for completed bot...');
-                // Get current DOM state to check if UI actually updated
-                const statusElement = document.querySelector(`[data-bot-id="${updatedBot.id}"] .status-indicator`);
-                if (statusElement?.textContent?.includes('Aktiv')) {
-                  console.log('❌ UI did not update, forcing page reload!');
-                  window.location.reload();
-                } else {
-                  console.log('✅ UI updated correctly, no reload needed');
-                }
-              }, 3000);
-            }
-          }
-          
-          // Trigger dashboard update when bot status changes to completed
-          if (payload.new?.status === 'completed') {
-            console.log('Bot completed, triggering balance update');
-            onUpdate();
-          }
-        }
-      )
+      // BOT UPDATES REMOVED: Now handled centrally by Dashboard for better control
       .subscribe();
 
     return () => {
