@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Bot, TrendingUp, TrendingDown, Pause, Play, Square, MoreVertical } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Bot, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import CryptoCandlestickChart from './CryptoCandlestickChart';
 
 interface TradingBot {
   id: string;
@@ -90,49 +89,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
     }
   };
 
-  const updateBotStatus = async (newStatus: 'active' | 'paused' | 'stopped') => {
-    setIsLoading(true);
-    
-    const { error } = await supabase
-      .from('trading_bots')
-      .update({ status: newStatus })
-      .eq('id', bot.id);
-
-    if (error) {
-      console.error('Error updating bot status:', error);
-      toast({
-        title: "Fehler",
-        description: "Bot-Status konnte nicht aktualisiert werden.",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Bot aktualisiert",
-        description: `Bot wurde ${newStatus === 'active' ? 'aktiviert' : newStatus === 'paused' ? 'pausiert' : 'gestoppt'}.`,
-      });
-      onUpdate();
-    }
-    
-    setIsLoading(false);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'paused': return 'bg-yellow-500';
-      case 'stopped': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active': return 'Aktiv';
-      case 'paused': return 'Pausiert';
-      case 'stopped': return 'Gestoppt';
-      default: return 'Unbekannt';
-    }
-  };
+  // Removed pause/stop functionality - bots are always active
 
   return (
     <Card className="relative overflow-hidden">
@@ -147,36 +104,8 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
           </div>
           
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${getStatusColor(bot.status)}`} />
-            <span className="text-sm font-medium">{getStatusText(bot.status)}</span>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {bot.status === 'active' && (
-                  <DropdownMenuItem onClick={() => updateBotStatus('paused')} disabled={isLoading}>
-                    <Pause className="w-4 h-4 mr-2" />
-                    Pausieren
-                  </DropdownMenuItem>
-                )}
-                {bot.status === 'paused' && (
-                  <DropdownMenuItem onClick={() => updateBotStatus('active')} disabled={isLoading}>
-                    <Play className="w-4 h-4 mr-2" />
-                    Fortsetzen
-                  </DropdownMenuItem>
-                )}
-                {bot.status !== 'stopped' && (
-                  <DropdownMenuItem onClick={() => updateBotStatus('stopped')} disabled={isLoading}>
-                    <Square className="w-4 h-4 mr-2" />
-                    Stoppen
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-sm font-medium text-green-600">Aktiv</span>
           </div>
         </div>
       </CardHeader>
@@ -196,6 +125,14 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
               {bot.current_balance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
             </p>
           </div>
+        </div>
+
+        {/* Live Chart */}
+        <div className="space-y-2">
+          <CryptoCandlestickChart 
+            symbol={bot.symbol} 
+            currentPrice={50000 + Math.random() * 10000} 
+          />
         </div>
 
         {/* Profit/Loss */}
@@ -256,12 +193,10 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         )}
 
         {/* Active Indicator */}
-        {bot.status === 'active' && (
-          <div className="flex items-center gap-2 text-xs text-green-600">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span>Bot arbeitet aktiv...</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-xs text-green-600">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span>Bot arbeitet aktiv...</span>
+        </div>
       </CardContent>
     </Card>
   );
