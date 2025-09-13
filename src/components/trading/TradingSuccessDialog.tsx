@@ -119,9 +119,6 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
             <Trophy className="w-8 h-8 text-white" />
           </div>
           
-          <div className="text-center mb-2">
-            <span className="text-2xl">🎉 🎉</span>
-          </div>
           
           <DialogTitle 
             className="text-2xl font-bold bg-clip-text text-transparent text-center"
@@ -188,11 +185,11 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Einkaufspreis</span>
-                <div className="font-semibold">{tradeDetails?.buy_price?.toFixed(4) || completedBot.buy_price?.toFixed(4) || 'N/A'} $</div>
+                <div className="font-semibold">{tradeDetails?.buy_price?.toFixed(2) || completedBot.buy_price?.toFixed(2) || 'N/A'} $</div>
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Verkaufspreis</span>
-                <div className="font-semibold">{tradeDetails?.sell_price?.toFixed(4) || completedBot.sell_price?.toFixed(4) || 'N/A'} $</div>
+                <div className="font-semibold">{tradeDetails?.sell_price?.toFixed(2) || completedBot.sell_price?.toFixed(2) || 'N/A'} $</div>
               </div>
               <div className="text-center">
                 <span className="text-muted-foreground block">Startsumme</span>
