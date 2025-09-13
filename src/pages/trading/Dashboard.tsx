@@ -9,6 +9,7 @@ import { useTradingBots } from "@/hooks/useTradingBots";
 import { useTradingStats } from "@/hooks/useTradingStats";
 import { supabase } from "@/integrations/supabase/client";
 import { TradingSuccessDialog } from "@/components/trading/TradingSuccessDialog";
+import { useDashboardLoading } from "@/components/trading/TradingLayout";
 
 interface TradingBot {
   id: string;
@@ -26,16 +27,18 @@ interface TradingBot {
 }
 
 export default function Dashboard() {
-  const [userBalance, setUserBalance] = useState<number>(25000.50);
+  const [userBalance, setUserBalance] = useState<number | null>(null);
   const { bots, loading: botsLoading, refetch: refetchBots } = useTradingBots();
   const { stats: tradingStats, loading: statsLoading } = useTradingStats();
   const [completedBot, setCompletedBot] = useState<TradingBot | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [previousBots, setPreviousBots] = useState<TradingBot[]>([]);
+  const { setIsBalanceLoading } = useDashboardLoading();
 
   // Fetch user balance
   const fetchUserBalance = async () => {
     try {
+      setIsBalanceLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
@@ -50,6 +53,8 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error fetching user balance:', error);
+    } finally {
+      setIsBalanceLoading(false);
     }
   };
 
@@ -201,7 +206,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AccountBalanceCard 
-          balance={userBalance} 
+          balance={userBalance || 0} 
           onBalanceUpdate={handleBalanceUpdate}
         />
         <TradesCard stats={tradingStats} loading={statsLoading} />
@@ -220,7 +225,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Create Bot Card - Always first */}
           <CreateBotCard 
-            userBalance={userBalance}
+            userBalance={userBalance || 0}
             onBotCreated={handleBalanceUpdate}
           />
           
