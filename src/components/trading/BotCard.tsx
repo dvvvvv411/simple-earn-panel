@@ -58,8 +58,10 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const returnPercentage = ((totalReturn / bot.start_amount) * 100);
   const isProfit = totalReturn >= 0;
 
-  // Get latest trade
-  const latestTrade = trades.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())[0];
+  // Get latest trade - safely handle empty trades array
+  const latestTrade = trades && trades.length > 0 
+    ? trades.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())[0]
+    : null;
 
   useEffect(() => {
     fetchTrades();
