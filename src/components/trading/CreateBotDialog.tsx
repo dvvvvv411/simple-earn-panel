@@ -340,24 +340,24 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
             {!selectedCoin && (
               <Card className="relative overflow-hidden border-dashed border-2 border-primary/30">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
-                <CardContent className="relative p-4 text-center">
-                  <div className="flex justify-center mb-3">
+                <CardContent className="relative p-3 text-center">
+                  <div className="flex justify-center mb-2">
                     <div className="relative">
                       {/* Rotating Crypto Icons */}
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center animate-pulse">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center animate-pulse">
                         <div className="animate-spin">
-                          <Bitcoin className="w-5 h-5 text-primary" />
+                          <Bitcoin className="w-4 h-4 text-primary" />
                         </div>
                       </div>
                       {/* Animated indicators around the icon */}
-                      <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary animate-bounce" />
+                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-bounce" />
                     </div>
                   </div>
                   
                   {/* Animated Arrow pointing left */}
-                  <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="flex items-center justify-center gap-1 mb-1">
                     <div className="animate-bounce">
-                      <ArrowRight className="w-4 h-4 text-primary rotate-180" />
+                      <ArrowRight className="w-3 h-3 text-primary rotate-180" />
                     </div>
                     <div className="text-xs font-medium text-primary">
                       Dropdown auswählen
@@ -365,12 +365,9 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                   </div>
                   
                   {/* Call-to-Action Text */}
-                  <h3 className="text-base font-semibold mb-1 text-foreground">
+                  <h3 className="text-sm font-semibold text-foreground">
                     Wählen Sie eine Kryptowährung
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Starten Sie Ihren ersten Trading-Bot
-                  </p>
                 </CardContent>
               </Card>
             )}
