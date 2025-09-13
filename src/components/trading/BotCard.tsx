@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Bot, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useCoinGeckoData } from '@/hooks/useCoinGeckoData';
-import { useLiveCoinPrice } from '@/hooks/useLiveCoinPrice';
+import { useCoinMarketCapData } from '@/hooks/useCoinMarketCapData';
+import { useCoinMarketCapPrice } from '@/hooks/useCoinMarketCapPrice';
 import CryptoCandlestickChart from './CryptoCandlestickChart';
 
 interface TradingBot {
@@ -41,8 +41,8 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { coins } = useCoinGeckoData();
-  const { formattedPrice, change24h, isLive } = useLiveCoinPrice(bot.symbol);
+  const { coins } = useCoinMarketCapData();
+  const { formattedPrice, change24h, isLive } = useCoinMarketCapPrice(bot.symbol);
 
   // Get current price from CoinGecko data (fallback)
   const currentCoin = useMemo(() => {

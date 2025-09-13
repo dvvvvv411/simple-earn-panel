@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Bot, TrendingUp, Euro } from "lucide-react";
-import { useCoinGeckoData } from "@/hooks/useCoinGeckoData";
+import { useCoinMarketCapData } from "@/hooks/useCoinMarketCapData";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,7 +20,7 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
-  const { coins, loading } = useCoinGeckoData();
+  const { coins, loading } = useCoinMarketCapData();
   const { toast } = useToast();
 
   const selectedCoin = coins.find(coin => coin.id === selectedCrypto);

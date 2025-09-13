@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useCoinGeckoOHLC } from '@/hooks/useCoinGeckoOHLC';
-import { useCoinGeckoData } from '@/hooks/useCoinGeckoData';
+import { useCoinMarketCapOHLC } from '@/hooks/useCoinMarketCapOHLC';
+import { useCoinMarketCapData } from '@/hooks/useCoinMarketCapData';
 
 interface ChartData {
   time: string;
@@ -15,8 +15,8 @@ interface CryptoCandlestickChartProps {
 }
 
 const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol }) => {
-  const { ohlcData, loading: ohlcLoading } = useCoinGeckoOHLC(symbol);
-  const { coins, loading: coinsLoading } = useCoinGeckoData();
+  const { ohlcData, loading: ohlcLoading } = useCoinMarketCapOHLC(symbol);
+  const { coins, loading: coinsLoading } = useCoinMarketCapData();
   
   const currentCoin = useMemo(() => {
     return coins.find(coin => coin.symbol.toUpperCase() === symbol.toUpperCase());
