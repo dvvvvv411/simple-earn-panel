@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 interface DashboardLoadingContextType {
   isBalanceLoading: boolean;
   setIsBalanceLoading: (loading: boolean) => void;
+  userName: string;
+  setUserName: (name: string) => void;
 }
 
 const DashboardLoadingContext = createContext<DashboardLoadingContextType | undefined>(undefined);
@@ -26,9 +28,15 @@ export function useDashboardLoading() {
 
 function DashboardLoadingProvider({ children }: { children: React.ReactNode }) {
   const [isBalanceLoading, setIsBalanceLoading] = useState(true);
+  const [userName, setUserName] = useState("Trader");
 
   return (
-    <DashboardLoadingContext.Provider value={{ isBalanceLoading, setIsBalanceLoading }}>
+    <DashboardLoadingContext.Provider value={{ 
+      isBalanceLoading, 
+      setIsBalanceLoading, 
+      userName, 
+      setUserName 
+    }}>
       {children}
     </DashboardLoadingContext.Provider>
   );
@@ -36,33 +44,38 @@ function DashboardLoadingProvider({ children }: { children: React.ReactNode }) {
 
 function TradingContent() {
   const { loading: brandingLoading } = useBranding();
-  const { isBalanceLoading, setIsBalanceLoading } = useDashboardLoading();
+  const { isBalanceLoading, setIsBalanceLoading, setUserName } = useDashboardLoading();
 
-  // Fetch user balance on component mount
+  // Fetch user balance and name in a single request
   useEffect(() => {
-    const fetchUserBalance = async () => {
+    const fetchUserData = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('balance')
+            .select('balance, first_name')
             .eq('id', session.user.id)
             .single();
           
-          // Balance loaded successfully, set loading to false
+          // Set username immediately if available
+          if (profile?.first_name) {
+            setUserName(profile.first_name);
+          }
+          
+          // Data loaded successfully, set loading to false
           setIsBalanceLoading(false);
         }
       } catch (error) {
-        console.error('Error fetching user balance:', error);
+        console.error('Error fetching user data:', error);
         // Even on error, stop loading to prevent infinite loop
         setIsBalanceLoading(false);
       }
     };
 
     if (!isBalanceLoading) return; // Prevent multiple calls
-    fetchUserBalance();
-  }, [setIsBalanceLoading, isBalanceLoading]);
+    fetchUserData();
+  }, [setIsBalanceLoading, setUserName, isBalanceLoading]);
 
   // Show loading spinner until both branding and balance are loaded
   const isLoading = brandingLoading || isBalanceLoading;

@@ -1,36 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Trophy } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useDashboardLoading } from "./TradingLayout";
 
 export function WelcomeCard() {
   // Simulated streak data - in real app this would come from user data
   const currentStreak = 5;
   const weeklyGoal = 7;
-  const [userName, setUserName] = useState("Trader");
-
-  useEffect(() => {
-    fetchUserName();
-  }, []);
-
-  const fetchUserName = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile?.first_name) {
-          setUserName(profile.first_name);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user name:', error);
-    }
-  };
+  const { userName } = useDashboardLoading();
 
   const animationStyles = {
     floating: {
