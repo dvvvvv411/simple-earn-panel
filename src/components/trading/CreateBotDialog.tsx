@@ -250,7 +250,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                                 style: 'currency', 
                                 currency: 'EUR',
                                 minimumFractionDigits: 2,
-                                maximumFractionDigits: 6
+                                maximumFractionDigits: 2
                               })}
                             </div>
                             <div className={`text-xs ${
@@ -367,7 +367,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                               style: 'currency', 
                               currency: 'EUR',
                               minimumFractionDigits: 2,
-                              maximumFractionDigits: 6
+                              maximumFractionDigits: 2
                             })}
                           </span>
                         </div>
@@ -417,27 +417,6 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                 </div>
               </CardContent>
             </Card>
-
-            {/* Risk & ROI Info */}
-            {amount && parseFloat(amount) > 0 && selectedCoin && (
-              <Card className="border-amber-200 dark:border-amber-800">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-amber-600 dark:text-amber-400 text-sm">⚠️</span>
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-amber-800 dark:text-amber-200 mb-1">
-                        Risiko-Hinweis
-                      </h5>
-                      <p className="text-xs text-amber-700 dark:text-amber-300">
-                        Krypto-Trading birgt Risiken. Investieren Sie nur Geld, das Sie sich leisten können zu verlieren.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
 
