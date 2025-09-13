@@ -1,119 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import { ComposedChart, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Rectangle } from 'recharts';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ComposedChart, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useCoinGeckoOHLC } from '@/hooks/useCoinGeckoOHLC';
+import { useCoinGeckoData } from '@/hooks/useCoinGeckoData';
 
 interface CandleData {
   time: string;
+  timestamp: number;
   open: number;
   high: number;
   low: number;
   close: number;
-  volume: number;
 }
 
 interface CryptoCandlestickChartProps {
   symbol: string;
-  currentPrice: number;
 }
 
-const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol, currentPrice }) => {
-  const [chartData, setChartData] = useState<CandleData[]>([]);
-  const [livePrice, setLivePrice] = useState(currentPrice);
+const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol }) => {
+  const { ohlcData, loading: ohlcLoading } = useCoinGeckoOHLC(symbol);
+  const { coins, loading: coinsLoading } = useCoinGeckoData();
+  
+  const currentCoin = useMemo(() => {
+    return coins.find(coin => coin.symbol.toUpperCase() === symbol.toUpperCase());
+  }, [coins, symbol]);
 
-  // Generate initial realistic candlestick data
-  const generateInitialData = () => {
-    const data: CandleData[] = [];
-    let price = currentPrice;
-    const now = new Date();
+  const chartData = useMemo(() => {
+    if (!ohlcData || ohlcData.length === 0) return [];
+    
+    return ohlcData.slice(-24).map((item) => ({
+      time: new Date(item.timestamp).toLocaleTimeString('de-DE', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      timestamp: item.timestamp,
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close
+    }));
+  }, [ohlcData]);
 
-    for (let i = 29; i >= 0; i--) {
-      const time = new Date(now.getTime() - i * 60000); // 1-minute intervals
-      const volatility = 0.02; // 2% volatility
-      const change = (Math.random() - 0.5) * volatility * price;
-      
-      const open = price;
-      const close = price + change;
-      const high = Math.max(open, close) + Math.random() * 0.01 * price;
-      const low = Math.min(open, close) - Math.random() * 0.01 * price;
-      const volume = Math.random() * 1000 + 500;
-
-      data.push({
-        time: time.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-        open: parseFloat(open.toFixed(2)),
-        high: parseFloat(high.toFixed(2)),
-        low: parseFloat(low.toFixed(2)),
-        close: parseFloat(close.toFixed(2)),
-        volume: parseFloat(volume.toFixed(0))
-      });
-
-      price = close;
-    }
-
-    return data;
-  };
-
-  // Update chart with new candle every 5 seconds
-  useEffect(() => {
-    const initialData = generateInitialData();
-    setChartData(initialData);
-
-    const interval = setInterval(() => {
-      setChartData(prevData => {
-        const lastCandle = prevData[prevData.length - 1];
-        const volatility = 0.015;
-        const change = (Math.random() - 0.5) * volatility * lastCandle.close;
-        const newPrice = lastCandle.close + change;
-        
-        setLivePrice(newPrice);
-        
-        const now = new Date();
-        const newCandle: CandleData = {
-          time: now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-          open: lastCandle.close,
-          close: parseFloat(newPrice.toFixed(2)),
-          high: parseFloat((Math.max(lastCandle.close, newPrice) + Math.random() * 0.005 * newPrice).toFixed(2)),
-          low: parseFloat((Math.min(lastCandle.close, newPrice) - Math.random() * 0.005 * newPrice).toFixed(2)),
-          volume: parseFloat((Math.random() * 1000 + 500).toFixed(0))
-        };
-
-        return [...prevData.slice(1), newCandle];
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [currentPrice]);
+  const currentPrice = currentCoin?.current_price || 0;
 
   const Candlestick = (props: any) => {
-    const { payload, x, y, width, height } = props;
-    if (!payload) return null;
+    const { index } = props;
+    if (!chartData[index]) return null;
     
-    const { open, high, low, close } = payload;
-    const isGreen = close > open;
-    const bodyHeight = Math.abs(close - open) * height / (payload.high - payload.low);
-    const bodyY = y + (Math.max(high - Math.max(open, close), 0) * height / (high - low));
+    const data = chartData[index];
+    const { open, high, low, close } = data;
+    const isGreen = close >= open;
+    
+    // Calculate positions
+    const chartHeight = 120;
+    const minPrice = Math.min(...chartData.map(d => d.low));
+    const maxPrice = Math.max(...chartData.map(d => d.high));
+    const priceRange = maxPrice - minPrice;
+    
+    const x = (index / chartData.length) * 100;
+    const width = 100 / chartData.length * 0.6;
+    
+    const highY = ((maxPrice - high) / priceRange) * chartHeight;
+    const lowY = ((maxPrice - low) / priceRange) * chartHeight;
+    const openY = ((maxPrice - open) / priceRange) * chartHeight;
+    const closeY = ((maxPrice - close) / priceRange) * chartHeight;
+    
+    const bodyTop = Math.min(openY, closeY);
+    const bodyHeight = Math.abs(openY - closeY);
     
     return (
-      <g>
+      <g transform={`translate(${x}%, 0)`}>
         {/* Wick line */}
         <line
-          x1={x + width / 2}
-          y1={y}
-          x2={x + width / 2}
-          y2={y + height}
+          x1="50%"
+          y1={highY}
+          x2="50%"
+          y2={lowY}
           stroke={isGreen ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))"}
           strokeWidth={1}
         />
         {/* Candle body */}
-        <Rectangle
-          x={x + width * 0.2}
-          y={bodyY}
-          width={width * 0.6}
+        <rect
+          x="20%"
+          y={bodyTop}
+          width="60%"
           height={Math.max(bodyHeight, 1)}
           fill={isGreen ? "hsl(var(--chart-2))" : "hsl(var(--chart-1))"}
         />
       </g>
     );
   };
+
+  if (ohlcLoading || coinsLoading) {
+    return (
+      <div className="space-y-2">
+        <div className="h-4 bg-muted animate-pulse rounded"></div>
+        <div className="h-[120px] bg-muted animate-pulse rounded"></div>
+      </div>
+    );
+  }
 
   const chartConfig = {
     price: {
@@ -135,11 +120,22 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol,
         </div>
         <div className="text-right">
           <div className={`text-lg font-mono font-bold transition-colors duration-300 ${
-            livePrice > currentPrice ? 'text-green-500' : livePrice < currentPrice ? 'text-red-500' : 'text-foreground'
+            currentCoin?.price_change_percentage_24h && currentCoin.price_change_percentage_24h > 0 
+              ? 'text-green-500' 
+              : currentCoin?.price_change_percentage_24h && currentCoin.price_change_percentage_24h < 0 
+                ? 'text-red-500' 
+                : 'text-foreground'
           }`}>
-            €{livePrice.toFixed(2)}
+            €{currentPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="text-xs text-muted-foreground">{symbol}/EUR</div>
+          {currentCoin?.price_change_percentage_24h && (
+            <div className={`text-xs ${
+              currentCoin.price_change_percentage_24h > 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {currentCoin.price_change_percentage_24h > 0 ? '+' : ''}{currentCoin.price_change_percentage_24h.toFixed(2)}%
+            </div>
+          )}
         </div>
       </div>
       
@@ -168,19 +164,15 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol,
               ]}
             />
             <ReferenceLine 
-              y={livePrice} 
+              y={currentPrice} 
               stroke="hsl(var(--primary))" 
               strokeDasharray="2 2" 
               strokeWidth={1}
             />
-            {chartData.map((entry, index) => (
+            {chartData.map((_, index) => (
               <Candlestick
                 key={index}
-                payload={entry}
-                x={index * (100 / chartData.length)}
-                y={0}
-                width={100 / chartData.length}
-                height={100}
+                index={index}
               />
             ))}
           </ComposedChart>

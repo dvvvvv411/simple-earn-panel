@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bot, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCoinGeckoData } from '@/hooks/useCoinGeckoData';
 import CryptoCandlestickChart from './CryptoCandlestickChart';
 
 interface TradingBot {
@@ -39,6 +40,12 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { coins } = useCoinGeckoData();
+
+  // Get current price from CoinGecko data
+  const currentCoin = useMemo(() => {
+    return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
+  }, [coins, bot.symbol]);
 
   // Calculate profit/loss
   const totalReturn = bot.current_balance - bot.start_amount;
@@ -130,8 +137,7 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         {/* Live Chart */}
         <div className="space-y-2">
           <CryptoCandlestickChart 
-            symbol={bot.symbol} 
-            currentPrice={50000 + Math.random() * 10000} 
+            symbol={bot.symbol}
           />
         </div>
 
