@@ -13,8 +13,9 @@ interface BinanceStreamData {
   [symbol: string]: BinanceTickerData;
 }
 
-export function useBinanceWebSocket(symbols: string[] = ['BTCEUR']) {
+export function useBinanceWebSocket(symbols: string[] = ['BTC']) {
   const [data, setData] = useState<BinanceStreamData>({});
+  const [usdtToEurRate, setUsdtToEurRate] = useState<number>(0.92); // Default fallback rate
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -24,9 +25,9 @@ export function useBinanceWebSocket(symbols: string[] = ['BTCEUR']) {
   const mountedRef = useRef(true);
 
   const formatSymbolForBinance = useCallback((symbol: string) => {
-    // Convert symbols like 'BTC' to 'BTCEUR' for Binance
+    // Convert symbols like 'BTC' to 'BTCUSDT' for Binance
     if (symbol.length === 3) {
-      return `${symbol}EUR`.toLowerCase();
+      return `${symbol}USDT`.toLowerCase();
     }
     return symbol.toLowerCase();
   }, []);
@@ -34,12 +35,13 @@ export function useBinanceWebSocket(symbols: string[] = ['BTCEUR']) {
   const connect = useCallback(() => {
     if (!mountedRef.current) return;
 
-    // Format symbols for Binance stream
+    // Format symbols for Binance stream and add EURUSDT for conversion
     const binanceSymbols = symbols.map(formatSymbolForBinance);
-    const streams = binanceSymbols.map(symbol => `${symbol}@ticker`).join('/');
+    const allSymbols = [...binanceSymbols, 'eurusdt'];
+    const streams = allSymbols.map(symbol => `${symbol}@ticker`).join('/');
     
     // Use combined stream for multiple symbols
-    const wsUrl = binanceSymbols.length === 1 
+    const wsUrl = allSymbols.length === 1 
       ? `wss://stream.binance.com:9443/ws/${streams}`
       : `wss://stream.binance.com:9443/stream?streams=${streams}`;
 
@@ -61,7 +63,7 @@ export function useBinanceWebSocket(symbols: string[] = ['BTCEUR']) {
         try {
           const response = JSON.parse(event.data);
           
-          if (binanceSymbols.length === 1) {
+          if (allSymbols.length === 1) {
             // Single stream response
             const tickerData: BinanceTickerData = {
               symbol: response.s,
@@ -72,10 +74,14 @@ export function useBinanceWebSocket(symbols: string[] = ['BTCEUR']) {
               count: response.n
             };
             
-            setData(prev => ({
-              ...prev,
-              [response.s]: tickerData
-            }));
+            if (response.s === 'EURUSDT') {
+              setUsdtToEurRate(parseFloat(response.c));
+            } else {
+              setData(prev => ({
+                ...prev,
+                [response.s]: tickerData
+              }));
+            }
           } else {
             // Combined stream response
             if (response.stream && response.data) {
@@ -88,10 +94,14 @@ export function useBinanceWebSocket(symbols: string[] = ['BTCEUR']) {
                 count: response.data.n
               };
               
-              setData(prev => ({
-                ...prev,
-                [response.data.s]: tickerData
-              }));
+              if (response.data.s === 'EURUSDT') {
+                setUsdtToEurRate(parseFloat(response.data.c));
+              } else {
+                setData(prev => ({
+                  ...prev,
+                  [response.data.s]: tickerData
+                }));
+              }
             }
           }
         } catch (err) {
@@ -148,8 +158,21 @@ export function useBinanceWebSocket(symbols: string[] = ['BTCEUR']) {
 
   const getSymbolData = useCallback((symbol: string) => {
     const binanceSymbol = formatSymbolForBinance(symbol).toUpperCase();
-    return data[binanceSymbol];
-  }, [data, formatSymbolForBinance]);
+    const usdtData = data[binanceSymbol];
+    
+    if (!usdtData || !usdtToEurRate) return null;
+    
+    // Convert USDT prices to EUR
+    const eurPrice = (parseFloat(usdtData.lastPrice) * usdtToEurRate).toString();
+    const eurPriceChange = (parseFloat(usdtData.priceChange) * usdtToEurRate).toString();
+    
+    return {
+      ...usdtData,
+      lastPrice: eurPrice,
+      priceChange: eurPriceChange,
+      symbol: symbol.toUpperCase() + 'EUR' // Display as BTCEUR etc.
+    };
+  }, [data, formatSymbolForBinance, usdtToEurRate]);
 
   const formatPrice = useCallback((price: string) => {
     const numPrice = parseFloat(price);
