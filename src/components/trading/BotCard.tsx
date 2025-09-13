@@ -4,8 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bot, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useCoinMarketCapData } from '@/hooks/useCoinMarketCapData';
-import { useCoinMarketCapPrice } from '@/hooks/useCoinMarketCapPrice';
+import { useCoinMarketCap } from '@/contexts/CoinMarketCapContext';
 import CryptoCandlestickChart from './CryptoCandlestickChart';
 
 interface TradingBot {
@@ -41,13 +40,23 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { coins } = useCoinMarketCapData();
-  const { formattedPrice, change24h, isLive } = useCoinMarketCapPrice(bot.symbol);
+  const { coins, getPriceData } = useCoinMarketCap();
+  const priceData = getPriceData(bot.symbol);
 
-  // Get current price from CoinGecko data (fallback)
+  // Get current coin data
   const currentCoin = useMemo(() => {
     return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
   }, [coins, bot.symbol]);
+
+  // Format price to exactly 2 decimal places
+  const formatPrice = (price: number) => {
+    return price.toLocaleString('de-DE', { 
+      style: 'currency', 
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
 
   // Calculate profit/loss
   const totalReturn = bot.current_balance - bot.start_amount;
@@ -121,12 +130,12 @@ export function BotCard({ bot, onUpdate }: BotCardProps) {
         {/* Live Price Display */}
         <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/20">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+            <div className={`w-2 h-2 rounded-full ${priceData ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
             <span className="text-xs font-medium text-green-600">LIVE</span>
-            <span className="text-sm font-semibold">{formattedPrice}</span>
+            <span className="text-sm font-semibold">{priceData ? formatPrice(priceData.price) : '€0,00'}</span>
           </div>
-          <div className={`text-xs font-medium ${change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}%
+          <div className={`text-xs font-medium ${(priceData?.change24h || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {(priceData?.change24h || 0) >= 0 ? '+' : ''}{(priceData?.change24h || 0).toFixed(2)}%
           </div>
         </div>
       </CardHeader>

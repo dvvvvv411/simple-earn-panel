@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useCoinMarketCapOHLC } from '@/hooks/useCoinMarketCapOHLC';
-import { useCoinMarketCapData } from '@/hooks/useCoinMarketCapData';
+import { useCoinMarketCap } from '@/contexts/CoinMarketCapContext';
 
 interface ChartData {
   time: string;
@@ -15,8 +14,8 @@ interface CryptoCandlestickChartProps {
 }
 
 const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol }) => {
-  const { ohlcData, loading: ohlcLoading } = useCoinMarketCapOHLC(symbol);
-  const { coins, loading: coinsLoading } = useCoinMarketCapData();
+  const { coins, getOHLCData, loading } = useCoinMarketCap();
+  const ohlcData = getOHLCData(symbol);
   
   const currentCoin = useMemo(() => {
     return coins.find(coin => coin.symbol.toUpperCase() === symbol.toUpperCase());
@@ -54,7 +53,7 @@ const CryptoCandlestickChart: React.FC<CryptoCandlestickChartProps> = ({ symbol 
     return lastPrice >= firstPrice;
   }, [chartData]);
 
-  if (ohlcLoading || coinsLoading) {
+  if (loading) {
     return (
       <div className="space-y-2">
         <div className="h-4 bg-muted animate-pulse rounded"></div>
