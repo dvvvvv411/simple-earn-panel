@@ -8,8 +8,8 @@ interface OHLCData {
   close: number;
 }
 
-interface CoinGeckoOHLCResponse {
-  [timestamp: string]: [number, number, number, number]; // [open, high, low, close]
+interface CoinGeckoMarketChartResponse {
+  prices: [number, number][]; // [timestamp, price]
 }
 
 const SYMBOL_TO_ID_MAP: { [key: string]: string } = {
@@ -41,22 +41,22 @@ export function useCoinGeckoOHLC(symbol: string) {
       }
 
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/coins/${coinId}/ohlc?vs_currency=eur&days=1`
+        `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=eur&days=1`
       );
       
       if (!response.ok) {
-        throw new Error('Failed to fetch OHLC data');
+        throw new Error('Failed to fetch market chart data');
       }
       
-      const data: number[][] = await response.json();
+      const data: CoinGeckoMarketChartResponse = await response.json();
       
-      // Transform CoinGecko OHLC format to our format
-      const transformedData: OHLCData[] = data.map((item) => ({
+      // Transform market chart format to OHLC format (using price as close)
+      const transformedData: OHLCData[] = data.prices.map((item) => ({
         timestamp: item[0],
-        open: item[1],
-        high: item[2],
-        low: item[3],
-        close: item[4]
+        open: item[1], // Use price for all OHLC values
+        high: item[1],
+        low: item[1],
+        close: item[1]
       }));
       
       setOhlcData(transformedData);
@@ -64,25 +64,26 @@ export function useCoinGeckoOHLC(symbol: string) {
       console.error('Error fetching OHLC data:', err);
       setError('Failed to load chart data');
       
-      // Fallback data if API fails
+      // Fallback data if API fails - 5-minute intervals for 24 hours
       const fallbackData: OHLCData[] = [];
       const now = Date.now();
       const basePrice = 50000; // Fallback price
+      let currentPrice = basePrice;
       
-      for (let i = 23; i >= 0; i--) {
-        const timestamp = now - (i * 60 * 60 * 1000); // Hourly data
-        const open = basePrice + (Math.random() - 0.5) * 1000;
-        const volatility = 500;
-        const high = open + Math.random() * volatility;
-        const low = open - Math.random() * volatility;
-        const close = open + (Math.random() - 0.5) * volatility;
+      for (let i = 287; i >= 0; i--) {
+        const timestamp = now - (i * 5 * 60 * 1000); // 5-minute intervals
+        
+        // Simulate realistic price movement
+        const volatility = Math.random() * 800 + 200; // 200-1000 volatility
+        const priceChange = (Math.random() - 0.5) * volatility;
+        currentPrice = Math.max(currentPrice + priceChange, basePrice * 0.8); // Prevent going too low
         
         fallbackData.push({
           timestamp,
-          open: parseFloat(open.toFixed(2)),
-          high: parseFloat(high.toFixed(2)),
-          low: parseFloat(low.toFixed(2)),
-          close: parseFloat(close.toFixed(2))
+          open: parseFloat(currentPrice.toFixed(2)),
+          high: parseFloat(currentPrice.toFixed(2)),
+          low: parseFloat(currentPrice.toFixed(2)),
+          close: parseFloat(currentPrice.toFixed(2))
         });
       }
       
