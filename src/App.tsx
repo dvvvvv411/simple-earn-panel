@@ -15,8 +15,7 @@ import NotFound from "./pages/NotFound";
 const App: React.FC = () => {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <CoinMarketCapProvider>
-        <BrowserRouter>
+      <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -32,7 +31,6 @@ const App: React.FC = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </CoinMarketCapProvider>
     </ThemeProvider>
   );
 };
