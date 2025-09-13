@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bot, TrendingUp, Euro, Zap, Target } from "lucide-react";
+import { Bot, TrendingUp, Euro } from "lucide-react";
 import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,8 +19,6 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
   const [open, setOpen] = useState(false);
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  const [leverage, setLeverage] = useState<string>("1");
-  const [positionType, setPositionType] = useState<"LONG" | "SHORT">("LONG");
   const [isCreating, setIsCreating] = useState(false);
   const { coins, loading } = useCoinMarketCap();
   const { toast } = useToast();
@@ -69,8 +67,6 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
           symbol: selectedCoin.symbol.toUpperCase(),
           start_amount: investmentAmount,
           current_balance: investmentAmount,
-          leverage: parseInt(leverage),
-          position_type: positionType,
           status: 'active'
         })
         .select()
@@ -145,8 +141,6 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
       setOpen(false);
       setSelectedCrypto("");
       setAmount("");
-      setLeverage("1");
-      setPositionType("LONG");
       onBotCreated();
 
     } catch (error) {
@@ -251,53 +245,6 @@ export function CreateBotDialog({ userBalance, onBotCreated }: CreateBotDialogPr
             <p className="text-xs text-muted-foreground">
               Verfügbares Guthaben: {userBalance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
             </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="leverage">Hebel</Label>
-              <div className="relative">
-                <Zap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Select value={leverage} onValueChange={setLeverage}>
-                  <SelectTrigger className="pl-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1x</SelectItem>
-                    <SelectItem value="2">2x</SelectItem>
-                    <SelectItem value="5">5x</SelectItem>
-                    <SelectItem value="10">10x</SelectItem>
-                    <SelectItem value="20">20x</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="position-type">Position</Label>
-              <div className="relative">
-                <Target className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Select value={positionType} onValueChange={(value: "LONG" | "SHORT") => setPositionType(value)}>
-                  <SelectTrigger className="pl-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="LONG">
-                      <div className="flex items-center gap-2">
-                        <span className="text-green-600">↗</span>
-                        <span>LONG</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="SHORT">
-                      <div className="flex items-center gap-2">
-                        <span className="text-red-600">↘</span>
-                        <span>SHORT</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </div>
 
           <div className="flex gap-2 pt-4">

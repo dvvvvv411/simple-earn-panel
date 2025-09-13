@@ -243,16 +243,12 @@ async function simulateTrade(bot_id: string, initial_price: number) {
       return;
     }
 
-    // Update bot balance, status, and trading data
+    // Update bot balance and set status to completed
     const { error: updateError } = await supabase
       .from('trading_bots')
       .update({ 
         current_balance: parseFloat(newBalance.toFixed(2)),
         status: 'completed',
-        buy_price: parseFloat(buyPrice.toFixed(8)),
-        sell_price: parseFloat(sellPrice.toFixed(8)),
-        leverage: parseInt(leverage.toFixed(0)),
-        position_type: tradeType.toUpperCase(),
         updated_at: new Date().toISOString()
       })
       .eq('id', bot_id);

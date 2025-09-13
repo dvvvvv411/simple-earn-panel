@@ -146,64 +146,30 @@ export default function Dashboard() {
         <MarketOverviewCard />
       </div>
 
-      {/* Active Trading Bots Section */}
-      {bots.filter(bot => bot.status !== 'completed').length > 0 && (
+      {/* Trading Bots Section */}
+      {bots.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">Meine Trading-Bots</h2>
             <span className="text-sm text-muted-foreground">
-              {bots.filter(bot => bot.status === 'active').length} aktiv
+              {bots.filter(bot => bot.status === 'active').length} aktiv von {bots.length} gesamt
             </span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bots
-              .filter(bot => bot.status !== 'completed')
-              .map((bot) => (
-                <BotCard 
-                  key={bot.id} 
-                  bot={bot} 
-                  onUpdate={handleBalanceUpdate}
-                  onBotCompleted={(completedBot) => {
-                    console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
-                    setCompletedBot(completedBot);
-                    setShowSuccessDialog(true);
-                    setTimeout(() => fetchUserBalance(), 500);
-                  }}
-                />
-              ))}
-          </div>
-        </div>
-      )}
-
-      {/* Trading History Section */}
-      {bots.filter(bot => bot.status === 'completed').length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Trading-Historie</h2>
-            <span className="text-sm text-muted-foreground">
-              Letzte {Math.min(3, bots.filter(bot => bot.status === 'completed').length)} abgeschlossene Trades
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bots
-              .filter(bot => bot.status === 'completed')
-              .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-              .slice(0, 3)
-              .map((bot) => (
-                <BotCard 
-                  key={bot.id} 
-                  bot={bot} 
-                  onUpdate={handleBalanceUpdate}
-                  onBotCompleted={(completedBot) => {
-                    console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
-                    setCompletedBot(completedBot);
-                    setShowSuccessDialog(true);
-                    setTimeout(() => fetchUserBalance(), 500);
-                  }}
-                />
-              ))}
+            {bots.map((bot) => (
+              <BotCard 
+                key={bot.id} 
+                bot={bot} 
+                onUpdate={handleBalanceUpdate}
+                onBotCompleted={(completedBot) => {
+                  console.log('🎯 Dashboard: Bot completed callback triggered:', completedBot.id);
+                  setCompletedBot(completedBot);
+                  setShowSuccessDialog(true);
+                  setTimeout(() => fetchUserBalance(), 500);
+                }}
+              />
+            ))}
           </div>
         </div>
       )}

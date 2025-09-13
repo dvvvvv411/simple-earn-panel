@@ -8,10 +8,6 @@ interface TradingBot {
   start_amount: number;
   current_balance: number;
   status: 'active' | 'paused' | 'stopped' | 'completed';
-  buy_price?: number;
-  sell_price?: number;
-  leverage?: number;
-  position_type?: 'LONG' | 'SHORT';
   created_at: string;
   updated_at: string;
 }
