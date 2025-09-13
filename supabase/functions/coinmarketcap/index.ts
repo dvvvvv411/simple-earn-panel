@@ -13,21 +13,32 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Initializing CoinMarketCap API handler...')
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    console.log('Fetching API key from Supabase vault...')
     // Get API key from secrets
-    const { data: secrets } = await supabase
+    const { data: secrets, error: secretError } = await supabase
       .from('vault.decrypted_secrets')
       .select('decrypted_secret')
       .eq('name', 'COINMARKETCAP_API_KEY')
       .single()
 
-    if (!secrets?.decrypted_secret) {
-      throw new Error('CoinMarketCap API key not found')
+    if (secretError) {
+      console.error('Error fetching secret from vault:', secretError)
+      throw new Error(`Failed to retrieve API key: ${secretError.message}`)
     }
+
+    if (!secrets?.decrypted_secret) {
+      console.error('No secret found with name COINMARKETCAP_API_KEY')
+      throw new Error('CoinMarketCap API key not found in vault')
+    }
+
+    console.log('API key retrieved successfully')
 
     const apiKey = secrets.decrypted_secret
     const url = new URL(req.url)
