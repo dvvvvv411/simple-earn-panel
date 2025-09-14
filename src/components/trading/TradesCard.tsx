@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, BarChart3, Target, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface TradingStats {
   totalTrades: number;
@@ -15,10 +16,14 @@ interface TradingStats {
 
 interface TradesCardProps {
   stats: TradingStats;
+  todayStats: TradingStats;
   loading?: boolean;
 }
 
-export function TradesCard({ stats, loading = false }: TradesCardProps) {
+export function TradesCard({ stats, todayStats, loading = false }: TradesCardProps) {
+  const [timeFrame, setTimeFrame] = useState<"all" | "today">("all");
+  
+  const currentStats = timeFrame === "today" ? todayStats : stats;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -32,12 +37,27 @@ export function TradesCard({ stats, loading = false }: TradesCardProps) {
     return (
       <Card className="border-border bg-card">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <BarChart3 className="h-5 w-5 text-primary" />
-            </div>
-            Trading Statistiken
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-primary" />
+              </div>
+              Trading Statistiken
+            </CardTitle>
+            <ToggleGroup 
+              type="single" 
+              value={timeFrame} 
+              onValueChange={(value) => value && setTimeFrame(value as "all" | "today")}
+              className="h-8"
+            >
+              <ToggleGroupItem value="all" className="text-xs px-3 h-8">
+                Gesamt
+              </ToggleGroupItem>
+              <ToggleGroupItem value="today" className="text-xs px-3 h-8">
+                Heute
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
@@ -68,37 +88,59 @@ export function TradesCard({ stats, loading = false }: TradesCardProps) {
   }
 
   return (
-    <Card className="border-border bg-card">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-primary" />
+      <Card className="border-border bg-card">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-primary" />
+              </div>
+              Trading Statistiken
+            </CardTitle>
+            <ToggleGroup 
+              type="single" 
+              value={timeFrame} 
+              onValueChange={(value) => value && setTimeFrame(value as "all" | "today")}
+              className="h-8"
+            >
+              <ToggleGroupItem value="all" className="text-xs px-3 h-8">
+                Gesamt
+              </ToggleGroupItem>
+              <ToggleGroupItem value="today" className="text-xs px-3 h-8">
+                Heute
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
-          Trading Statistiken
-        </CardTitle>
-      </CardHeader>
+        </CardHeader>
       <CardContent className="space-y-6">
-        {stats.totalTrades === 0 ? (
+        {currentStats.totalTrades === 0 ? (
           <div className="text-center py-8">
             <div className="h-16 w-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
               <BarChart3 className="h-8 w-8 text-muted-foreground" />
             </div>
-            <p className="text-lg font-semibold text-foreground mb-2">Noch keine Trades</p>
+            <p className="text-lg font-semibold text-foreground mb-2">
+              {timeFrame === "today" ? "Noch keine Trades heute" : "Noch keine Trades"}
+            </p>
             <p className="text-sm text-muted-foreground">
-              Starten Sie Ihren ersten Trading-Bot, um Statistiken zu sehen.
+              {timeFrame === "today" 
+                ? "Heute wurden noch keine Trades abgeschlossen." 
+                : "Starten Sie Ihren ersten Trading-Bot, um Statistiken zu sehen."
+              }
             </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <p className="text-3xl font-bold text-foreground">{stats.totalTrades}</p>
-                <p className="text-sm text-muted-foreground">Gesamt Trades</p>
+                <p className="text-3xl font-bold text-foreground">{currentStats.totalTrades}</p>
+                <p className="text-sm text-muted-foreground">
+                  {timeFrame === "today" ? "Trades heute" : "Gesamt Trades"}
+                </p>
               </div>
               
               <div className="space-y-1">
                 <p className="text-3xl font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
-                  {stats.successRate}%
+                  {currentStats.successRate}%
                 </p>
                 <p className="text-sm text-muted-foreground">Erfolgsrate</p>
               </div>
@@ -107,15 +149,17 @@ export function TradesCard({ stats, loading = false }: TradesCardProps) {
             <div className="pt-4 border-t border-border">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <p className={`text-2xl font-bold ${stats.totalProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {stats.totalProfit >= 0 ? '+' : ''}{formatCurrency(stats.totalProfit)}
+                  <p className={`text-2xl font-bold ${currentStats.totalProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                    {currentStats.totalProfit >= 0 ? '+' : ''}{formatCurrency(currentStats.totalProfit)}
                   </p>
-                  <p className="text-sm text-muted-foreground">Gesamtprofit (Reingewinn)</p>
+                  <p className="text-sm text-muted-foreground">
+                    {timeFrame === "today" ? "Profit heute" : "Gesamtprofit (Reingewinn)"}
+                  </p>
                 </div>
                 
                 <div className="space-y-1">
                   <p className="text-2xl font-bold text-foreground">
-                    {stats.avgTradeDuration}
+                    {currentStats.avgTradeDuration}
                   </p>
                   <p className="text-sm text-muted-foreground">Durchschnittliche Trade-Dauer</p>
                 </div>
@@ -128,7 +172,7 @@ export function TradesCard({ stats, loading = false }: TradesCardProps) {
                   <Target className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-foreground">{stats.successfulTrades}</p>
+                  <p className="text-lg font-semibold text-foreground">{currentStats.successfulTrades}</p>
                   <p className="text-xs text-muted-foreground">Erfolgreich</p>
                 </div>
               </div>
@@ -137,7 +181,7 @@ export function TradesCard({ stats, loading = false }: TradesCardProps) {
                   <Target className="h-4 w-4 text-red-500" />
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-foreground">{stats.failedTrades}</p>
+                  <p className="text-lg font-semibold text-foreground">{currentStats.failedTrades}</p>
                   <p className="text-xs text-muted-foreground">Fehlgeschlagen</p>
                 </div>
               </div>

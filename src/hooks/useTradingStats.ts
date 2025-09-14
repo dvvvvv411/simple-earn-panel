@@ -26,7 +26,7 @@ interface TradingStats {
   avgTradeDuration: string;
 }
 
-export function useTradingStats() {
+export function useTradingStats(timeFrame: 'today' | 'all' = 'all') {
   const [trades, setTrades] = useState<BotTrade[]>([]);
   const [stats, setStats] = useState<TradingStats>({
     totalTrades: 0,
@@ -39,7 +39,7 @@ export function useTradingStats() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const calculateStats = (tradesData: BotTrade[]): TradingStats => {
+  const calculateStats = (tradesData: BotTrade[], timeFrame: 'today' | 'all' = 'all'): TradingStats => {
     if (tradesData.length === 0) {
       return {
         totalTrades: 0,
@@ -51,7 +51,19 @@ export function useTradingStats() {
       };
     }
 
-    const completedTrades = tradesData.filter(trade => trade.status === 'completed' && trade.completed_at);
+    let filteredTrades = tradesData.filter(trade => trade.status === 'completed' && trade.completed_at);
+    
+    // Filter by timeFrame
+    if (timeFrame === 'today') {
+      const today = new Date().toDateString();
+      filteredTrades = filteredTrades.filter(trade => {
+        if (!trade.completed_at) return false;
+        const tradeDate = new Date(trade.completed_at).toDateString();
+        return tradeDate === today;
+      });
+    }
+
+    const completedTrades = filteredTrades;
     const totalTrades = completedTrades.length;
     const successfulTrades = completedTrades.filter(trade => trade.profit_amount && trade.profit_amount > 0).length;
     const failedTrades = totalTrades - successfulTrades;
@@ -102,7 +114,7 @@ export function useTradingStats() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setTrades([]);
-        setStats(calculateStats([]));
+        setStats(calculateStats([], timeFrame));
         setLoading(false);
         return;
       }
@@ -121,17 +133,17 @@ export function useTradingStats() {
         console.error('Error fetching bot trades:', fetchError);
         setError('Fehler beim Laden der Trading-Statistiken');
         setTrades([]);
-        setStats(calculateStats([]));
+        setStats(calculateStats([], timeFrame));
       } else {
         const tradesData = (data || []) as BotTrade[];
         setTrades(tradesData);
-        setStats(calculateStats(tradesData));
+        setStats(calculateStats(tradesData, timeFrame));
       }
     } catch (err) {
       console.error('Unexpected error fetching trades:', err);
       setError('Ein unerwarteter Fehler ist aufgetreten');
       setTrades([]);
-      setStats(calculateStats([]));
+      setStats(calculateStats([], timeFrame));
     } finally {
       setLoading(false);
     }
@@ -159,7 +171,7 @@ export function useTradingStats() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [timeFrame]);
 
   return { 
     trades,

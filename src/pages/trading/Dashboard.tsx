@@ -28,7 +28,8 @@ interface TradingBot {
 export default function Dashboard() {
   const [userBalance, setUserBalance] = useState<number | null>(null);
   const { bots, loading: botsLoading, refetch: refetchBots } = useTradingBots();
-  const { stats: tradingStats, loading: statsLoading } = useTradingStats();
+  const { stats: tradingStats, loading: statsLoading } = useTradingStats('all');
+  const { stats: todayStats } = useTradingStats('today');
   const [completedBot, setCompletedBot] = useState<TradingBot | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [previousBots, setPreviousBots] = useState<TradingBot[]>([]);
@@ -206,7 +207,7 @@ export default function Dashboard() {
           balance={userBalance || 0} 
           onBalanceUpdate={handleBalanceUpdate}
         />
-        <TradesCard stats={tradingStats} loading={statsLoading} />
+        <TradesCard stats={tradingStats} todayStats={todayStats} loading={statsLoading} />
         <MarketOverviewCard />
       </div>
 
