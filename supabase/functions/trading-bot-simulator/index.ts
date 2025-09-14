@@ -92,11 +92,9 @@ async function startTradingLoop(bot_id: string, initial_price: number) {
   console.log(`🏁 Trading completed for bot ${bot_id}`);
 }
 
+// REALISTIC Price simulation - Uses micro-movements around current price + leverage for profit
 async function findOptimalTradePrices(symbol: string, currentPrice: number, botCreatedAt: string) {
-  console.log(`🔍 Finding optimal trade prices for ${symbol}`);
-  
-  // For the 30-second test phase, simulate realistic market movements
-  // In production, this would use actual CoinMarketCap OHLCV data
+  console.log(`🔍 Finding REALISTIC trade prices for ${symbol} at current price: ${currentPrice}`);
   
   // Calculate time since bot creation (in minutes)
   const botStartTime = new Date(botCreatedAt);
@@ -106,53 +104,41 @@ async function findOptimalTradePrices(symbol: string, currentPrice: number, botC
   
   console.log(`⏰ Bot running time: ${timeDifferenceMinutes.toFixed(1)} minutes`);
   
-  // Generate realistic price movements based on timeframe
-  // Longer timeframes allow for bigger movements
-  const maxMovementPercent = Math.min(timeDifferenceMinutes * 0.1, 2.0); // Max 2% movement
+  // REALISTIC micro-movement (0.1-0.5% for typical timeframes)
+  const maxMovementPercent = Math.min(timeDifferenceMinutes * 0.01, 0.5); // Max 0.5% movement
+  const actualMovementPercent = Math.random() * maxMovementPercent + 0.1; // 0.1% to maxMovementPercent
   
-  // Simulate historical price range within the timeframe
-  const volatility = Math.random() * maxMovementPercent; // 0% to maxMovementPercent
-  const direction = Math.random() > 0.5 ? 1 : -1; // Up or down
+  // Determine trade direction
+  const isLong = Math.random() > 0.5;
   
-  // Create realistic entry and exit prices
+  // Calculate REALISTIC entry and exit prices (both close to current price)
   let entryPrice: number;
   let exitPrice: number;
   let tradeType: 'long' | 'short';
-  let marketMovementPercent: number;
   
-  if (direction > 0) {
-    // Market went up - perfect for LONG position
-    entryPrice = currentPrice * (1 - volatility / 100); // Enter at lower price
-    exitPrice = currentPrice; // Exit at current higher price
+  if (isLong) {
+    // LONG: Buy slightly below current, sell at/near current price
+    entryPrice = currentPrice * (1 - actualMovementPercent / 100);
+    exitPrice = currentPrice;
     tradeType = 'long';
-    marketMovementPercent = ((exitPrice - entryPrice) / entryPrice) * 100;
   } else {
-    // Market went down - perfect for SHORT position  
-    entryPrice = currentPrice * (1 + volatility / 100); // Enter at higher price (short sell)
-    exitPrice = currentPrice; // Exit at current lower price (buy back)
+    // SHORT: Sell slightly above current, buy at/near current price
+    entryPrice = currentPrice * (1 + actualMovementPercent / 100);
+    exitPrice = currentPrice;
     tradeType = 'short';
-    marketMovementPercent = ((entryPrice - exitPrice) / entryPrice) * 100;
   }
   
-  // Ensure minimum movement for leverage calculation
-  if (Math.abs(marketMovementPercent) < 0.1) {
-    marketMovementPercent = 0.1 * Math.sign(marketMovementPercent);
-    if (tradeType === 'long') {
-      exitPrice = entryPrice * (1 + marketMovementPercent / 100);
-    } else {
-      exitPrice = entryPrice * (1 - marketMovementPercent / 100);
-    }
-  }
+  const marketMovementPercent = Math.abs(((exitPrice - entryPrice) / entryPrice) * 100);
   
-  console.log(`🎯 Optimal trade found: ${tradeType.toUpperCase()} position`);
+  console.log(`🎯 REALISTIC trade: ${tradeType.toUpperCase()} position`);
   console.log(`📊 Entry: ${entryPrice.toFixed(4)} → Exit: ${exitPrice.toFixed(4)}`);
-  console.log(`📈 Market movement: ${marketMovementPercent.toFixed(2)}%`);
+  console.log(`📈 Market movement: ${marketMovementPercent.toFixed(3)}% (realistic micro-movement)`);
   
   return {
     entryPrice,
     exitPrice,
     tradeType,
-    marketMovementPercent: Math.abs(marketMovementPercent)
+    marketMovementPercent
   };
 }
 
@@ -185,12 +171,12 @@ async function simulateTrade(bot_id: string, initial_price: number) {
     // Calculate target profit (1-3%)
     const targetProfitPercentage = Math.random() * 2 + 1; // 1-3% profit
     
-    // Calculate required leverage to achieve target profit from market movement
-    const requiredLeverage = Math.abs(targetProfitPercentage / marketMovementPercent);
-    const leverage = Math.min(Math.max(requiredLeverage, 1), 10); // Keep leverage between 1x-10x
+    // Calculate required leverage to achieve target profit from REALISTIC micro-movement
+    const requiredLeverage = targetProfitPercentage / marketMovementPercent;
+    const leverage = Math.min(Math.max(Math.round(requiredLeverage), 1), 5); // Keep leverage between 1x-5x
     
     // Adjust target profit based on capped leverage
-    const actualTargetProfit = Math.abs(marketMovementPercent * leverage);
+    const actualTargetProfit = marketMovementPercent * leverage;
 
     console.log(`📈 Market Movement: ${marketMovementPercent.toFixed(2)}%, Required Leverage: ${leverage.toFixed(1)}x`);
     console.log(`🎯 Target Profit: ${actualTargetProfit.toFixed(2)}%`);
@@ -200,14 +186,14 @@ async function simulateTrade(bot_id: string, initial_price: number) {
     const profitAmount = tradeAmount * (actualTargetProfit / 100);
     const newBalance = bot.start_amount + profitAmount;
 
-    // Determine buy/sell prices based on trade type
+    // Determine buy/sell prices based on trade type (REALISTIC prices near current market)
     let buyPrice: number, sellPrice: number;
     if (tradeType === 'long') {
-      buyPrice = entryPrice;
-      sellPrice = exitPrice;
+      buyPrice = entryPrice;  // Buy slightly below current price
+      sellPrice = exitPrice; // Sell at current price
     } else {
-      buyPrice = exitPrice; // Short: sell high first, buy back lower
-      sellPrice = entryPrice;
+      sellPrice = entryPrice; // Short: sell slightly above current price first
+      buyPrice = exitPrice;   // Buy back at current price
     }
 
     console.log(`💰 Trade details: ${tradeType.toUpperCase()} ${leverage.toFixed(1)}x leverage`);

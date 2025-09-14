@@ -213,73 +213,74 @@ async function getCurrentCryptoPrice(symbol: string, supabase: any): Promise<num
   }
 }
 
-// Fallback prices when API fails (approximate current market values)
+// Fallback prices when API fails (CURRENT EUR market values)
 function getDefaultPrice(symbol: string): number {
   const fallbackPrices: { [key: string]: number } = {
-    'BTC': 98000,
-    'ETH': 3900,
-    'DOGE': 0.42,
-    'ADA': 1.10,
-    'SOL': 240,
-    'XRP': 2.40
+    'BTC': 97800,   // ~97k EUR current price
+    'ETH': 3950,    // ~3950 EUR current price  
+    'DOGE': 0.41,   // ~0.41 EUR current price
+    'ADA': 1.08,    // ~1.08 EUR current price
+    'SOL': 238,     // ~238 EUR current price
+    'XRP': 2.38     // ~2.38 EUR current price
   }
   
   return fallbackPrices[symbol] || 50000 // Default fallback
 }
 
-// Price simulation logic (adapted from original)
+// REALISTIC Price simulation - Uses micro-movements around current price + leverage for profit
 async function findOptimalTradePrices(symbol: string, currentPrice: number, botCreatedAt: string): Promise<{
   buy_price: number
   sell_price: number
   trade_type: 'long' | 'short'
   leverage: number
 }> {
-  // Simulate realistic market movements based on time
+  // Calculate time since bot creation
   const now = new Date()
   const createdAt = new Date(botCreatedAt)
   const minutesElapsed = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60))
   
-  // Use elapsed time to create deterministic but realistic price movements
+  // Use deterministic randomness based on bot creation time
   const seed = minutesElapsed + symbol.charCodeAt(0)
   const random1 = Math.sin(seed) * 10000
   const random2 = Math.cos(seed * 1.5) * 10000
   const random3 = Math.sin(seed * 2.3) * 10000
   
   // Normalize to 0-1 range
-  const r1 = (random1 - Math.floor(random1))
-  const r2 = (random2 - Math.floor(random2))
-  const r3 = (random3 - Math.floor(random3))
+  const r1 = Math.abs(random1 - Math.floor(random1))
+  const r2 = Math.abs(random2 - Math.floor(random2))
+  const r3 = Math.abs(random3 - Math.floor(random3))
   
-  // Generate target profit percentage (1-3%)
-  const targetProfitPercent = Math.abs(r1) * 2 + 1 // 1-3%
+  // Target profit percentage (1-3%)
+  const targetProfitPercent = r1 * 2 + 1
   
   // Determine trade type
   const isLong = r2 > 0.5
   
-  // Calculate leverage needed (1-5x)
-  const leverage = Math.floor(Math.abs(r3) * 4) + 1
+  // REALISTIC micro-movement (0.1-0.5% for typical timeframes)
+  const maxMovementPercent = Math.min(minutesElapsed * 0.01, 0.5) // Max 0.5% movement
+  const actualMovementPercent = r3 * maxMovementPercent + 0.1 // 0.1% to maxMovementPercent
   
-  // Calculate entry and exit prices
+  // Calculate required leverage to achieve target profit from small movement
+  const requiredLeverage = targetProfitPercent / actualMovementPercent
+  const leverage = Math.min(Math.max(Math.round(requiredLeverage), 1), 5) // 1-5x leverage
+  
+  // Calculate REALISTIC entry and exit prices (both close to current price)
   let buy_price: number
   let sell_price: number
   
   if (isLong) {
-    // Long position: buy low, sell high
-    const priceMovement = Math.abs(r1) * 0.15 + 0.05 // 5-20% price movement
-    buy_price = Math.round(currentPrice * (1 - priceMovement) * 100) / 100
-    
-    // Calculate sell price for target profit
-    const requiredPriceIncrease = targetProfitPercent / (leverage * 100)
-    sell_price = Math.round(buy_price * (1 + requiredPriceIncrease) * 100) / 100
+    // LONG: Buy slightly below current, sell at/near current price
+    buy_price = Math.round(currentPrice * (1 - actualMovementPercent / 100) * 100) / 100
+    sell_price = Math.round(currentPrice * 100) / 100
   } else {
-    // Short position: sell high, buy low
-    const priceMovement = Math.abs(r2) * 0.15 + 0.05 // 5-20% price movement
-    buy_price = Math.round(currentPrice * (1 + priceMovement) * 100) / 100
-    
-    // Calculate sell price for target profit (sell first in short)
-    const requiredPriceDecrease = targetProfitPercent / (leverage * 100)
-    sell_price = Math.round(buy_price * (1 - requiredPriceDecrease) * 100) / 100
+    // SHORT: Sell slightly above current, buy at/near current price
+    sell_price = Math.round(currentPrice * (1 + actualMovementPercent / 100) * 100) / 100
+    buy_price = Math.round(currentPrice * 100) / 100
   }
+  
+  console.log(`🎯 REALISTIC Trade: ${isLong ? 'LONG' : 'SHORT'} with ${leverage}x leverage`)
+  console.log(`💱 Current price: ${currentPrice}, Movement: ${actualMovementPercent.toFixed(3)}%`)
+  console.log(`📊 Buy: ${buy_price}, Sell: ${sell_price} (both near current price)`)
   
   return {
     buy_price,
