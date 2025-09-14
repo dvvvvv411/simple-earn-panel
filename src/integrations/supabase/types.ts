@@ -147,6 +147,36 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_price_history: {
+        Row: {
+          change_24h: number | null
+          created_at: string
+          id: string
+          price: number
+          symbol: string
+          timestamp: string
+          volume: number | null
+        }
+        Insert: {
+          change_24h?: number | null
+          created_at?: string
+          id?: string
+          price: number
+          symbol: string
+          timestamp?: string
+          volume?: number | null
+        }
+        Update: {
+          change_24h?: number | null
+          created_at?: string
+          id?: string
+          price?: number
+          symbol?: string
+          timestamp?: string
+          volume?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           balance: number

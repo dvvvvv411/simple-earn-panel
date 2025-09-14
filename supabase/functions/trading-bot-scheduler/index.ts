@@ -1,5 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// ⚠️ DEPRECATED: This scheduler is being replaced by trading-bot-scheduler-v2
+// This old version uses live API calls and generates losses
+// The new version uses historical data and guarantees 1-3% profit
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

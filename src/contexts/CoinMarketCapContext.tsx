@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { fetchCoinMarketCapData } from '@/lib/coinmarketcap';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LivePriceData {
   price: number;
@@ -60,6 +61,38 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
+  const savePricesToDatabase = async (coinsData: FormattedCoinData[]) => {
+    try {
+      console.log('💾 Saving crypto prices to database...');
+      
+      // Format prices for database
+      const formattedPrices = coinsData.map(coin => ({
+        symbol: coin.symbol.toUpperCase(),
+        price: coin.current_price,
+        change_24h: coin.price_change_percentage_24h,
+        volume: 0 // Volume not available in listings endpoint
+      }));
+
+      // Call save-crypto-prices edge function
+      const response = await fetch(`https://fyloldkiuxtcdiazbtwn.supabase.co/functions/v1/save-crypto-prices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({ prices: formattedPrices })
+      });
+
+      if (!response.ok) {
+        console.error('Failed to save prices to database:', response.statusText);
+      } else {
+        console.log('✅ Successfully saved prices to database');
+      }
+    } catch (error) {
+      console.error('❌ Error saving prices to database:', error);
+    }
+  };
+
   const fetchAllData = async () => {
     try {
       // Fetch listings data
@@ -80,6 +113,9 @@ export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
           market_cap_rank: index + 1
         }));
         setCoins(formattedCoins);
+
+        // Save prices to database FIRST
+        await savePricesToDatabase(formattedCoins);
 
         // Generate price data from listings response
         const newPriceData = new Map<string, LivePriceData>();
