@@ -103,7 +103,8 @@ export function TradingSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
-                      to={item.url} 
+                      to={item.url}
+                      end={item.url === "/kryptotrading"}
                       className={({ isActive }) => 
                         `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
                           isActive 
