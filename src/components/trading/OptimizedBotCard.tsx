@@ -44,7 +44,6 @@ interface OptimizedBotCardProps {
 
 export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCardProps) {
   const [runtime, setRuntime] = useState<string>('');
-  const [showDetails, setShowDetails] = useState(false);
   const { coins, getPriceData } = useCoinMarketCap();
   const priceData = getPriceData(bot.symbol);
 
@@ -120,10 +119,8 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
 
   return (
     <Card 
-      className="relative overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg" 
+      className="relative overflow-hidden transition-all duration-200 hover:shadow-lg" 
       data-bot-id={bot.id}
-      onMouseEnter={() => setShowDetails(true)}
-      onMouseLeave={() => setShowDetails(false)}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -188,17 +185,10 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           </div>
         </div>
 
-        {/* Lazy-loaded Chart - Only for active bots when hovering */}
-        {bot.status !== 'completed' && showDetails && (
+        {/* Chart - Always visible for active bots */}
+        {bot.status !== 'completed' && (
           <div className="space-y-2">
             <CryptoCandlestickChart symbol={bot.symbol} />
-          </div>
-        )}
-
-        {/* Chart Skeleton for active bots when not hovering */}
-        {bot.status !== 'completed' && !showDetails && (
-          <div className="space-y-2">
-            <Skeleton className="h-32 w-full rounded-lg" />
           </div>
         )}
 
@@ -224,8 +214,8 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           </div>
         </div>
 
-        {/* Trade Details - Lazy loaded */}
-        {latestTrade && showDetails && (
+        {/* Trade Details - Always visible */}
+        {latestTrade && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
               {bot.status === 'completed' ? 'Trade Details' : 'Aktueller Trade'}
@@ -252,20 +242,6 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
                 <div>Verkaufspreis: {formatPrice(latestTrade.sell_price)}</div>
                 <div>Gewinn: {latestTrade.profit_amount ? formatPrice(latestTrade.profit_amount) : '€0,00'}</div>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Simple Trade Info when not hovering */}
-        {latestTrade && !showDetails && (
-          <div className="flex items-center justify-between text-sm">
-            <Badge variant={latestTrade.trade_type === 'long' ? 'default' : 'secondary'} className="text-xs">
-              {latestTrade.trade_type === 'long' ? 'LONG' : 'SHORT'} {latestTrade.leverage}x
-            </Badge>
-            {latestTrade.status === 'completed' && latestTrade.profit_percentage && (
-              <span className={`font-medium ${latestTrade.profit_percentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {latestTrade.profit_percentage >= 0 ? '+' : ''}{latestTrade.profit_percentage.toFixed(2)}%
-              </span>
             )}
           </div>
         )}
