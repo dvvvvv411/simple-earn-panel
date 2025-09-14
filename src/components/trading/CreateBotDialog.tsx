@@ -65,6 +65,11 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
         return;
       }
 
+      // Calculate completion time (30-60 minutes from now)
+      const now = new Date();
+      const randomMinutes = Math.floor(Math.random() * 31) + 30; // 30-60 minutes
+      const expectedCompletionTime = new Date(now.getTime() + randomMinutes * 60 * 1000);
+
       // Create the bot
       const { data: bot, error: botError } = await supabase
         .from('trading_bots')
@@ -74,7 +79,8 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
           symbol: selectedCoin.symbol.toUpperCase(),
           start_amount: investmentAmount,
           current_balance: investmentAmount,
-          status: 'active'
+          status: 'active',
+          expected_completion_time: expectedCompletionTime.toISOString()
         })
         .select()
         .single();
@@ -110,35 +116,10 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
         return;
       }
 
-      // Start the trading simulation
-      console.log('🤖 Starting trading simulation for bot:', bot.id);
+      // Log bot creation success
+      console.log('🤖 Trading bot created successfully:', bot.id);
+      console.log('⏰ Expected completion time:', expectedCompletionTime.toISOString());
       console.log('📊 Current price:', selectedCoin.current_price);
-      
-      const { data: functionResponse, error: functionError } = await supabase.functions.invoke('trading-bot-simulator', {
-        body: { 
-          bot_id: bot.id,
-          current_price: selectedCoin.current_price 
-        }
-      });
-
-      console.log('🔄 Function response:', functionResponse);
-      console.log('❌ Function error:', functionError);
-
-      if (functionError) {
-        console.error('Function invocation error details:', {
-          message: functionError.message,
-          details: functionError.details,
-          hint: functionError.hint,
-          code: functionError.code
-        });
-        toast({
-          title: "Warnung",
-          description: `Bot wurde erstellt, aber Trading-Simulation konnte nicht gestartet werden: ${functionError.message}`,
-          variant: "destructive"
-        });
-      } else {
-        console.log('✅ Trading simulation started successfully');
-      }
 
       toast({
         title: "Bot erstellt!",
