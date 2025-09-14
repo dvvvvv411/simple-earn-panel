@@ -321,7 +321,7 @@ export function BotCard({ bot, onUpdate, onBotCompleted }: BotCardProps) {
         {localBot.status === 'completed' ? (
           <div className="flex items-center gap-2 text-xs text-blue-600">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <span>Trade abgeschlossen - Ergebnis wurde zu Ihrem Kontostand hinzugefügt</span>
+            <span>Trade abgeschlossen - Kontostand wurde aktualisiert</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 text-xs text-green-600">
