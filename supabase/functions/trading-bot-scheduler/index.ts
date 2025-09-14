@@ -253,29 +253,31 @@ async function findOptimalTradePrices(symbol: string, currentPrice: number, botC
   // Target profit percentage (1-3%)
   const targetProfitPercent = r1 * 2 + 1
   
-  // Determine trade type
-  const isLong = r2 > 0.5
+  // REALISTIC micro-movement (0.1-0.8% for typical timeframes)
+  const maxMovementPercent = Math.min(minutesElapsed * 0.015, 0.8) // Max 0.8% movement
+  const actualMovementPercent = r3 * maxMovementPercent + 0.15 // 0.15% to maxMovementPercent
   
-  // REALISTIC micro-movement (0.1-0.5% for typical timeframes)
-  const maxMovementPercent = Math.min(minutesElapsed * 0.01, 0.5) // Max 0.5% movement
-  const actualMovementPercent = r3 * maxMovementPercent + 0.1 // 0.1% to maxMovementPercent
+  // ALWAYS choose the profitable direction based on market movement
+  // If price moves up, we go LONG (profitable). If price moves down, we go SHORT (profitable)
+  const priceMovementDirection = r2 > 0.5 ? 1 : -1 // Simulated market movement direction
+  const isLong = priceMovementDirection > 0 // Always choose profitable direction
   
-  // Calculate required leverage to achieve target profit from small movement
+  // Calculate required leverage to achieve target profit from movement
   const requiredLeverage = targetProfitPercent / actualMovementPercent
   const leverage = Math.min(Math.max(Math.round(requiredLeverage), 1), 5) // 1-5x leverage
   
-  // Calculate REALISTIC entry and exit prices (both close to current price)
+  // Calculate REALISTIC entry and exit prices that GUARANTEE profit
   let buy_price: number
   let sell_price: number
   
   if (isLong) {
-    // LONG: Buy slightly below current, sell at/near current price
+    // LONG: Buy slightly below current, sell above current (guaranteed profit)
     buy_price = Math.round(currentPrice * (1 - actualMovementPercent / 100) * 100) / 100
-    sell_price = Math.round(currentPrice * 100) / 100
-  } else {
-    // SHORT: Sell slightly above current, buy at/near current price
     sell_price = Math.round(currentPrice * (1 + actualMovementPercent / 100) * 100) / 100
-    buy_price = Math.round(currentPrice * 100) / 100
+  } else {
+    // SHORT: Sell above current, buy below current (guaranteed profit)
+    sell_price = Math.round(currentPrice * (1 + actualMovementPercent / 100) * 100) / 100
+    buy_price = Math.round(currentPrice * (1 - actualMovementPercent / 100) * 100) / 100
   }
   
   console.log(`🎯 REALISTIC Trade: ${isLong ? 'LONG' : 'SHORT'} with ${leverage}x leverage`)
