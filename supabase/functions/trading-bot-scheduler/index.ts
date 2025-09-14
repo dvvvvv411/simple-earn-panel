@@ -111,7 +111,7 @@ async function simulateTrade(botId: string, supabase: any) {
   const amount = parseFloat(bot.start_amount.toString())
   
   let profit: number
-  if (tradeData.trade_type === 'LONG') {
+  if (tradeData.trade_type === 'long') {
     profit = (amount * leverage) * ((tradeData.sell_price - tradeData.buy_price) / tradeData.buy_price)
   } else {
     profit = (amount * leverage) * ((tradeData.buy_price - tradeData.sell_price) / tradeData.buy_price)
@@ -183,7 +183,7 @@ async function simulateTrade(botId: string, supabase: any) {
 async function findOptimalTradePrices(symbol: string, currentPrice: number, botCreatedAt: string): Promise<{
   buy_price: number
   sell_price: number
-  trade_type: 'LONG' | 'SHORT'
+  trade_type: 'long' | 'short'
   leverage: number
 }> {
   // Simulate realistic market movements based on time
@@ -236,7 +236,7 @@ async function findOptimalTradePrices(symbol: string, currentPrice: number, botC
   return {
     buy_price,
     sell_price,
-    trade_type: isLong ? 'LONG' : 'SHORT',
+    trade_type: isLong ? 'long' : 'short',
     leverage
   }
 }
