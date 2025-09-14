@@ -12,12 +12,13 @@ interface TradingBot {
   symbol: string;
   start_amount: number;
   current_balance: number;
-  status: string;
+  status: 'active' | 'paused' | 'stopped' | 'completed';
   created_at: string;
-  buy_price: number | null;
-  sell_price: number | null;
-  leverage: number;
-  position_type: string;
+  updated_at: string;
+  buy_price?: number | null;
+  sell_price?: number | null;
+  leverage?: number;
+  position_type?: string;
 }
 
 interface BotTradeDetails {
