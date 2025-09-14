@@ -101,8 +101,12 @@ async function simulateTrade(botId: string, supabase: any) {
 
   console.log(`📊 Bot details: ${bot.cryptocurrency} (${bot.symbol}) - $${bot.start_amount}`)
 
-  // Get optimal trade prices based on bot creation time and symbol
-  const tradeData = await findOptimalTradePrices(bot.symbol, bot.start_amount, bot.created_at)
+  // Get current market price from existing coinmarketcap function
+  const currentPrice = await getCurrentCryptoPrice(bot.symbol, supabase)
+  console.log(`💱 Current ${bot.symbol} price: $${currentPrice}`)
+
+  // Get optimal trade prices based on bot creation time and REAL crypto price
+  const tradeData = await findOptimalTradePrices(bot.symbol, currentPrice, bot.created_at)
   
   console.log(`💹 Trade simulation: ${tradeData.trade_type} from $${tradeData.buy_price} to $${tradeData.sell_price}`)
 
@@ -177,6 +181,50 @@ async function simulateTrade(botId: string, supabase: any) {
   }
 
   console.log(`🎉 Trade simulation completed successfully for bot ${botId}`)
+}
+
+// Get current crypto price using existing coinmarketcap function (no additional API requests)
+async function getCurrentCryptoPrice(symbol: string, supabase: any): Promise<number> {
+  try {
+    // Call the existing coinmarketcap function that's already used by MarketOverview
+    const { data, error } = await supabase.functions.invoke('coinmarketcap', {
+      body: { 
+        endpoint: 'quotes',
+        symbols: symbol
+      }
+    })
+
+    if (error) {
+      console.error(`❌ Error fetching price for ${symbol}:`, error)
+      // Fallback to a reasonable default based on symbol
+      return getDefaultPrice(symbol)
+    }
+
+    const priceData = data?.data?.[symbol]
+    if (priceData?.quote?.USD?.price) {
+      return Math.round(priceData.quote.USD.price * 100) / 100
+    }
+
+    console.warn(`⚠️ No price data found for ${symbol}, using fallback`)
+    return getDefaultPrice(symbol)
+  } catch (error) {
+    console.error(`💥 Failed to fetch price for ${symbol}:`, error)
+    return getDefaultPrice(symbol)
+  }
+}
+
+// Fallback prices when API fails (approximate current market values)
+function getDefaultPrice(symbol: string): number {
+  const fallbackPrices: { [key: string]: number } = {
+    'BTC': 98000,
+    'ETH': 3900,
+    'DOGE': 0.42,
+    'ADA': 1.10,
+    'SOL': 240,
+    'XRP': 2.40
+  }
+  
+  return fallbackPrices[symbol] || 50000 // Default fallback
 }
 
 // Price simulation logic (adapted from original)
