@@ -26,7 +26,7 @@ export function useDashboardLoading() {
   return context;
 }
 
-function DashboardLoadingProvider({ children }: { children: React.ReactNode }) {
+export function DashboardLoadingProvider({ children }: { children: React.ReactNode }) {
   const [isBalanceLoading, setIsBalanceLoading] = useState(true);
   const [userName, setUserName] = useState("Trader");
 
