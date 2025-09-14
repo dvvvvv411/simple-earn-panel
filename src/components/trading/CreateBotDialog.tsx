@@ -65,11 +65,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
         return;
       }
 
-      // Calculate expected completion time (30-60 minutes from now)
-      const randomMinutes = Math.random() * (60 - 30) + 30; // 30-60 minutes
-      const expectedCompletionTime = new Date(Date.now() + randomMinutes * 60 * 1000);
-      
-      // Create the bot with expected completion time
+      // Create the bot
       const { data: bot, error: botError } = await supabase
         .from('trading_bots')
         .insert({
@@ -78,8 +74,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
           symbol: selectedCoin.symbol.toUpperCase(),
           start_amount: investmentAmount,
           current_balance: investmentAmount,
-          status: 'active',
-          expected_completion_time: expectedCompletionTime.toISOString()
+          status: 'active'
         })
         .select()
         .single();
@@ -115,14 +110,39 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
         return;
       }
 
-      console.log('🤖 Bot created successfully and scheduled for completion');
+      // Start the trading simulation
+      console.log('🤖 Starting trading simulation for bot:', bot.id);
       console.log('📊 Current price:', selectedCoin.current_price);
-      console.log('⏰ Expected completion:', expectedCompletionTime.toISOString());
-      console.log('🎯 Bot will run for approximately', Math.round(randomMinutes), 'minutes');
+      
+      const { data: functionResponse, error: functionError } = await supabase.functions.invoke('trading-bot-simulator', {
+        body: { 
+          bot_id: bot.id,
+          current_price: selectedCoin.current_price 
+        }
+      });
+
+      console.log('🔄 Function response:', functionResponse);
+      console.log('❌ Function error:', functionError);
+
+      if (functionError) {
+        console.error('Function invocation error details:', {
+          message: functionError.message,
+          details: functionError.details,
+          hint: functionError.hint,
+          code: functionError.code
+        });
+        toast({
+          title: "Warnung",
+          description: `Bot wurde erstellt, aber Trading-Simulation konnte nicht gestartet werden: ${functionError.message}`,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Trading simulation started successfully');
+      }
 
       toast({
         title: "Bot erstellt!",
-        description: `Trading-Bot für ${selectedCoin.name} läuft für ${Math.round(randomMinutes)} Minuten.`,
+        description: `Trading-Bot für ${selectedCoin.name} wurde erfolgreich gestartet.`,
       });
 
       setDialogOpen(false);

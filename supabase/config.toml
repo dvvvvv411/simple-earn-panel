@@ -2,6 +2,3 @@ project_id = "fyloldkiuxtcdiazbtwn"
 
 [functions.trading-bot-simulator]
 verify_jwt = false
-
-[functions.trading-bot-scheduler]
-verify_jwt = false
