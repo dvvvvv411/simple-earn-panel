@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useTradingStats } from "@/hooks/useTradingStats";
+import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -35,6 +36,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ChevronUp, 
   ChevronDown, 
@@ -45,7 +47,12 @@ import {
   TrendingUp,
   TrendingDown,
   Clock,
-  DollarSign
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CheckCircle,
+  XCircle,
+  PlayCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -80,6 +87,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function TradingHistory() {
   const { trades, stats, loading, error } = useTradingStats('all');
+  const { coins } = useCoinMarketCap();
   const [bots, setBots] = useState<TradingBot[]>([]);
   const [enhancedTrades, setEnhancedTrades] = useState<EnhancedBotTrade[]>([]);
 
@@ -260,6 +268,71 @@ export default function TradingHistory() {
     return `${diffSecs}s`;
   };
 
+  // Get crypto icon from CoinMarketCap data
+  const getCryptoIcon = (symbol: string) => {
+    const coin = coins.find(c => c.symbol.toLowerCase() === symbol.toLowerCase());
+    return coin?.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
+  };
+
+  // Render trade type badge with colors
+  const renderTradeTypeBadge = (type: string) => {
+    const isLong = type.toLowerCase() === 'long';
+    return (
+      <Badge 
+        variant="outline" 
+        className={cn(
+          "font-medium gap-1",
+          isLong 
+            ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800" 
+            : "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+        )}
+      >
+        {isLong ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownLeft className="h-3 w-3" />}
+        {type.toUpperCase()}
+      </Badge>
+    );
+  };
+
+  // Render status badge with colors
+  const renderStatusBadge = (status: string) => {
+    const getStatusConfig = (status: string) => {
+      switch (status.toLowerCase()) {
+        case 'completed':
+          return {
+            variant: "outline" as const,
+            className: "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800",
+            icon: <CheckCircle className="h-3 w-3" />
+          };
+        case 'failed':
+          return {
+            variant: "outline" as const,
+            className: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800",
+            icon: <XCircle className="h-3 w-3" />
+          };
+        case 'pending':
+          return {
+            variant: "outline" as const,
+            className: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
+            icon: <PlayCircle className="h-3 w-3" />
+          };
+        default:
+          return {
+            variant: "outline" as const,
+            className: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800",
+            icon: null
+          };
+      }
+    };
+
+    const config = getStatusConfig(status);
+    return (
+      <Badge variant={config.variant} className={cn("font-medium gap-1", config.className)}>
+        {config.icon}
+        {status === 'completed' ? 'Abgeschlossen' : status === 'failed' ? 'Fehlgeschlagen' : status === 'pending' ? 'Laufend' : status}
+      </Badge>
+    );
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -438,14 +511,14 @@ export default function TradingHistory() {
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card className="shadow-lg border-border/50">
         <CardContent className="p-0">
           <ScrollArea className="h-[600px]">
             <Table>
-              <TableHeader>
-                <TableRow>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="border-b-2">
                   <TableHead 
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
                     onClick={() => handleSort('cryptocurrency')}
                   >
                     <div className="flex items-center gap-1">
@@ -455,9 +528,9 @@ export default function TradingHistory() {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead>Trade Typ</TableHead>
+                  <TableHead className="font-semibold">Trade Typ</TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
                     onClick={() => handleSort('started_at')}
                   >
                     <div className="flex items-center gap-1">
@@ -468,7 +541,7 @@ export default function TradingHistory() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
                     onClick={() => handleSort('completed_at')}
                   >
                     <div className="flex items-center gap-1">
@@ -479,7 +552,7 @@ export default function TradingHistory() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
                     onClick={() => handleSort('amount')}
                   >
                     <div className="flex items-center gap-1">
@@ -490,7 +563,7 @@ export default function TradingHistory() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
                     onClick={() => handleSort('profit_amount')}
                   >
                     <div className="flex items-center gap-1">
@@ -500,45 +573,52 @@ export default function TradingHistory() {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead>Leverage</TableHead>
-                  <TableHead>Dauer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Bot ID</TableHead>
+                  <TableHead className="font-semibold">Leverage</TableHead>
+                  <TableHead className="font-semibold">Dauer</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Bot ID</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedTrades.map((trade) => (
-                  <TableRow key={trade.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary">
-                            {trade.bot?.symbol?.charAt(0) || '?'}
-                          </span>
-                        </div>
+                {paginatedTrades.map((trade, index) => (
+                  <TableRow 
+                    key={trade.id} 
+                    className={cn(
+                      "hover:bg-accent/20 transition-all duration-200 border-b border-border/50",
+                      index % 2 === 0 ? "bg-background" : "bg-muted/20"
+                    )}
+                  >
+                    <TableCell className="font-medium py-4">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={getCryptoIcon(trade.bot?.symbol || '')} 
+                          alt={trade.bot?.cryptocurrency || 'Unknown'}
+                          className="h-8 w-8 rounded-full border border-border/20 shadow-sm"
+                          onError={(e) => {
+                            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
+                          }}
+                        />
                         <div>
-                          <div className="font-medium">{trade.bot?.symbol || 'N/A'}</div>
+                          <div className="font-semibold text-sm">{trade.bot?.symbol || 'N/A'}</div>
                           <div className="text-xs text-muted-foreground">{trade.bot?.cryptocurrency || 'Unknown'}</div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={trade.trade_type === 'LONG' ? 'default' : 'secondary'}>
-                        {trade.trade_type}
-                      </Badge>
+                    <TableCell className="py-4">
+                      {renderTradeTypeBadge(trade.trade_type)}
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
+                    <TableCell className="py-4">
+                      <div className="text-sm font-medium">
                         {format(new Date(trade.started_at), 'dd.MM.yyyy')}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {format(new Date(trade.started_at), 'HH:mm:ss')}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       {trade.completed_at ? (
                         <div>
-                          <div className="text-sm">
+                          <div className="text-sm font-medium">
                             {format(new Date(trade.completed_at), 'dd.MM.yyyy')}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -546,55 +626,47 @@ export default function TradingHistory() {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">-</span>
+                        <span className="text-muted-foreground font-medium">-</span>
                       )}
                     </TableCell>
-                    <TableCell>€{trade.amount.toFixed(2)}</TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
+                      <div className="font-semibold">€{trade.amount.toFixed(2)}</div>
+                    </TableCell>
+                    <TableCell className="py-4">
                       {trade.profit_amount !== null ? (
                         <div className={cn(
-                          "flex items-center gap-1 font-medium",
-                          trade.profit_amount >= 0 ? "text-green-600" : "text-red-600"
+                          "flex items-center gap-1.5 font-semibold px-2 py-1 rounded-md transition-colors",
+                          trade.profit_amount >= 0 
+                            ? "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-900/20" 
+                            : "text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-900/20"
                         )}>
                           {trade.profit_amount >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          €{trade.profit_amount.toFixed(2)}
-                          {trade.profit_percentage && (
-                            <span className="text-xs">
-                              ({trade.profit_percentage.toFixed(1)}%)
-                            </span>
-                          )}
+                          <div>
+                            <div>€{trade.profit_amount.toFixed(2)}</div>
+                            {trade.profit_percentage && (
+                              <div className="text-xs opacity-75">
+                                ({trade.profit_percentage.toFixed(1)}%)
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">-</span>
+                        <span className="text-muted-foreground font-medium">-</span>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{trade.leverage}x</Badge>
+                    <TableCell className="py-4">
+                      <Badge variant="outline" className="font-semibold border-border/60">{trade.leverage}x</Badge>
                     </TableCell>
-                    <TableCell>
-                      <span className="text-sm font-mono">
+                    <TableCell className="py-4">
+                      <span className="text-sm font-mono font-medium bg-muted/30 px-2 py-1 rounded">
                         {formatDuration(trade.started_at, trade.completed_at)}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                          trade.status === 'completed' 
-                            ? trade.profit_amount && trade.profit_amount > 0 
-                              ? 'default' 
-                              : 'destructive'
-                            : trade.status === 'pending' 
-                              ? 'secondary' 
-                              : 'destructive'
-                        }
-                      >
-                        {trade.status === 'completed' ? 'Abgeschlossen' : 
-                         trade.status === 'pending' ? 'Laufend' : 
-                         'Fehlgeschlagen'}
-                      </Badge>
+                    <TableCell className="py-4">
+                      {renderStatusBadge(trade.status)}
                     </TableCell>
-                    <TableCell>
-                      <span className="text-xs font-mono text-muted-foreground">
+                    <TableCell className="py-4">
+                      <span className="text-xs font-mono text-muted-foreground bg-muted/30 px-2 py-1 rounded">
                         {trade.bot_id.substring(0, 8)}...
                       </span>
                     </TableCell>
