@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus, Bot } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CreateBotDialog } from "./CreateBotDialog";
+import { useTradingBots } from "@/hooks/useTradingBots";
 
 interface AccountBalanceCardProps {
   balance: number;
@@ -15,6 +16,7 @@ interface AccountBalanceCardProps {
 export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: AccountBalanceCardProps) {
   const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
+  const { bots } = useTradingBots();
 
   // Sync local state with prop balance immediately
   useEffect(() => {
@@ -56,6 +58,11 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: Ac
       minimumFractionDigits: 2,
     }).format(amount);
   };
+
+  // Calculate total bot investments from active bots
+  const botInvestments = bots
+    .filter(bot => bot.status === 'active')
+    .reduce((total, bot) => total + Number(bot.start_amount), 0);
 
   // Placeholder trend data
   const trendPercentage = 2.3;
@@ -116,6 +123,12 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: Ac
               <span className="text-lg font-semibold text-foreground">{rankData.currentRank}</span>
             </div>
           </div>
+          {botInvestments > 0 && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Bot className="h-4 w-4" />
+              <span>{formatBalance(botInvestments)} in Bots aktiv</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1">
               {isPositive ? (
