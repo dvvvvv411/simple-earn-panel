@@ -42,6 +42,7 @@ export default function Dashboard() {
 
       if (newlyCompleted.length > 0) {
         const bot = newlyCompleted[0];
+        console.log(`🎯 Dashboard: Detected newly completed bot via data update:`, bot.id);
         setCompletedBot(bot);
         setShowSuccessDialog(true);
       }
@@ -49,6 +50,13 @@ export default function Dashboard() {
     
     setPreviousBots([...data.bots]);
   }, [data.bots]);
+
+  // Enhanced success dialog handler
+  const handleBotCompleted = (completedBot: TradingBot) => {
+    console.log(`🎉 Dashboard: Bot completion triggered:`, completedBot.id);
+    setCompletedBot(completedBot);
+    setShowSuccessDialog(true);
+  };
 
   const handleBalanceUpdate = () => {
     refetch();
@@ -109,10 +117,7 @@ export default function Dashboard() {
                 key={bot.id} 
                 bot={bot} 
                 trades={data.trades}
-                onBotCompleted={(completedBot) => {
-                  setCompletedBot(completedBot);
-                  setShowSuccessDialog(true);
-                }}
+                onBotCompleted={handleBotCompleted}
               />
             ))}
           </div>
@@ -135,10 +140,7 @@ export default function Dashboard() {
                 key={bot.id} 
                 bot={bot} 
                 trades={data.trades}
-                onBotCompleted={(completedBot) => {
-                  setCompletedBot(completedBot);
-                  setShowSuccessDialog(true);
-                }}
+                onBotCompleted={handleBotCompleted}
               />
             ))}
           </div>

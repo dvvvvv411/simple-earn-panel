@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bot, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useCoinMarketCap } from '@/contexts/CoinMarketCapContext';
+import { supabase } from '@/integrations/supabase/client';
 import CryptoCandlestickChart from './CryptoCandlestickChart';
 
 interface TradingBot {
@@ -44,19 +45,20 @@ interface OptimizedBotCardProps {
 
 export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCardProps) {
   const [runtime, setRuntime] = useState<string>('');
+  const [localBot, setLocalBot] = useState<TradingBot>(bot);
   const { coins, getPriceData } = useCoinMarketCap();
   const priceData = getPriceData(bot.symbol);
 
   // Get bot-specific trades
   const botTrades = useMemo(() => {
-    return trades.filter(trade => trade.bot_id === bot.id)
+    return trades.filter(trade => trade.bot_id === localBot.id)
       .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-  }, [trades, bot.id]);
+  }, [trades, localBot.id]);
 
   // Get current coin data
   const currentCoin = useMemo(() => {
-    return coins.find(coin => coin.symbol.toUpperCase() === bot.symbol.toUpperCase());
-  }, [coins, bot.symbol]);
+    return coins.find(coin => coin.symbol.toUpperCase() === localBot.symbol.toUpperCase());
+  }, [coins, localBot.symbol]);
 
   // Format price to exactly 2 decimal places
   const formatPrice = (price: number) => {
@@ -69,8 +71,8 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
   };
 
   // Calculate profit/loss
-  const totalReturn = bot.current_balance - bot.start_amount;
-  const returnPercentage = ((totalReturn / bot.start_amount) * 100);
+  const totalReturn = localBot.current_balance - localBot.start_amount;
+  const returnPercentage = ((totalReturn / localBot.start_amount) * 100);
   const isProfit = totalReturn >= 0;
 
   // Get latest trade
@@ -78,7 +80,7 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
 
   // Calculate runtime
   const calculateRuntime = () => {
-    if (bot.status === 'completed' && latestTrade && latestTrade.completed_at) {
+    if (localBot.status === 'completed' && latestTrade && latestTrade.completed_at) {
       const startTime = new Date(latestTrade.started_at);
       const endTime = new Date(latestTrade.completed_at);
       const diffMs = endTime.getTime() - startTime.getTime();
@@ -93,7 +95,7 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
       }
     } else {
       const now = new Date();
-      const startTime = new Date(bot.created_at);
+      const startTime = new Date(localBot.created_at);
       const diffMs = now.getTime() - startTime.getTime();
       
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -107,6 +109,87 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
     }
   };
 
+  // Direct real-time subscription for bot status changes
+  useEffect(() => {
+    console.log(`🔄 OptimizedBotCard: Setting up real-time subscription for bot ${bot.id}`);
+    
+    const channel = supabase
+      .channel(`bot-${bot.id}-updates`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'trading_bots',
+          filter: `id=eq.${bot.id}`
+        },
+        (payload) => {
+          console.log(`🤖 OptimizedBotCard: Bot ${bot.id} updated:`, payload);
+          const updatedBot = {
+            ...payload.new,
+            status: payload.new.status as TradingBot['status']
+          } as TradingBot;
+          
+          // Check if bot just completed
+          if (localBot.status === 'active' && updatedBot.status === 'completed') {
+            console.log(`✅ OptimizedBotCard: Bot ${bot.id} just completed! Triggering success dialog`);
+            setLocalBot(updatedBot);
+            onBotCompleted?.(updatedBot);
+          } else {
+            setLocalBot(updatedBot);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'bot_trades',
+          filter: `bot_id=eq.${bot.id}`
+        },
+        (payload) => {
+          console.log(`💰 OptimizedBotCard: New trade inserted for bot ${bot.id}:`, payload);
+          const newTrade = payload.new;
+          
+          // If this is a completed trade and bot is active, trigger completion
+          if (newTrade.status === 'completed' && localBot.status === 'active') {
+            console.log(`🎯 OptimizedBotCard: Trade completed for bot ${bot.id}, checking bot status...`);
+            
+            // Fetch updated bot status to ensure it's marked as completed
+            setTimeout(async () => {
+              const { data: updatedBot } = await supabase
+                .from('trading_bots')
+                .select('*')
+                .eq('id', bot.id)
+                .single();
+                
+              if (updatedBot && updatedBot.status === 'completed') {
+                console.log(`🚀 OptimizedBotCard: Bot ${bot.id} confirmed completed via trade insert`);
+                const typedBot = {
+                  ...updatedBot,
+                  status: updatedBot.status as TradingBot['status']
+                } as TradingBot;
+                setLocalBot(typedBot);
+                onBotCompleted?.(typedBot);
+              }
+            }, 500); // Small delay to ensure database consistency
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log(`🔌 OptimizedBotCard: Cleaning up subscription for bot ${bot.id}`);
+      supabase.removeChannel(channel);
+    };
+  }, [bot.id, localBot.status, onBotCompleted]);
+
+  // Sync local bot with prop changes
+  useEffect(() => {
+    setLocalBot(bot);
+  }, [bot]);
+
   // Update runtime every minute
   useEffect(() => {
     const updateRuntime = () => setRuntime(calculateRuntime());
@@ -115,26 +198,26 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
     const interval = setInterval(updateRuntime, 60000);
     
     return () => clearInterval(interval);
-  }, [bot.created_at, latestTrade]);
+  }, [localBot.created_at, latestTrade]);
 
   return (
     <Card 
       className="relative overflow-hidden transition-all duration-200 hover:shadow-lg" 
-      data-bot-id={bot.id}
+      data-bot-id={localBot.id}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
-            <CardTitle className="text-base">{bot.cryptocurrency}</CardTitle>
+            <CardTitle className="text-base">{localBot.cryptocurrency}</CardTitle>
             <Badge variant="outline" className="text-xs">
-              {bot.symbol}
+              {localBot.symbol}
             </Badge>
           </div>
           
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 status-indicator">
-              {bot.status === 'completed' ? (
+              {localBot.status === 'completed' ? (
                 <>
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
                   <span className="text-sm font-medium text-blue-600">Abgeschlossen</span>
@@ -148,13 +231,13 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="w-3 h-3" />
-              <span>{bot.status === 'completed' ? 'Abgeschlossen nach:' : 'Läuft seit:'} {runtime}</span>
+              <span>{localBot.status === 'completed' ? 'Abgeschlossen nach:' : 'Läuft seit:'} {runtime}</span>
             </div>
           </div>
         </div>
         
         {/* Live Price Display - Only for active bots */}
-        {bot.status !== 'completed' && (
+        {localBot.status !== 'completed' && (
           <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/20">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${priceData ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
@@ -174,21 +257,21 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Startbetrag</p>
             <p className="font-semibold">
-              {bot.start_amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
+              {localBot.start_amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
             </p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Aktueller Wert</p>
             <p className="font-semibold">
-              {bot.current_balance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
+              {localBot.current_balance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
             </p>
           </div>
         </div>
 
         {/* Chart - Always visible for active bots */}
-        {bot.status !== 'completed' && (
+        {localBot.status !== 'completed' && (
           <div className="space-y-2">
-            <CryptoCandlestickChart symbol={bot.symbol} />
+            <CryptoCandlestickChart symbol={localBot.symbol} />
           </div>
         )}
 
@@ -218,7 +301,7 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
         {latestTrade && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
-              {bot.status === 'completed' ? 'Trade Details' : 'Aktueller Trade'}
+              {localBot.status === 'completed' ? 'Trade Details' : 'Aktueller Trade'}
             </p>
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
@@ -247,7 +330,7 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
         )}
 
         {/* Status Indicator */}
-        {bot.status === 'completed' ? (
+        {localBot.status === 'completed' ? (
           <div className="flex items-center gap-2 text-xs text-blue-600">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
             <span>Trade abgeschlossen - Kontostand wurde aktualisiert</span>
