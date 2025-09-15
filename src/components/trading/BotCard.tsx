@@ -189,9 +189,19 @@ export function BotCard({ bot, onUpdate, onBotCompleted }: BotCardProps) {
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
             <CardTitle className="text-base">{bot.cryptocurrency}</CardTitle>
-            <Badge variant="outline" className="text-xs">
-              {bot.symbol}
-            </Badge>
+            <div className="flex items-center gap-1">
+              {currentCoin?.image && (
+                <img 
+                  src={currentCoin.image} 
+                  alt={bot.cryptocurrency}
+                  className="h-5 w-5 rounded-full"
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
+                  }}
+                />
+              )}
+              <span className="text-xs text-muted-foreground uppercase">{bot.symbol}</span>
+            </div>
           </div>
           
           <div className="flex items-center gap-3">
