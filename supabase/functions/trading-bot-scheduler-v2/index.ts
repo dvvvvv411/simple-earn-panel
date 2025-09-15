@@ -146,30 +146,18 @@ async function simulateTradeWithHistoricalData(supabase: any, bot: TradingBot) {
   // Analyze price movements and find optimal entry/exit points
   const tradeAnalysis = analyzeHistoricalPrices(historicalPrices, bot);
   
-  if (!tradeAnalysis.isprofitable) {
-    console.log(`❌ No profitable scenario found for bot ${bot.id}, canceling trade`);
-    
-    // Update bot status to completed with no profit
-    await supabase
-      .from('trading_bots')
-      .update({ 
-        status: 'completed',
-        current_balance: bot.start_amount
-      })
-      .eq('id', bot.id);
-
-    return {
-      bot_id: bot.id,
-      success: true,
-      action: 'canceled',
-      reason: 'No profitable scenario found'
-    };
-  }
-
-  // Execute the profitable trade
-  const tradeResult = await executeHistoricalTrade(supabase, bot, tradeAnalysis);
+  console.log(`📊 Historical analysis result:`, tradeAnalysis.isprofitable ? 'PROFITABLE' : 'USING FALLBACK');
   
-  console.log(`✅ Executed profitable trade for bot ${bot.id}: ${tradeResult.profit_percentage.toFixed(2)}% profit`);
+  let tradeResult;
+  if (tradeAnalysis.isprofitable) {
+    // Execute the profitable trade with historical data
+    tradeResult = await executeHistoricalTrade(supabase, bot, tradeAnalysis);
+    console.log(`✅ Used historical analysis for bot ${bot.id}: ${tradeResult.profit_percentage.toFixed(2)}% profit`);
+  } else {
+    // Use fallback but guarantee profit
+    console.log(`🔄 No historical profit found, using guaranteed fallback for bot ${bot.id}`);
+    tradeResult = await simulateTradeWithFallback(supabase, bot);
+  }
   
   return {
     bot_id: bot.id,
@@ -313,18 +301,24 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
     throw botUpdateError;
   }
 
-  // Update user balance
+  // Update user balance - add the initial investment back plus profit
+  const totalReturn = bot.start_amount + profitAmount;
+  console.log(`💰 Returning ${totalReturn.toFixed(2)} EUR to user balance (${bot.start_amount} investment + ${profitAmount.toFixed(2)} profit)`);
+  
   const { error: balanceError } = await supabase.rpc('update_user_balance', {
     target_user_id: bot.user_id,
-    amount_change: profitAmount,
-    transaction_type: 'trading_profit',
-    transaction_description: `Trading Bot Profit - ${bot.cryptocurrency} (${profitPercent.toFixed(2)}%)`,
+    amount_change: totalReturn,
+    transaction_type: 'credit',
+    transaction_description: `Trading Bot Completed - ${bot.cryptocurrency} (${profitPercent.toFixed(2)}% profit)`,
     admin_user_id: bot.user_id // Using user as admin for trading profits
   });
 
   if (balanceError) {
     console.error('❌ Error updating user balance:', balanceError);
+    console.error('Balance error details:', balanceError);
     // Don't throw here, trade was already recorded
+  } else {
+    console.log(`✅ Successfully updated user balance with ${totalReturn.toFixed(2)} EUR`);
   }
 
   return {
@@ -337,25 +331,31 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
 async function simulateTradeWithFallback(supabase: any, bot: TradingBot) {
   console.log(`🔄 Using fallback simulation for bot ${bot.id}`);
   
-  // Simple fallback: generate a realistic 1-3% profit
-  const profitPercent = 1.0 + Math.random() * 2.0; // 1-3%
+  // Generate realistic random profit between 1.01% and 2.99% with decimals
+  const profitPercent = 1.01 + Math.random() * 1.98; // 1.01% - 2.99%
   const currentPrice = getDefaultPrice(bot.symbol);
   
-  // Generate realistic prices around current market price
+  // Generate realistic prices with proper decimals
   const leverage = Math.floor(Math.random() * 5) + 1; // 1-5x
   const tradeType = Math.random() > 0.5 ? 'long' : 'short';
+  
+  // Add small random fluctuation to base price for realism
+  const priceFluctuation = 0.95 + Math.random() * 0.1; // 0.95 - 1.05 multiplier
+  const adjustedPrice = currentPrice * priceFluctuation;
   
   let buyPrice, sellPrice;
   
   if (tradeType === 'long') {
     // LONG: Buy slightly lower, sell higher
-    buyPrice = currentPrice * (1 - (profitPercent / leverage / 100));
-    sellPrice = currentPrice * (1 + (profitPercent / leverage / 100));
+    buyPrice = adjustedPrice * (1 - (profitPercent / leverage / 100));
+    sellPrice = adjustedPrice * (1 + (profitPercent / leverage / 100));
   } else {
     // SHORT: Sell higher, buy lower
-    sellPrice = currentPrice * (1 + (profitPercent / leverage / 100));
-    buyPrice = currentPrice * (1 - (profitPercent / leverage / 100));
+    sellPrice = adjustedPrice * (1 + (profitPercent / leverage / 100));
+    buyPrice = adjustedPrice * (1 - (profitPercent / leverage / 100));
   }
+  
+  console.log(`🎲 Fallback trade: ${tradeType.toUpperCase()} ${leverage}x for ${profitPercent.toFixed(2)}% profit`);
 
   return await executeHistoricalTrade(supabase, bot, {
     buyPrice,
