@@ -119,11 +119,11 @@ async function simulateTradeWithHistoricalData(supabase: any, bot: TradingBot) {
   
   console.log(`⏱️ Bot has been running for ${runtimeMinutes} minutes`);
 
-  // Use 24-hour analysis window for better price movements
-  const analysisStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000)); // 24 hours ago
+  // Use bot's actual runtime window for analysis
+  const analysisStartTime = new Date(bot.created_at);
   const endAnalysisTime = new Date(now.getTime());
 
-  console.log(`🕐 Analyzing 24-hour price history from ${analysisStartTime.toISOString()} to ${endAnalysisTime.toISOString()}`);
+  console.log(`🕐 Analyzing bot runtime price history from ${analysisStartTime.toISOString()} to ${endAnalysisTime.toISOString()}`);
 
   const { data: historicalPrices, error: priceError } = await supabase
     .from('crypto_price_history')
