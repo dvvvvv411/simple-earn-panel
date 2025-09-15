@@ -53,6 +53,13 @@ const COIN_IDS: Record<string, number> = {
   TRX: 1958
 };
 
+// Fixed priority order for crypto coins
+const COIN_PRIORITY = [
+  'BTC', 'ETH', 'SOL', 'ADA', 'DOT', 'LINK', 
+  'XRP', 'LTC', 'BCH', 'BNB', 'USDT', 'USDC', 
+  'DOGE', 'TRX'
+];
+
 export function useCryptoPrices() {
   const [coins, setCoins] = useState<FormattedCoinData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,16 +96,31 @@ export function useCryptoPrices() {
 
       // Format for display
       const formattedCoins: FormattedCoinData[] = Array.from(latestPrices.values())
-        .map((price, index) => ({
+        .map((price) => ({
           id: COIN_IDS[price.symbol]?.toString() || price.id,
           symbol: price.symbol.toLowerCase(),
           name: COIN_NAMES[price.symbol] || price.symbol,
           image: `https://s2.coinmarketcap.com/static/img/coins/32x32/${COIN_IDS[price.symbol] || 1}.png`,
           current_price: price.price,
           price_change_percentage_24h: price.change_24h,
-          market_cap_rank: index + 1
+          market_cap_rank: COIN_PRIORITY.indexOf(price.symbol) + 1
         }))
-        .sort((a, b) => a.market_cap_rank - b.market_cap_rank);
+        .sort((a, b) => {
+          const aIndex = COIN_PRIORITY.indexOf(a.symbol.toUpperCase());
+          const bIndex = COIN_PRIORITY.indexOf(b.symbol.toUpperCase());
+          
+          // If both coins are in priority list, sort by priority order
+          if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex;
+          }
+          
+          // If only one is in priority list, prioritize it
+          if (aIndex !== -1) return -1;
+          if (bIndex !== -1) return 1;
+          
+          // If neither is in priority list, sort alphabetically
+          return a.symbol.localeCompare(b.symbol);
+        });
 
       setCoins(formattedCoins);
       setError(null);
