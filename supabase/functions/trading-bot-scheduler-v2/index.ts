@@ -234,12 +234,9 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
     return { isprofitable: false };
   }
 
-  // Pick the most optimal scenario (closest to 2% profit)
-  const optimalScenario = allScenarios.reduce((best, current) => {
-    const bestDistance = Math.abs(best.profitPercent - 2.0);
-    const currentDistance = Math.abs(current.profitPercent - 2.0);
-    return currentDistance < bestDistance ? current : best;
-  });
+  // Pick a random profitable scenario (1-3% profit range)
+  const randomIndex = Math.floor(Math.random() * allScenarios.length);
+  const optimalScenario = allScenarios[randomIndex];
 
   console.log(`🎯 Found optimal scenario: ${optimalScenario.tradeType.toUpperCase()} ${optimalScenario.leverage}x for ${optimalScenario.profitPercent.toFixed(2)}% profit`);
 

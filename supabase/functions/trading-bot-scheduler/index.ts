@@ -266,9 +266,10 @@ async function findOptimalTradePrices(symbol: string, currentPrice: number, botC
   const priceMovementDirection = r2 > 0.5 ? 1 : -1 // Simulated market movement direction
   const isLong = priceMovementDirection > 0 // Always choose profitable direction
   
-  // Calculate required leverage to achieve target profit from movement
-  const requiredLeverage = targetProfitPercent / actualMovementPercent
-  const leverage = Math.min(Math.max(Math.round(requiredLeverage), 1), 5) // 1-5x leverage
+  // Calculate required leverage with slight randomness to avoid exact profits
+  const leverageVariation = (Math.random() - 0.5) * 0.4; // ±0.2 variation
+  const requiredLeverage = (targetProfitPercent + leverageVariation) / actualMovementPercent
+  const leverage = Math.min(Math.max(Math.round(requiredLeverage * 10) / 10, 1), 5) // 1-5x leverage with decimals
   
   // Calculate REALISTIC entry and exit prices that GUARANTEE profit
   let buy_price: number
