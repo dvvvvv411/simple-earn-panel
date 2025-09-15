@@ -326,7 +326,7 @@ export default function TradingHistory() {
 
     const config = getStatusConfig(status);
     return (
-      <Badge variant={config.variant} className={cn("font-medium gap-2", config.className)}>
+      <Badge variant={config.variant} className={cn("font-medium gap-1", config.className)}>
         {config.icon}
         {status === 'completed' ? 'Abgeschlossen' : status === 'failed' ? 'Fehlgeschlagen' : status === 'pending' ? 'Laufend' : status}
       </Badge>
