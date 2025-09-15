@@ -119,15 +119,17 @@ async function simulateTradeWithHistoricalData(supabase: any, bot: TradingBot) {
   
   console.log(`⏱️ Bot has been running for ${runtimeMinutes} minutes`);
 
-  // Get historical price data for the bot's runtime period
-  const startAnalysisTime = new Date(botStartTime.getTime());
+  // Use 24-hour analysis window for better price movements
+  const analysisStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000)); // 24 hours ago
   const endAnalysisTime = new Date(now.getTime());
+
+  console.log(`🕐 Analyzing 24-hour price history from ${analysisStartTime.toISOString()} to ${endAnalysisTime.toISOString()}`);
 
   const { data: historicalPrices, error: priceError } = await supabase
     .from('crypto_price_history')
     .select('*')
     .eq('symbol', bot.symbol)
-    .gte('timestamp', startAnalysisTime.toISOString())
+    .gte('timestamp', analysisStartTime.toISOString())
     .lte('timestamp', endAnalysisTime.toISOString())
     .order('timestamp', { ascending: true });
 
@@ -137,27 +139,23 @@ async function simulateTradeWithHistoricalData(supabase: any, bot: TradingBot) {
   }
 
   if (!historicalPrices || historicalPrices.length < 2) {
-    console.log(`⚠️ Insufficient historical data for ${bot.symbol}, using fallback...`);
-    return await simulateTradeWithFallback(supabase, bot);
+    console.error(`❌ Critical: No historical data available for ${bot.symbol}`);
+    throw new Error(`No historical data available for ${bot.symbol} - cannot process without real data`);
   }
 
   console.log(`📈 Found ${historicalPrices.length} historical price points for analysis`);
 
-  // Analyze price movements and find optimal entry/exit points
+  // Analyze price movements and find optimal entry/exit points with 100x leverage
   const tradeAnalysis = analyzeHistoricalPrices(historicalPrices, bot);
   
-  console.log(`📊 Historical analysis result:`, tradeAnalysis.isprofitable ? 'PROFITABLE' : 'USING FALLBACK');
-  
-  let tradeResult;
-  if (tradeAnalysis.isprofitable) {
-    // Execute the profitable trade with historical data
-    tradeResult = await executeHistoricalTrade(supabase, bot, tradeAnalysis);
-    console.log(`✅ Used historical analysis for bot ${bot.id}: ${tradeResult.profit_percentage.toFixed(2)}% profit`);
-  } else {
-    // Use fallback but guarantee profit
-    console.log(`🔄 No historical profit found, using guaranteed fallback for bot ${bot.id}`);
-    tradeResult = await simulateTradeWithFallback(supabase, bot);
+  if (!tradeAnalysis.isprofitable) {
+    console.error(`❌ Critical: No profitable scenario found for ${bot.symbol} even with 100x leverage`);
+    throw new Error(`No profitable scenario possible for ${bot.symbol} - this should be impossible with 100x leverage`);
   }
+
+  // Execute the profitable trade with historical data
+  const tradeResult = await executeHistoricalTrade(supabase, bot, tradeAnalysis);
+  console.log(`✅ Used historical analysis for bot ${bot.id}: ${tradeResult.profit_percentage.toFixed(2)}% profit`);
   
   return {
     bot_id: bot.id,
@@ -188,8 +186,8 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
       const buyPrice = prices[buyIndex].price;
       const sellPrice = prices[sellIndex].price;
       
-      // Test different leverage levels (1x to 5x)
-      for (let leverage = 1; leverage <= 5; leverage++) {
+      // Test different leverage levels (1x to 100x)
+      for (let leverage = 1; leverage <= 100; leverage++) {
         const profitPercent = ((sellPrice - buyPrice) / buyPrice) * leverage * 100;
         
         if (profitPercent >= 1.0 && profitPercent <= 3.0) {
@@ -211,8 +209,8 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
       const sellPrice = prices[sellIndex].price;
       const buyPrice = prices[buyIndex].price;
       
-      // Test different leverage levels (1x to 5x)
-      for (let leverage = 1; leverage <= 5; leverage++) {
+      // Test different leverage levels (1x to 100x)
+      for (let leverage = 1; leverage <= 100; leverage++) {
         const profitPercent = ((sellPrice - buyPrice) / sellPrice) * leverage * 100;
         
         if (profitPercent >= 1.0 && profitPercent <= 3.0) {
@@ -328,69 +326,4 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
   };
 }
 
-async function simulateTradeWithFallback(supabase: any, bot: TradingBot) {
-  console.log(`🔄 Using fallback simulation for bot ${bot.id}`);
-  
-  // Generate realistic random profit between 1.01% and 2.99% with decimals
-  const profitPercent = 1.01 + Math.random() * 1.98; // 1.01% - 2.99%
-  const currentPrice = getDefaultPrice(bot.symbol);
-  
-  // Generate realistic prices with proper decimals
-  const leverage = Math.floor(Math.random() * 5) + 1; // 1-5x
-  const tradeType = Math.random() > 0.5 ? 'long' : 'short';
-  
-  // Add small random fluctuation to base price for realism
-  const priceFluctuation = 0.95 + Math.random() * 0.1; // 0.95 - 1.05 multiplier
-  const adjustedPrice = currentPrice * priceFluctuation;
-  
-  let buyPrice, sellPrice;
-  
-  if (tradeType === 'long') {
-    // LONG: Buy slightly lower, sell higher
-    buyPrice = adjustedPrice * (1 - (profitPercent / leverage / 100));
-    sellPrice = adjustedPrice * (1 + (profitPercent / leverage / 100));
-  } else {
-    // SHORT: Sell higher, buy lower
-    sellPrice = adjustedPrice * (1 + (profitPercent / leverage / 100));
-    buyPrice = adjustedPrice * (1 - (profitPercent / leverage / 100));
-  }
-  
-  console.log(`🎲 Fallback trade: ${tradeType.toUpperCase()} ${leverage}x for ${profitPercent.toFixed(2)}% profit`);
-
-  return await executeHistoricalTrade(supabase, bot, {
-    buyPrice,
-    sellPrice,
-    leverage,
-    profitPercent,
-    tradeType
-  });
-}
-
-function getDefaultPrice(symbol: string): number {
-  // Fallback prices for major cryptocurrencies (EUR)
-  const defaultPrices: Record<string, number> = {
-    'BTC': 95000,
-    'ETH': 3500,
-    'USDT': 0.95,
-    'BNB': 650,
-    'SOL': 220,
-    'USDC': 0.95,
-    'XRP': 2.5,
-    'DOGE': 0.38,
-    'ADA': 1.1,
-    'TRX': 0.25,
-    'AVAX': 42,
-    'SHIB': 0.000025,
-    'DOT': 8.5,
-    'LINK': 22,
-    'BCH': 485,
-    'NEAR': 6.8,
-    'MATIC': 0.55,
-    'ICP': 12,
-    'LTC': 110,
-    'UNI': 15,
-    'PEPE': 0.000018
-  };
-
-  return defaultPrices[symbol] || 100; // Default fallback
-}
+// FALLBACK FUNCTIONS REMOVED - V4 uses only real historical data with 100x leverage
