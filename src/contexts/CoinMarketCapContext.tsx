@@ -50,7 +50,7 @@ interface CoinMarketCapContextType {
 
 const CoinMarketCapContext = createContext<CoinMarketCapContextType | undefined>(undefined);
 
-const SYMBOLS = ['BTC', 'ETH', 'SOL', 'ADA', 'DOT', 'LINK', 'XRP', 'LTC', 'BCH', 'BNB'];
+const SYMBOLS = ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'DOT', 'LINK', 'XRP', 'LTC', 'BCH', 'BNB'];
 
 export function CoinMarketCapProvider({ children }: { children: ReactNode }) {
   const [coins, setCoins] = useState<FormattedCoinData[]>([]);
