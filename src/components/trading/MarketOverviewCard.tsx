@@ -4,11 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TrendingUp, TrendingDown, Activity, RefreshCw } from "lucide-react";
-import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
+import { useCryptoPrices } from "@/hooks/useCryptoPrices";
 import { Button } from "@/components/ui/button";
 
 export function MarketOverviewCard() {
-  const { coins, loading, error, refetch } = useCoinMarketCap();
+  const { coins, loading, error, refetch } = useCryptoPrices();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('de-DE', {
