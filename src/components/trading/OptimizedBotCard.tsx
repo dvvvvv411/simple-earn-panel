@@ -210,9 +210,16 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
             <CardTitle className="text-base">{localBot.cryptocurrency}</CardTitle>
-            <Badge variant="outline" className="text-xs">
-              {localBot.symbol}
-            </Badge>
+            {currentCoin?.image && (
+              <img
+                src={currentCoin.image}
+                alt={currentCoin.name}
+                className="h-5 w-5 rounded-full"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
           </div>
           
           <div className="flex items-center gap-3">
