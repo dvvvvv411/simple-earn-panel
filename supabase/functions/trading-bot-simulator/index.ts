@@ -117,14 +117,14 @@ async function findOptimalTradePrices(symbol: string, currentPrice: number, botC
   let tradeType: 'long' | 'short';
   
   if (isLong) {
-    // LONG: Buy slightly below current, sell at/near current price
-    entryPrice = currentPrice * (1 - actualMovementPercent / 100);
-    exitPrice = currentPrice;
+    // LONG: Buy low, sell high
+    entryPrice = currentPrice * (1 - actualMovementPercent / 100); // Buy price (low)
+    exitPrice = currentPrice;                                      // Sell price (high)
     tradeType = 'long';
   } else {
-    // SHORT: Sell slightly above current, buy at/near current price
-    entryPrice = currentPrice * (1 + actualMovementPercent / 100);
-    exitPrice = currentPrice;
+    // SHORT: Sell high first, buy low later
+    entryPrice = currentPrice * (1 + actualMovementPercent / 100); // Sell price (high) 
+    exitPrice = currentPrice * (1 - actualMovementPercent / 100);  // Buy price (low)
     tradeType = 'short';
   }
   
@@ -186,14 +186,15 @@ async function simulateTrade(bot_id: string, initial_price: number) {
     const profitAmount = tradeAmount * (actualTargetProfit / 100);
     const newBalance = bot.start_amount + profitAmount;
 
-    // Determine buy/sell prices based on trade type (REALISTIC prices near current market)
+    // Determine buy/sell prices based on trade type
     let buyPrice: number, sellPrice: number;
     if (tradeType === 'long') {
-      buyPrice = entryPrice;  // Buy slightly below current price
-      sellPrice = exitPrice; // Sell at current price
+      buyPrice = entryPrice;  // Buy low (entry)
+      sellPrice = exitPrice;  // Sell high (exit)
     } else {
-      sellPrice = entryPrice; // Short: sell slightly above current price first
-      buyPrice = exitPrice;   // Buy back at current price
+      // SHORT: sell_price is entry (high), buy_price is exit (low)
+      sellPrice = entryPrice; // Sell high (entry)
+      buyPrice = exitPrice;   // Buy low (exit)
     }
 
     console.log(`💰 Trade details: ${tradeType.toUpperCase()} ${leverage.toFixed(1)}x leverage`);

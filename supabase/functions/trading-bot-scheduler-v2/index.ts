@@ -203,24 +203,27 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
     }
   }
 
-  // For SHORT: Sell high, buy low
+  // For SHORT: Sell high first, then buy low later
   for (let sellIndex = 0; sellIndex < prices.length - 1; sellIndex++) {
     for (let buyIndex = sellIndex + 1; buyIndex < prices.length; buyIndex++) {
-      const sellPrice = prices[sellIndex].price;
-      const buyPrice = prices[buyIndex].price;
+      const sellPrice = prices[sellIndex].price; // Entry price (high)
+      const buyPrice = prices[buyIndex].price;   // Exit price (low)
       
-      // Test different leverage levels (1x to 100x)
-      for (let leverage = 1; leverage <= 100; leverage++) {
-        const profitPercent = ((sellPrice - buyPrice) / sellPrice) * leverage * 100;
-        
-        if (profitPercent >= 1.0 && profitPercent <= 3.0) {
-          shortScenarios.push({
-            buyPrice,
-            sellPrice,
-            leverage,
-            profitPercent,
-            tradeType: 'short'
-          });
+      // SHORT only profitable if sellPrice > buyPrice
+      if (sellPrice > buyPrice) {
+        // Test different leverage levels (1x to 100x)
+        for (let leverage = 1; leverage <= 100; leverage++) {
+          const profitPercent = ((sellPrice - buyPrice) / sellPrice) * leverage * 100;
+          
+          if (profitPercent >= 1.0 && profitPercent <= 3.0) {
+            shortScenarios.push({
+              buyPrice,
+              sellPrice,
+              leverage,
+              profitPercent,
+              tradeType: 'short'
+            });
+          }
         }
       }
     }

@@ -276,13 +276,14 @@ async function findOptimalTradePrices(symbol: string, currentPrice: number, botC
   let sell_price: number
   
   if (isLong) {
-    // LONG: Buy slightly below current, sell above current (guaranteed profit)
+    // LONG: Buy low, sell high (guaranteed profit)
     buy_price = Math.round(currentPrice * (1 - actualMovementPercent / 100) * 100) / 100
     sell_price = Math.round(currentPrice * (1 + actualMovementPercent / 100) * 100) / 100
   } else {
-    // SHORT: Sell above current, buy below current (guaranteed profit)
-    sell_price = Math.round(currentPrice * (1 + actualMovementPercent / 100) * 100) / 100
-    buy_price = Math.round(currentPrice * (1 - actualMovementPercent / 100) * 100) / 100
+    // SHORT: Sell high first (entry), buy low later (exit)
+    // For SHORT: sell_price is entry (high), buy_price is exit (low)
+    buy_price = Math.round(currentPrice * (1 - actualMovementPercent / 100) * 100) / 100  // Exit price (low)
+    sell_price = Math.round(currentPrice * (1 + actualMovementPercent / 100) * 100) / 100 // Entry price (high)
   }
   
   console.log(`🎯 REALISTIC Trade: ${isLong ? 'LONG' : 'SHORT'} with ${leverage}x leverage`)
