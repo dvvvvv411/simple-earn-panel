@@ -599,8 +599,7 @@ export default function TradingHistory() {
                           }}
                         />
                         <div>
-                          <div className="font-semibold text-sm">{trade.bot?.symbol || 'N/A'}</div>
-                          <div className="text-xs text-muted-foreground">{trade.bot?.cryptocurrency || 'Unknown'}</div>
+                          <div className="font-semibold text-sm">{trade.bot?.cryptocurrency || 'Unknown'}</div>
                         </div>
                       </div>
                     </TableCell>
