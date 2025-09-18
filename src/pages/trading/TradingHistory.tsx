@@ -578,8 +578,8 @@ export default function TradingHistory() {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead className="font-semibold">Preis 1</TableHead>
-                  <TableHead className="font-semibold">Preis 2</TableHead>
+                  <TableHead className="font-semibold">Entry Price</TableHead>
+                  <TableHead className="font-semibold">Exit Price</TableHead>
                   <TableHead className="font-semibold">Leverage</TableHead>
                   <TableHead className="font-semibold">Dauer</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
@@ -676,37 +676,13 @@ export default function TradingHistory() {
                       )}
                     </TableCell>
                     <TableCell className="py-4">
-                      <div className="flex items-center gap-2">
-                        {trade.trade_type === 'LONG' ? (
-                          <TrendingUp className="h-3 w-3 text-green-600" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600" />
-                        )}
-                        <div>
-                          <div className="text-xs text-muted-foreground font-medium">
-                            {trade.trade_type === 'LONG' ? 'Kaufen' : 'Verkaufen'}
-                          </div>
-                          <div className="text-sm font-mono font-medium">
-                            ${(trade.entry_price || trade.buy_price).toFixed(4)}
-                          </div>
-                        </div>
+                      <div className="text-sm font-mono font-medium">
+                        ${(trade.entry_price || trade.buy_price).toFixed(4)}
                       </div>
                     </TableCell>
                     <TableCell className="py-4">
-                      <div className="flex items-center gap-2">
-                        {trade.trade_type === 'LONG' ? (
-                          <TrendingUp className="h-3 w-3 text-green-600" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600" />
-                        )}
-                        <div>
-                          <div className="text-xs text-muted-foreground font-medium">
-                            {trade.trade_type === 'LONG' ? 'Verkaufen' : 'Kaufen'}
-                          </div>
-                          <div className="text-sm font-mono font-medium">
-                            ${(trade.exit_price || trade.sell_price || 0).toFixed(4)}
-                          </div>
-                        </div>
+                      <div className="text-sm font-mono font-medium">
+                        ${(trade.exit_price || trade.sell_price || 0).toFixed(4)}
                       </div>
                     </TableCell>
                     <TableCell className="py-4">
