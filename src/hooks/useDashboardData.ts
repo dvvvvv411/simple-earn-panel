@@ -49,7 +49,7 @@ interface DashboardData {
   todayStats: TradingStats;
 }
 
-export function useDashboardData() {
+export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
   const [data, setData] = useState<DashboardData>({
     bots: [],
     trades: [],
@@ -77,6 +77,7 @@ export function useDashboardData() {
   // Debouncing refs to prevent race conditions
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const fetchingRef = useRef(false);
+  const previousBotsRef = useRef<TradingBot[]>([]);
 
   const calculateStats = (tradesData: BotTrade[], timeFrame: 'today' | 'all' = 'all'): TradingStats => {
     if (tradesData.length === 0) {
@@ -226,6 +227,26 @@ export function useDashboardData() {
         const todayStats = calculateStats(trades, 'today');
 
         console.log('✅ useDashboardData: Fetch completed successfully');
+        
+        // Check for newly completed bots (status change detection)
+        if (onBotCompleted && previousBotsRef.current.length > 0) {
+          const newlyCompleted = bots.filter(bot => {
+            const previousBot = previousBotsRef.current.find(prev => prev.id === bot.id);
+            return previousBot && 
+                   previousBot.status === 'active' && 
+                   bot.status === 'completed';
+          });
+          
+          if (newlyCompleted.length > 0) {
+            const bot = newlyCompleted[0];
+            console.log(`🎯 useDashboardData: CENTRAL detected newly completed bot:`, bot.id);
+            setTimeout(() => onBotCompleted(bot), 100); // Small delay to ensure UI is updated
+          }
+        }
+        
+        // Store current bots for next comparison
+        previousBotsRef.current = [...bots];
+        
         setData({
           bots,
           trades,
@@ -261,10 +282,10 @@ export function useDashboardData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      console.log('🔄 useDashboardData: Setting up coordinated realtime subscription');
+      console.log('🔄 useDashboardData: Setting up SINGLE CENTRALIZED realtime subscription');
 
       const channel = supabase
-        .channel('dashboard-updates-coordinated')
+        .channel('dashboard-updates-single')
         .on(
           'postgres_changes',
           {
@@ -274,9 +295,23 @@ export function useDashboardData() {
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('🤖 useDashboardData: Bot update received:', payload.eventType, (payload.new as any)?.id || 'unknown');
-            // Use debounced fetch to prevent race conditions
-            debouncedFetchAllData();
+            console.log('🤖 useDashboardData: Bot update received:', payload.eventType, (payload.new as any)?.id || 'unknown', (payload.new as any)?.status || 'unknown');
+            // Use immediate fetch for bot status changes
+            debouncedFetchAllData(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'bot_trades',
+            filter: `status=eq.completed`
+          },
+          (payload) => {
+            console.log('💰 useDashboardData: COMPLETED trade inserted:', (payload.new as any)?.bot_id || 'unknown');
+            // Immediate fetch for completed trades to trigger completion detection
+            debouncedFetchAllData(true);
           }
         )
         .on(
@@ -288,7 +323,7 @@ export function useDashboardData() {
           },
           (payload) => {
             console.log('💰 useDashboardData: Trade update received:', payload.eventType, (payload.new as any)?.bot_id || 'unknown');
-            // Use debounced fetch to prevent race conditions
+            // Use debounced fetch for other trade updates
             debouncedFetchAllData();
           }
         )

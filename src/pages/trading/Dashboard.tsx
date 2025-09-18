@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AccountBalanceCard } from "@/components/trading/AccountBalanceCard";
 import { TradesCard } from "@/components/trading/TradesCard";
 import { MarketOverviewCard } from "@/components/trading/MarketOverviewCard";
@@ -25,40 +25,12 @@ interface TradingBot {
 }
 
 export default function Dashboard() {
-  const { data, loading, refetch } = useDashboardData();
   const [completedBot, setCompletedBot] = useState<TradingBot | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [previousBots, setPreviousBots] = useState<TradingBot[]>([]);
-
-  // Enhanced success detection with multiple trigger points
-  useEffect(() => {
-    if (data.bots.length > 0 && previousBots.length > 0) {
-      const newlyCompleted = data.bots.filter(bot => {
-        const previousBot = previousBots.find(prev => prev.id === bot.id);
-        return previousBot && 
-               previousBot.status === 'active' && 
-               bot.status === 'completed';
-      });
-
-      if (newlyCompleted.length > 0) {
-        const bot = newlyCompleted[0];
-        console.log(`🎯 Dashboard: Detected newly completed bot via data update:`, bot.id);
-        // Check if dialog is not already showing for this bot to prevent duplicates
-        if (!showSuccessDialog || completedBot?.id !== bot.id) {
-          setCompletedBot(bot);
-          setShowSuccessDialog(true);
-        } else {
-          console.log(`🔒 Dashboard: Success dialog already showing for bot ${bot.id}, skipping duplicate`);
-        }
-      }
-    }
-    
-    setPreviousBots([...data.bots]);
-  }, [data.bots, showSuccessDialog, completedBot?.id]);
-
+  
   // Enhanced success dialog handler with duplicate prevention
-  const handleBotCompleted = (bot: TradingBot) => {
-    console.log(`🎉 Dashboard: Bot completion triggered from OptimizedBotCard:`, bot.id);
+  const handleBotCompleted = useCallback((bot: TradingBot) => {
+    console.log(`🎉 Dashboard: Bot completion triggered from useDashboardData:`, bot.id);
     // Prevent duplicate dialogs
     if (!showSuccessDialog || completedBot?.id !== bot.id) {
       setCompletedBot(bot);
@@ -67,7 +39,11 @@ export default function Dashboard() {
     } else {
       console.log(`🔒 Dashboard: Preventing duplicate success dialog for bot ${bot.id}`);
     }
-  };
+  }, [showSuccessDialog, completedBot?.id]);
+  
+  const { data, loading, refetch } = useDashboardData(handleBotCompleted);
+
+  // All completion detection now handled centrally in useDashboardData hook
 
   const handleBalanceUpdate = () => {
     refetch();
@@ -128,7 +104,6 @@ export default function Dashboard() {
                 key={bot.id} 
                 bot={bot} 
                 trades={data.trades}
-                onBotCompleted={handleBotCompleted}
               />
             ))}
           </div>
@@ -151,7 +126,6 @@ export default function Dashboard() {
                 key={bot.id} 
                 bot={bot} 
                 trades={data.trades}
-                onBotCompleted={handleBotCompleted}
               />
             ))}
           </div>
