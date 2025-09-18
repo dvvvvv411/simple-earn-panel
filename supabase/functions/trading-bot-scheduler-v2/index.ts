@@ -196,14 +196,14 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
         const profitPercent = naturalMovement * leverage;
         
         if (profitPercent >= 1.0 && profitPercent <= 3.0) {
-          const score = calculateTradeScore(buyPrice, sellPrice, leverage, naturalMovement, 'LONG');
+          const score = calculateTradeScore(buyPrice, sellPrice, leverage, naturalMovement, 'long');
           longScenarios.push({
             buyPrice,
             sellPrice,
             leverage,
             profitPercent,
             naturalMovement,
-            tradeType: 'LONG',
+            tradeType: 'long',
             score
           });
         }
@@ -228,14 +228,14 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
           const profitPercent = naturalMovement * leverage;
           
           if (profitPercent >= 1.0 && profitPercent <= 3.0) {
-            const score = calculateTradeScore(buyPrice, sellPrice, leverage, naturalMovement, 'SHORT');
+            const score = calculateTradeScore(buyPrice, sellPrice, leverage, naturalMovement, 'short');
             shortScenarios.push({
               buyPrice,
               sellPrice,
               leverage,
               profitPercent,
               naturalMovement,
-              tradeType: 'SHORT',
+              tradeType: 'short',
               score
             });
           }
@@ -310,8 +310,8 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
   console.log(`💵 Profit: €${profitAmount.toFixed(2)} (${profitPercent.toFixed(2)}%)`);
 
   // Calculate entry and exit prices based on trade type
-  const entryPrice = tradeType === 'LONG' ? buyPrice : sellPrice;
-  const exitPrice = tradeType === 'LONG' ? sellPrice : buyPrice;
+  const entryPrice = tradeType === 'long' ? buyPrice : sellPrice;
+  const exitPrice = tradeType === 'long' ? sellPrice : buyPrice;
   
   // Record the completed trade
   const { error: tradeError } = await supabase
