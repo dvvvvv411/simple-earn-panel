@@ -260,6 +260,10 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
   console.log(`📈 Buy: €${buyPrice.toFixed(4)}, Sell: €${sellPrice.toFixed(4)}`);
   console.log(`💵 Profit: €${profitAmount.toFixed(2)} (${profitPercent.toFixed(2)}%)`);
 
+  // Calculate entry and exit prices based on trade type
+  const entryPrice = tradeType === 'LONG' ? buyPrice : sellPrice;
+  const exitPrice = tradeType === 'LONG' ? sellPrice : buyPrice;
+  
   // Record the completed trade
   const { error: tradeError } = await supabase
     .from('bot_trades')
@@ -268,6 +272,8 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
       amount: bot.start_amount,
       buy_price: buyPrice,
       sell_price: sellPrice,
+      entry_price: entryPrice,
+      exit_price: exitPrice,
       trade_type: tradeType,
       leverage: leverage,
       profit_amount: profitAmount,

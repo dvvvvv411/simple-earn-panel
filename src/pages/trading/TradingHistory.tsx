@@ -71,6 +71,8 @@ interface EnhancedBotTrade {
   trade_type: string;
   buy_price: number;
   sell_price: number | null;
+  entry_price?: number | null;
+  exit_price?: number | null;
   amount: number;
   leverage: number;
   profit_amount: number | null;
@@ -576,6 +578,8 @@ export default function TradingHistory() {
                       )}
                     </div>
                   </TableHead>
+                  <TableHead className="font-semibold">Entry Price</TableHead>
+                  <TableHead className="font-semibold">Exit Price</TableHead>
                   <TableHead className="font-semibold">Leverage</TableHead>
                   <TableHead className="font-semibold">Dauer</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
@@ -670,6 +674,16 @@ export default function TradingHistory() {
                       ) : (
                         <span className="text-muted-foreground font-medium">-</span>
                       )}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="text-sm font-mono font-medium">
+                        ${(trade.entry_price || trade.buy_price).toFixed(4)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="text-sm font-mono font-medium">
+                        ${(trade.exit_price || trade.sell_price || 0).toFixed(4)}
+                      </div>
                     </TableCell>
                     <TableCell className="py-4">
                       <Badge variant="outline" className="font-semibold border-border/60">{trade.leverage}x</Badge>

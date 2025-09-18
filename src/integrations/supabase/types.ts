@@ -21,6 +21,8 @@ export type Database = {
           buy_price: number
           completed_at: string | null
           created_at: string
+          entry_price: number | null
+          exit_price: number | null
           id: string
           leverage: number
           profit_amount: number | null
@@ -36,6 +38,8 @@ export type Database = {
           buy_price: number
           completed_at?: string | null
           created_at?: string
+          entry_price?: number | null
+          exit_price?: number | null
           id?: string
           leverage?: number
           profit_amount?: number | null
@@ -51,6 +55,8 @@ export type Database = {
           buy_price?: number
           completed_at?: string | null
           created_at?: string
+          entry_price?: number | null
+          exit_price?: number | null
           id?: string
           leverage?: number
           profit_amount?: number | null
