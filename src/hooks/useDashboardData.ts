@@ -308,10 +308,68 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
             table: 'bot_trades',
             filter: `status=eq.completed`
           },
-          (payload) => {
-            console.log('💰 useDashboardData: COMPLETED trade inserted:', (payload.new as any)?.bot_id || 'unknown');
-            // Immediate fetch for completed trades to trigger completion detection
+          async (payload) => {
+            const trade = payload.new as BotTrade;
+            console.log('💰 useDashboardData: COMPLETED trade inserted:', trade.bot_id);
+            
+            // Immediately trigger popup for completed trade
+            if (onBotCompleted) {
+              try {
+                const { data: bot, error } = await supabase
+                  .from('trading_bots')
+                  .select('*')
+                  .eq('id', trade.bot_id)
+                  .single();
+                
+                if (!error && bot) {
+                  console.log('🎯 useDashboardData: POPUP TRIGGERED for completed trade:', bot.id);
+                  onBotCompleted(bot as TradingBot);
+                }
+              } catch (error) {
+                console.error('Error fetching bot for popup:', error);
+              }
+            }
+            
+            // Also fetch data to update dashboard
             debouncedFetchAllData(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'bot_trades',
+            filter: `status=eq.completed`
+          },
+          async (payload) => {
+            const trade = payload.new as BotTrade;
+            const oldTrade = payload.old as BotTrade;
+            
+            // Only trigger if status just changed to completed
+            if (oldTrade?.status !== 'completed' && trade.status === 'completed') {
+              console.log('💰 useDashboardData: Trade status changed to COMPLETED:', trade.bot_id);
+              
+              if (onBotCompleted) {
+                try {
+                  const { data: bot, error } = await supabase
+                    .from('trading_bots')
+                    .select('*')
+                    .eq('id', trade.bot_id)
+                    .single();
+                  
+                  if (!error && bot) {
+                    console.log('🎯 useDashboardData: POPUP TRIGGERED for updated trade:', bot.id);
+                    onBotCompleted(bot as TradingBot);
+                  }
+                } catch (error) {
+                  console.error('Error fetching bot for popup:', error);
+                }
+              }
+              
+              // Also fetch data to update dashboard
+              debouncedFetchAllData(true);
+            }
           }
         )
         .on(
