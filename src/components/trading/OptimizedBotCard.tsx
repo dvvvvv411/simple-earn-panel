@@ -255,8 +255,22 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
             
             {latestTrade.status === 'completed' && latestTrade.sell_price && (
               <div className="text-xs text-muted-foreground space-y-1">
-                <div>Kaufpreis: {formatPrice(latestTrade.buy_price)}</div>
-                <div>Verkaufspreis: {formatPrice(latestTrade.sell_price)}</div>
+                {latestTrade.trade_type === 'long' ? (
+                  <>
+                    <div>Einstiegspreis: {formatPrice(latestTrade.buy_price)}</div>
+                    <div>Ausstiegspreis: {formatPrice(latestTrade.sell_price)}</div>
+                  </>
+                ) : latestTrade.trade_type === 'short' ? (
+                  <>
+                    <div>Einstiegspreis: {formatPrice(latestTrade.sell_price)}</div>
+                    <div>Ausstiegspreis: {formatPrice(latestTrade.buy_price)}</div>
+                  </>
+                ) : (
+                  <>
+                    <div>Kaufpreis: {formatPrice(latestTrade.buy_price)}</div>
+                    <div>Verkaufspreis: {formatPrice(latestTrade.sell_price)}</div>
+                  </>
+                )}
                 <div>Gewinn: {latestTrade.profit_amount ? formatPrice(latestTrade.profit_amount) : '€0,00'}</div>
               </div>
             )}
