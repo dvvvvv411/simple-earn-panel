@@ -289,49 +289,27 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: 'UPDATE',
             schema: 'public',
             table: 'trading_bots',
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('🤖 useDashboardData: Bot update received:', payload.eventType, (payload.new as any)?.id || 'unknown', (payload.new as any)?.status || 'unknown');
-            // Use immediate fetch for bot status changes
-            debouncedFetchAllData(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'bot_trades',
-            filter: `status=eq.completed`
-          },
-          async (payload) => {
-            const trade = payload.new as BotTrade;
-            console.log('💰 useDashboardData: COMPLETED trade inserted:', trade.bot_id);
+            const newBot = payload.new as any;
+            const oldBot = payload.old as any;
             
-            // Immediately trigger popup for completed trade
-            if (onBotCompleted) {
-              try {
-                const { data: bot, error } = await supabase
-                  .from('trading_bots')
-                  .select('*')
-                  .eq('id', trade.bot_id)
-                  .single();
-                
-                if (!error && bot) {
-                  console.log('🎯 useDashboardData: POPUP TRIGGERED for completed trade:', bot.id);
-                  onBotCompleted(bot as TradingBot);
-                }
-              } catch (error) {
-                console.error('Error fetching bot for popup:', error);
-              }
+            console.log('🤖 useDashboardData: Bot update received:', payload.eventType, newBot?.id || 'unknown', newBot?.status || 'unknown');
+            
+            // Check if bot status changed to completed
+            if (oldBot?.status !== 'completed' && newBot?.status === 'completed') {
+              console.log('🎯 useDashboardData: Bot COMPLETED - triggering hard refresh in 2 seconds:', newBot.id);
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            } else {
+              // For other updates, just refresh data
+              debouncedFetchAllData(true);
             }
-            
-            // Also fetch data to update dashboard
-            debouncedFetchAllData(true);
           }
         )
         .on(
@@ -339,36 +317,21 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
           {
             event: 'UPDATE',
             schema: 'public',
-            table: 'bot_trades',
-            filter: `status=eq.completed`
+            table: 'bot_trades'
           },
-          async (payload) => {
+          (payload) => {
             const trade = payload.new as BotTrade;
             const oldTrade = payload.old as BotTrade;
             
-            // Only trigger if status just changed to completed
+            // Check if trade status changed to completed
             if (oldTrade?.status !== 'completed' && trade.status === 'completed') {
-              console.log('💰 useDashboardData: Trade status changed to COMPLETED:', trade.bot_id);
-              
-              if (onBotCompleted) {
-                try {
-                  const { data: bot, error } = await supabase
-                    .from('trading_bots')
-                    .select('*')
-                    .eq('id', trade.bot_id)
-                    .single();
-                  
-                  if (!error && bot) {
-                    console.log('🎯 useDashboardData: POPUP TRIGGERED for updated trade:', bot.id);
-                    onBotCompleted(bot as TradingBot);
-                  }
-                } catch (error) {
-                  console.error('Error fetching bot for popup:', error);
-                }
-              }
-              
-              // Also fetch data to update dashboard
-              debouncedFetchAllData(true);
+              console.log('💰 useDashboardData: Trade COMPLETED - triggering hard refresh in 2 seconds:', trade.bot_id);
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            } else {
+              console.log('💰 useDashboardData: Trade update received:', payload.eventType, trade?.bot_id || 'unknown');
+              debouncedFetchAllData();
             }
           }
         )
