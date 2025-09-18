@@ -271,8 +271,11 @@ export default function TradingHistory() {
   // Get crypto icon from CoinMarketCap data
   const getCryptoIcon = (symbol: string) => {
     const coin = coins.find(c => c.symbol.toLowerCase() === symbol.toLowerCase());
-    return coin?.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
+    return coin?.image;
   };
+
+  // Check if coins are available (loading state)
+  const { loading: coinsLoading } = useCoinMarketCap();
 
   // Render trade type badge with colors
   const renderTradeTypeBadge = (type: string) => {
@@ -590,14 +593,29 @@ export default function TradingHistory() {
                   >
                     <TableCell className="font-medium py-4">
                       <div className="flex items-center gap-3">
-                        <img 
-                          src={getCryptoIcon(trade.bot?.symbol || '')} 
-                          alt={trade.bot?.cryptocurrency || 'Unknown'}
-                          className="h-8 w-8 rounded-full border border-border/20 shadow-sm"
-                          onError={(e) => {
-                            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmMWYxZjEiLz4KPHN2ZyBzdHJva2U9IiM5ca5hYTUiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
-                          }}
-                        />
+                        {coinsLoading ? (
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                        ) : (
+                          <>
+                            {getCryptoIcon(trade.bot?.symbol || '') ? (
+                              <img 
+                                src={getCryptoIcon(trade.bot?.symbol || '')} 
+                                alt=""
+                                className="h-8 w-8 rounded-full border border-border/20 shadow-sm"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <div className={cn(
+                              "h-8 w-8 rounded-full border border-border/20 shadow-sm bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground",
+                              getCryptoIcon(trade.bot?.symbol || '') ? "hidden" : ""
+                            )}>
+                              {trade.bot?.symbol?.slice(0, 2).toUpperCase() || '?'}
+                            </div>
+                          </>
+                        )}
                         <div>
                           <div className="font-semibold text-sm">{trade.bot?.cryptocurrency || 'Unknown'}</div>
                         </div>
