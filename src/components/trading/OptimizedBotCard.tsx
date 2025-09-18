@@ -109,12 +109,12 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
     }
   };
 
-  // Direct real-time subscription for bot status changes
+  // Priority-based real-time subscription for bot-specific changes
   useEffect(() => {
-    console.log(`🔄 OptimizedBotCard: Setting up real-time subscription for bot ${bot.id}`);
+    console.log(`🔄 OptimizedBotCard: Setting up priority real-time subscription for bot ${bot.id}`);
     
     const channel = supabase
-      .channel(`bot-${bot.id}-updates`)
+      .channel(`bot-priority-${bot.id}`)
       .on(
         'postgres_changes',
         {
@@ -124,18 +124,20 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           filter: `id=eq.${bot.id}`
         },
         (payload) => {
-          console.log(`🤖 OptimizedBotCard: Bot ${bot.id} updated:`, payload);
+          console.log(`🤖 OptimizedBotCard: Bot ${bot.id} updated (PRIORITY):`, payload.eventType, payload.new?.status);
           const updatedBot = {
             ...payload.new,
             status: payload.new.status as TradingBot['status']
           } as TradingBot;
           
+          // Priority: Local state takes precedence over dashboard updates
           // Check if bot just completed
           if (localBot.status === 'active' && updatedBot.status === 'completed') {
-            console.log(`✅ OptimizedBotCard: Bot ${bot.id} just completed! Triggering success dialog`);
+            console.log(`✅ OptimizedBotCard: Bot ${bot.id} COMPLETED! Local priority trigger`);
             setLocalBot(updatedBot);
             onBotCompleted?.(updatedBot);
           } else {
+            console.log(`🔄 OptimizedBotCard: Bot ${bot.id} status update: ${localBot.status} → ${updatedBot.status}`);
             setLocalBot(updatedBot);
           }
         }
@@ -149,15 +151,15 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           filter: `bot_id=eq.${bot.id}`
         },
         (payload) => {
-          console.log(`💰 OptimizedBotCard: New trade inserted for bot ${bot.id}:`, payload);
+          console.log(`💰 OptimizedBotCard: New trade for bot ${bot.id} (PRIORITY):`, payload.new?.status);
           const newTrade = payload.new;
           
-          // If this is a completed trade and bot is active, trigger completion
+          // Enhanced completion detection with retry logic
           if (newTrade.status === 'completed' && localBot.status === 'active') {
-            console.log(`🎯 OptimizedBotCard: Trade completed for bot ${bot.id}, checking bot status...`);
+            console.log(`🎯 OptimizedBotCard: Trade completed for bot ${bot.id}, verifying bot completion...`);
             
-            // Fetch updated bot status to ensure it's marked as completed
-            setTimeout(async () => {
+            // Verification with retry logic
+            const verifyCompletion = async (retryCount = 0) => {
               const { data: updatedBot } = await supabase
                 .from('trading_bots')
                 .select('*')
@@ -165,30 +167,45 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
                 .single();
                 
               if (updatedBot && updatedBot.status === 'completed') {
-                console.log(`🚀 OptimizedBotCard: Bot ${bot.id} confirmed completed via trade insert`);
+                console.log(`🚀 OptimizedBotCard: Bot ${bot.id} VERIFIED COMPLETED via trade insert (retry: ${retryCount})`);
                 const typedBot = {
                   ...updatedBot,
                   status: updatedBot.status as TradingBot['status']
                 } as TradingBot;
                 setLocalBot(typedBot);
                 onBotCompleted?.(typedBot);
+              } else if (retryCount < 2) {
+                // Retry up to 2 times with increasing delay
+                console.log(`⏳ OptimizedBotCard: Bot ${bot.id} not yet completed, retrying... (${retryCount + 1}/3)`);
+                setTimeout(() => verifyCompletion(retryCount + 1), (retryCount + 1) * 750);
+              } else {
+                console.log(`⚠️ OptimizedBotCard: Bot ${bot.id} completion verification failed after 3 attempts`);
               }
-            }, 500); // Small delay to ensure database consistency
+            };
+            
+            verifyCompletion();
           }
         }
       )
       .subscribe();
 
     return () => {
-      console.log(`🔌 OptimizedBotCard: Cleaning up subscription for bot ${bot.id}`);
+      console.log(`🔌 OptimizedBotCard: Cleaning up priority subscription for bot ${bot.id}`);
       supabase.removeChannel(channel);
     };
   }, [bot.id, localBot.status, onBotCompleted]);
 
-  // Sync local bot with prop changes
+  // Sync local bot with prop changes (with status priority logic)
   useEffect(() => {
-    setLocalBot(bot);
-  }, [bot]);
+    // Only update if local status is not more recent than prop status
+    if (localBot.status === bot.status || 
+        (localBot.status === 'active' && bot.status === 'active') ||
+        (localBot.status === 'completed' && bot.status === 'completed')) {
+      setLocalBot(bot);
+    } else {
+      console.log(`🔒 OptimizedBotCard: Keeping local status priority for bot ${bot.id}: local=${localBot.status}, prop=${bot.status}`);
+    }
+  }, [bot, localBot.status]);
 
   // Update runtime every minute
   useEffect(() => {

@@ -30,7 +30,7 @@ export default function Dashboard() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [previousBots, setPreviousBots] = useState<TradingBot[]>([]);
 
-  // Watch for newly completed bots
+  // Enhanced success detection with multiple trigger points
   useEffect(() => {
     if (data.bots.length > 0 && previousBots.length > 0) {
       const newlyCompleted = data.bots.filter(bot => {
@@ -43,19 +43,30 @@ export default function Dashboard() {
       if (newlyCompleted.length > 0) {
         const bot = newlyCompleted[0];
         console.log(`🎯 Dashboard: Detected newly completed bot via data update:`, bot.id);
-        setCompletedBot(bot);
-        setShowSuccessDialog(true);
+        // Check if dialog is not already showing for this bot to prevent duplicates
+        if (!showSuccessDialog || completedBot?.id !== bot.id) {
+          setCompletedBot(bot);
+          setShowSuccessDialog(true);
+        } else {
+          console.log(`🔒 Dashboard: Success dialog already showing for bot ${bot.id}, skipping duplicate`);
+        }
       }
     }
     
     setPreviousBots([...data.bots]);
-  }, [data.bots]);
+  }, [data.bots, showSuccessDialog, completedBot?.id]);
 
-  // Enhanced success dialog handler
-  const handleBotCompleted = (completedBot: TradingBot) => {
-    console.log(`🎉 Dashboard: Bot completion triggered:`, completedBot.id);
-    setCompletedBot(completedBot);
-    setShowSuccessDialog(true);
+  // Enhanced success dialog handler with duplicate prevention
+  const handleBotCompleted = (bot: TradingBot) => {
+    console.log(`🎉 Dashboard: Bot completion triggered from OptimizedBotCard:`, bot.id);
+    // Prevent duplicate dialogs
+    if (!showSuccessDialog || completedBot?.id !== bot.id) {
+      setCompletedBot(bot);
+      setShowSuccessDialog(true);
+      console.log(`✅ Dashboard: Success dialog opened for bot ${bot.id}`);
+    } else {
+      console.log(`🔒 Dashboard: Preventing duplicate success dialog for bot ${bot.id}`);
+    }
   };
 
   const handleBalanceUpdate = () => {

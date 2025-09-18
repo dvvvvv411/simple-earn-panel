@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TradingBot {
@@ -73,6 +73,10 @@ export function useDashboardData() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Debouncing refs to prevent race conditions
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const fetchingRef = useRef(false);
 
   const calculateStats = (tradesData: BotTrade[], timeFrame: 'today' | 'all' = 'all'): TradingStats => {
     if (tradesData.length === 0) {
@@ -139,94 +143,128 @@ export function useDashboardData() {
     };
   };
 
-  const fetchAllData = useCallback(async () => {
-    try {
-      setError(null);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setData({
-          bots: [],
-          trades: [],
-          userBalance: 0,
-          stats: calculateStats([]),
-          todayStats: calculateStats([])
-        });
-        setLoading(false);
+  // Debounced fetch function to prevent race conditions
+  const debouncedFetchAllData = useCallback(async (immediate = false) => {
+    // Clear existing timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    // If already fetching and not immediate, skip
+    if (fetchingRef.current && !immediate) {
+      console.log('🔄 useDashboardData: Skipping fetch - already in progress');
+      return;
+    }
+
+    const executeFetch = async () => {
+      if (fetchingRef.current) {
+        console.log('🔄 useDashboardData: Skipping fetch - already in progress');
         return;
       }
 
-      // Fetch all data in parallel for better performance
-      const [botsResult, tradesResult, profileResult] = await Promise.all([
-        // Fetch trading bots
-        supabase
-          .from('trading_bots')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
+      try {
+        fetchingRef.current = true;
+        console.log('🔄 useDashboardData: Starting fetch...');
+        setError(null);
         
-        // Fetch bot trades
-        supabase
-          .from('bot_trades')
-          .select(`
-            *,
-            trading_bots!inner(user_id)
-          `)
-          .eq('trading_bots.user_id', user.id)
-          .order('created_at', { ascending: false }),
-        
-        // Fetch user profile/balance
-        supabase
-          .from('profiles')
-          .select('balance')
-          .eq('id', user.id)
-          .single()
-      ]);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setData({
+            bots: [],
+            trades: [],
+            userBalance: 0,
+            stats: calculateStats([]),
+            todayStats: calculateStats([])
+          });
+          setLoading(false);
+          return;
+        }
 
-      if (botsResult.error || tradesResult.error || profileResult.error) {
-        throw new Error('Fehler beim Laden der Daten');
+        // Fetch all data in parallel for better performance
+        const [botsResult, tradesResult, profileResult] = await Promise.all([
+          // Fetch trading bots
+          supabase
+            .from('trading_bots')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false }),
+          
+          // Fetch bot trades
+          supabase
+            .from('bot_trades')
+            .select(`
+              *,
+              trading_bots!inner(user_id)
+            `)
+            .eq('trading_bots.user_id', user.id)
+            .order('created_at', { ascending: false }),
+          
+          // Fetch user profile/balance
+          supabase
+            .from('profiles')
+            .select('balance')
+            .eq('id', user.id)
+            .single()
+        ]);
+
+        if (botsResult.error || tradesResult.error || profileResult.error) {
+          throw new Error('Fehler beim Laden der Daten');
+        }
+
+        const bots = (botsResult.data || []).map((bot: any) => ({
+          ...bot,
+          buy_price: bot.buy_price || null,
+          sell_price: bot.sell_price || null,
+          leverage: bot.leverage || 1,
+          position_type: bot.position_type || 'LONG'
+        })) as TradingBot[];
+
+        const trades = (tradesResult.data || []) as BotTrade[];
+        const userBalance = profileResult.data?.balance || 0;
+
+        const stats = calculateStats(trades, 'all');
+        const todayStats = calculateStats(trades, 'today');
+
+        console.log('✅ useDashboardData: Fetch completed successfully');
+        setData({
+          bots,
+          trades,
+          userBalance,
+          stats,
+          todayStats
+        });
+
+      } catch (err) {
+        console.error('❌ useDashboardData: Error fetching dashboard data:', err);
+        setError('Fehler beim Laden der Dashboard-Daten');
+      } finally {
+        setLoading(false);
+        fetchingRef.current = false;
       }
+    };
 
-      const bots = (botsResult.data || []).map((bot: any) => ({
-        ...bot,
-        buy_price: bot.buy_price || null,
-        sell_price: bot.sell_price || null,
-        leverage: bot.leverage || 1,
-        position_type: bot.position_type || 'LONG'
-      })) as TradingBot[];
-
-      const trades = (tradesResult.data || []) as BotTrade[];
-      const userBalance = profileResult.data?.balance || 0;
-
-      const stats = calculateStats(trades, 'all');
-      const todayStats = calculateStats(trades, 'today');
-
-      setData({
-        bots,
-        trades,
-        userBalance,
-        stats,
-        todayStats
-      });
-
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-      setError('Fehler beim Laden der Dashboard-Daten');
-    } finally {
-      setLoading(false);
+    if (immediate) {
+      await executeFetch();
+    } else {
+      debounceRef.current = setTimeout(executeFetch, 300); // 300ms debounce
     }
   }, []);
+
+  // Legacy function for backward compatibility
+  const fetchAllData = useCallback(() => debouncedFetchAllData(true), [debouncedFetchAllData]);
 
   useEffect(() => {
     fetchAllData();
 
-    // Single realtime subscription for all dashboard updates
+    // Single realtime subscription for all dashboard updates with coordination
     const setupRealtimeSubscription = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      console.log('🔄 useDashboardData: Setting up coordinated realtime subscription');
+
       const channel = supabase
-        .channel('dashboard-updates')
+        .channel('dashboard-updates-coordinated')
         .on(
           'postgres_changes',
           {
@@ -235,8 +273,10 @@ export function useDashboardData() {
             table: 'trading_bots',
             filter: `user_id=eq.${user.id}`
           },
-          () => {
-            fetchAllData();
+          (payload) => {
+            console.log('🤖 useDashboardData: Bot update received:', payload.eventType, (payload.new as any)?.id || 'unknown');
+            // Use debounced fetch to prevent race conditions
+            debouncedFetchAllData();
           }
         )
         .on(
@@ -246,8 +286,10 @@ export function useDashboardData() {
             schema: 'public',
             table: 'bot_trades'
           },
-          () => {
-            fetchAllData();
+          (payload) => {
+            console.log('💰 useDashboardData: Trade update received:', payload.eventType, (payload.new as any)?.bot_id || 'unknown');
+            // Use debounced fetch to prevent race conditions
+            debouncedFetchAllData();
           }
         )
         .on(
@@ -258,13 +300,16 @@ export function useDashboardData() {
             table: 'profiles',
             filter: `id=eq.${user.id}`
           },
-          () => {
-            fetchAllData();
+          (payload) => {
+            console.log('👤 useDashboardData: Profile update received');
+            // Profile updates are important, fetch immediately
+            debouncedFetchAllData(true);
           }
         )
         .subscribe();
 
       return () => {
+        console.log('🔌 useDashboardData: Cleaning up subscription');
         supabase.removeChannel(channel);
       };
     };
@@ -272,9 +317,13 @@ export function useDashboardData() {
     const cleanup = setupRealtimeSubscription();
     
     return () => {
+      // Cleanup debounce timer
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
       cleanup.then(cleanupFn => cleanupFn?.());
     };
-  }, [fetchAllData]);
+  }, [debouncedFetchAllData, fetchAllData]);
 
   return {
     data,
