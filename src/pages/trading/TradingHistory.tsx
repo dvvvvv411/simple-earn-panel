@@ -581,7 +581,7 @@ export default function TradingHistory() {
                   <TableHead className="font-semibold">Entry Price</TableHead>
                   <TableHead className="font-semibold">Exit Price</TableHead>
                   <TableHead className="font-semibold">Leverage</TableHead>
-                  <TableHead className="font-semibold">Dauer</TableHead>
+                  <TableHead className="font-semibold min-w-[120px]">Dauer</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
                   <TableHead className="font-semibold">Bot ID</TableHead>
                 </TableRow>
@@ -676,23 +676,23 @@ export default function TradingHistory() {
                       )}
                     </TableCell>
                     <TableCell className="py-4">
-                      <div className="text-sm font-mono font-medium">
-                        ${(trade.entry_price || trade.buy_price).toFixed(4)}
-                      </div>
+                       <div className="text-sm font-mono font-medium">
+                         €{(trade.entry_price || trade.buy_price).toFixed(4)}
+                       </div>
                     </TableCell>
                     <TableCell className="py-4">
-                      <div className="text-sm font-mono font-medium">
-                        ${(trade.exit_price || trade.sell_price || 0).toFixed(4)}
-                      </div>
+                       <div className="text-sm font-mono font-medium">
+                         €{(trade.exit_price || trade.sell_price || 0).toFixed(4)}
+                       </div>
                     </TableCell>
                     <TableCell className="py-4">
                       <Badge variant="outline" className="font-semibold border-border/60">{trade.leverage}x</Badge>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <span className="text-sm font-mono font-medium bg-muted/30 px-2 py-1 rounded">
-                        {formatDuration(trade.started_at, trade.completed_at)}
-                      </span>
-                    </TableCell>
+                     <TableCell className="py-4 min-w-[120px]">
+                       <span className="text-sm font-mono font-medium bg-muted/30 px-2 py-1 rounded whitespace-nowrap">
+                         {formatDuration(trade.started_at, trade.completed_at)}
+                       </span>
+                     </TableCell>
                     <TableCell className="py-4">
                       {renderStatusBadge(trade.status)}
                     </TableCell>
