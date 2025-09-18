@@ -173,8 +173,9 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
   const maxPrice = Math.max(...prices.map(p => p.price));
   const priceRange = maxPrice - minPrice;
   const averagePrice = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
+  const priceMovementPercent = (priceRange / averagePrice) * 100;
   
-  console.log(`📊 Price analysis: Min=${minPrice.toFixed(4)}, Max=${maxPrice.toFixed(4)}, Avg=${averagePrice.toFixed(4)}`);
+  console.log(`📊 Price analysis: Min=${minPrice.toFixed(4)}, Max=${maxPrice.toFixed(4)}, Avg=${averagePrice.toFixed(4)}, Movement=${priceMovementPercent.toFixed(2)}%`);
 
   // Find optimal scenarios for both LONG and SHORT positions
   const longScenarios = [];
@@ -185,18 +186,25 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
     for (let sellIndex = buyIndex + 1; sellIndex < prices.length; sellIndex++) {
       const buyPrice = prices[buyIndex].price;
       const sellPrice = prices[sellIndex].price;
+      const naturalMovement = ((sellPrice - buyPrice) / buyPrice) * 100;
+      
+      // Filter: Minimum 0.1% natural price movement required
+      if (naturalMovement < 0.1) continue;
       
       // Test different leverage levels (1x to 100x)
       for (let leverage = 1; leverage <= 100; leverage++) {
-        const profitPercent = ((sellPrice - buyPrice) / buyPrice) * leverage * 100;
+        const profitPercent = naturalMovement * leverage;
         
         if (profitPercent >= 1.0 && profitPercent <= 3.0) {
+          const score = calculateTradeScore(buyPrice, sellPrice, leverage, naturalMovement, 'LONG');
           longScenarios.push({
             buyPrice,
             sellPrice,
             leverage,
             profitPercent,
-            tradeType: 'long'
+            naturalMovement,
+            tradeType: 'LONG',
+            score
           });
         }
       }
@@ -208,20 +216,27 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
     for (let buyIndex = sellIndex + 1; buyIndex < prices.length; buyIndex++) {
       const sellPrice = prices[sellIndex].price; // Entry price (high)
       const buyPrice = prices[buyIndex].price;   // Exit price (low)
+      const naturalMovement = ((sellPrice - buyPrice) / sellPrice) * 100;
+      
+      // Filter: Minimum 0.1% natural price movement required
+      if (naturalMovement < 0.1) continue;
       
       // SHORT only profitable if sellPrice > buyPrice
       if (sellPrice > buyPrice) {
         // Test different leverage levels (1x to 100x)
         for (let leverage = 1; leverage <= 100; leverage++) {
-          const profitPercent = ((sellPrice - buyPrice) / sellPrice) * leverage * 100;
+          const profitPercent = naturalMovement * leverage;
           
           if (profitPercent >= 1.0 && profitPercent <= 3.0) {
+            const score = calculateTradeScore(buyPrice, sellPrice, leverage, naturalMovement, 'SHORT');
             shortScenarios.push({
               buyPrice,
               sellPrice,
               leverage,
               profitPercent,
-              tradeType: 'short'
+              naturalMovement,
+              tradeType: 'SHORT',
+              score
             });
           }
         }
@@ -237,16 +252,50 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
     return { isprofitable: false };
   }
 
-  // Pick a random profitable scenario (1-3% profit range)
-  const randomIndex = Math.floor(Math.random() * allScenarios.length);
-  const optimalScenario = allScenarios[randomIndex];
+  console.log(`📈 Found ${allScenarios.length} total profitable scenarios`);
 
-  console.log(`🎯 Found optimal scenario: ${optimalScenario.tradeType.toUpperCase()} ${optimalScenario.leverage}x for ${optimalScenario.profitPercent.toFixed(2)}% profit`);
+  // Sort by score (best first) and select from top 10%
+  allScenarios.sort((a, b) => b.score - a.score);
+  const top10PercentCount = Math.max(1, Math.ceil(allScenarios.length * 0.1));
+  const topScenarios = allScenarios.slice(0, top10PercentCount);
+  
+  // Select randomly from the top 10% of best trades
+  const randomIndex = Math.floor(Math.random() * topScenarios.length);
+  const optimalScenario = topScenarios[randomIndex];
+
+  console.log(`🎯 Selected BEST trade from top ${top10PercentCount} scenarios (top 10%)`);
+  console.log(`💎 Trade: ${optimalScenario.tradeType} ${optimalScenario.leverage}x, ${optimalScenario.profitPercent.toFixed(2)}% profit, Natural movement: ${optimalScenario.naturalMovement.toFixed(3)}%, Score: ${optimalScenario.score.toFixed(2)}`);
 
   return {
     isprofitable: true,
     ...optimalScenario
   };
+}
+
+// Calculate trade quality score (higher is better)
+function calculateTradeScore(buyPrice: number, sellPrice: number, leverage: number, naturalMovement: number, tradeType: string): number {
+  // Base score from natural price movement (rewards bigger movements)
+  let score = naturalMovement * 10;
+  
+  // Leverage penalty - prefer lower leverage for same profit
+  const leveragePenalty = Math.log(leverage) * 5;
+  score -= leveragePenalty;
+  
+  // Bonus for realistic leverage ranges based on movement
+  if (naturalMovement >= 1.0 && leverage <= 5) {
+    score += 20; // Big movement with low leverage = excellent
+  } else if (naturalMovement >= 0.5 && leverage <= 10) {
+    score += 10; // Good movement with medium leverage = good
+  } else if (naturalMovement >= 0.2 && leverage <= 20) {
+    score += 5; // Medium movement with higher leverage = acceptable
+  }
+  
+  // Penalty for extreme leverage on small movements
+  if (naturalMovement < 0.1 && leverage > 50) {
+    score -= 30; // Very small movement with extreme leverage = bad
+  }
+  
+  return score;
 }
 
 async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: any) {
