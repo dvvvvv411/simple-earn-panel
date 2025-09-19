@@ -188,7 +188,7 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
       const sellPrice = prices[sellIndex].price;
       const naturalMovement = ((sellPrice - buyPrice) / buyPrice) * 100;
       
-      // Filter: Minimum 0.1% natural price movement required
+      // Filter: Minimum 0.1% natural price movement required for LONG
       if (naturalMovement < 0.1) continue;
       
       // Test different leverage levels (1x to 100x)
@@ -218,8 +218,8 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
       const buyPrice = prices[buyIndex].price;   // Exit price (low)
       const naturalMovement = ((sellPrice - buyPrice) / sellPrice) * 100;
       
-      // Filter: Minimum 0.1% natural price movement required
-      if (naturalMovement < 0.1) continue;
+      // Filter: Minimum 0.4% natural price movement required for SHORT (4x higher than LONG)
+      if (naturalMovement < 0.4) continue;
       
       // SHORT only profitable if sellPrice > buyPrice
       if (sellPrice > buyPrice) {
@@ -244,24 +244,61 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
     }
   }
 
-  // Combine all profitable scenarios
-  const allScenarios = [...longScenarios, ...shortScenarios];
+  console.log(`📊 Trade Distribution: ${longScenarios.length} LONG vs ${shortScenarios.length} SHORT scenarios`);
   
-  if (allScenarios.length === 0) {
+  // LONG-First Strategy: Prioritize LONG trades if we have enough options
+  let finalScenarios = [];
+  
+  if (longScenarios.length >= 3) {
+    // If we have 3+ LONG scenarios, prioritize them heavily
+    console.log('🎯 LONG-First Strategy: Using LONG scenarios (3+ available)');
+    finalScenarios = longScenarios;
+    
+    // Only add SHORT scenarios if they're significantly better
+    const sortedLongScenarios = longScenarios.sort((a, b) => b.score - a.score);
+    const bestLongScore = sortedLongScenarios[0]?.score || 0;
+    
+    // Add SHORT scenarios only if they score 20+ points higher than best LONG
+    const excellentShortScenarios = shortScenarios.filter(s => s.score > bestLongScore + 20);
+    if (excellentShortScenarios.length > 0) {
+      console.log(`⚡ Adding ${excellentShortScenarios.length} exceptional SHORT scenarios (score advantage: 20+)`);
+      finalScenarios = [...finalScenarios, ...excellentShortScenarios];
+    }
+  } else {
+    // Fallback: Use all scenarios if not enough LONG options
+    console.log('🔄 Fallback Strategy: Using all scenarios (insufficient LONG options)');
+    finalScenarios = [...longScenarios, ...shortScenarios];
+  }
+  
+  if (finalScenarios.length === 0) {
     console.log('❌ No profitable scenarios found in historical data');
     return { isprofitable: false };
   }
 
-  console.log(`📈 Found ${allScenarios.length} total profitable scenarios`);
+  console.log(`📈 Final selection pool: ${finalScenarios.length} scenarios`);
 
   // Sort by score (best first) and select from top 10%
-  allScenarios.sort((a, b) => b.score - a.score);
-  const top10PercentCount = Math.max(1, Math.ceil(allScenarios.length * 0.1));
-  const topScenarios = allScenarios.slice(0, top10PercentCount);
+  finalScenarios.sort((a, b) => b.score - a.score);
+  const top10PercentCount = Math.max(1, Math.ceil(finalScenarios.length * 0.1));
+  const topScenarios = finalScenarios.slice(0, top10PercentCount);
   
-  // Select randomly from the top 10% of best trades
-  const randomIndex = Math.floor(Math.random() * topScenarios.length);
-  const optimalScenario = topScenarios[randomIndex];
+  // For equal scores (within 5 points), prioritize LONG
+  const bestScore = topScenarios[0].score;
+  const topTierScenarios = topScenarios.filter(s => s.score >= bestScore - 5);
+  const longInTopTier = topTierScenarios.filter(s => s.tradeType === 'long');
+  
+  let optimalScenario;
+  if (longInTopTier.length > 0) {
+    // Prioritize LONG trades in top tier
+    const randomLongIndex = Math.floor(Math.random() * longInTopTier.length);
+    optimalScenario = longInTopTier[randomLongIndex];
+    console.log('🎯 Selected LONG trade from top tier (LONG bias applied)');
+  } else {
+    // Fall back to any top scenario
+    const randomIndex = Math.floor(Math.random() * topScenarios.length);
+    optimalScenario = topScenarios[randomIndex];
+    console.log('🔄 Selected from top scenarios (no LONG available in top tier)');
+  }
 
   console.log(`🎯 Selected BEST trade from top ${top10PercentCount} scenarios (top 10%)`);
   console.log(`💎 Trade: ${optimalScenario.tradeType} ${optimalScenario.leverage}x, ${optimalScenario.profitPercent.toFixed(2)}% profit, Natural movement: ${optimalScenario.naturalMovement.toFixed(3)}%, Score: ${optimalScenario.score.toFixed(2)}`);
@@ -272,10 +309,45 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
   };
 }
 
-// Calculate trade quality score (higher is better)
+// Calculate trade quality score with STRONG LONG bias (higher is better)
 function calculateTradeScore(buyPrice: number, sellPrice: number, leverage: number, naturalMovement: number, tradeType: string): number {
   // Base score from natural price movement (rewards bigger movements)
   let score = naturalMovement * 10;
+  
+  // === CRITICAL LONG BIAS IMPLEMENTATION ===
+  
+  // 1. LONG Bonus: +15 points for all LONG trades
+  if (tradeType === 'long') {
+    score += 15;
+    console.log(`🎯 LONG Bonus: +15 points applied`);
+  }
+  
+  // 2. SHORT Penalty for low volatility: -20 points if movement < 0.3%
+  if (tradeType === 'short' && naturalMovement < 0.3) {
+    score -= 20;
+    console.log(`⚠️ SHORT Low-Volatility Penalty: -20 points (movement: ${naturalMovement.toFixed(3)}%)`);
+  }
+  
+  // 3. Market trend detection (simple implementation using price direction)
+  const priceDirection = buyPrice < sellPrice ? 'rising' : 'falling';
+  
+  // Trend bonuses and penalties
+  if (priceDirection === 'rising') {
+    if (tradeType === 'long') {
+      score += 10; // Bonus for LONG in rising market
+      console.log(`📈 Rising Market LONG Bonus: +10 points`);
+    } else {
+      score -= 15; // Penalty for SHORT against trend
+      console.log(`📈 Anti-Trend SHORT Penalty: -15 points (SHORT in rising market)`);
+    }
+  } else {
+    if (tradeType === 'short') {
+      score += 5; // Smaller bonus for SHORT in falling market
+      console.log(`📉 Falling Market SHORT Bonus: +5 points`);
+    }
+  }
+  
+  // === END LONG BIAS IMPLEMENTATION ===
   
   // Leverage penalty - prefer lower leverage for same profit
   const leveragePenalty = Math.log(leverage) * 5;
@@ -294,6 +366,8 @@ function calculateTradeScore(buyPrice: number, sellPrice: number, leverage: numb
   if (naturalMovement < 0.1 && leverage > 50) {
     score -= 30; // Very small movement with extreme leverage = bad
   }
+  
+  console.log(`💯 Final score for ${tradeType.toUpperCase()}: ${score.toFixed(2)} (movement: ${naturalMovement.toFixed(3)}%, leverage: ${leverage}x)`);
   
   return score;
 }
