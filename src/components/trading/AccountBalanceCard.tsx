@@ -8,12 +8,22 @@ import { Progress } from "@/components/ui/progress";
 import { CreateBotDialog } from "./CreateBotDialog";
 import { useTradingBots } from "@/hooks/useTradingBots";
 
+interface TradingStats {
+  totalTrades: number;
+  successfulTrades: number;
+  failedTrades: number;
+  successRate: number;
+  totalProfit: number;
+  avgTradeDuration: string;
+}
+
 interface AccountBalanceCardProps {
   balance: number;
   onBalanceUpdate: () => void;
+  todayStats: TradingStats;
 }
 
-export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: AccountBalanceCardProps) {
+export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, todayStats }: AccountBalanceCardProps) {
   const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
   const { bots } = useTradingBots();
@@ -64,8 +74,8 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: Ac
     .filter(bot => bot.status === 'active')
     .reduce((total, bot) => total + Number(bot.start_amount), 0);
 
-  // Placeholder trend data
-  const trendPercentage = 2.3;
+  // Calculate real daily trend percentage
+  const trendPercentage = balance && balance > 0 ? (todayStats.totalProfit / balance) * 100 : 0;
   const isPositive = trendPercentage > 0;
 
   // Placeholder rank data - will be replaced with real ranking system later
@@ -134,16 +144,16 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate }: Ac
               {isPositive ? (
                 <>
                   <TrendingUp className="h-4 w-4 text-green-500" />
-                  <span className="font-semibold text-green-500">
-                    +{trendPercentage}%
-                  </span>
+                   <span className="font-semibold text-green-500">
+                     +{trendPercentage.toFixed(1)}%
+                   </span>
                 </>
               ) : (
                 <>
                   <TrendingDown className="h-4 w-4 text-red-500" />
-                  <span className="font-semibold text-red-500">
-                    {trendPercentage}%
-                  </span>
+                   <span className="font-semibold text-red-500">
+                     {trendPercentage.toFixed(1)}%
+                   </span>
                 </>
               )}
             </div>
