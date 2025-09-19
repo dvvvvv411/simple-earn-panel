@@ -412,7 +412,7 @@ export default function TradingHistory() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-0 space-y-6">
+            <CardContent className="pt-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3 p-4 rounded-lg border border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
                   <div className="flex items-center gap-3">
