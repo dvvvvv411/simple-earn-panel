@@ -598,14 +598,14 @@ export default function TradingHistory() {
                     <TableCell className="font-medium py-4">
                       <div className="flex items-center gap-3">
                         {coinsLoading ? (
-                          <Skeleton className="h-6 w-6 rounded-full" />
+                          <Skeleton className="h-8 w-8 rounded-full" />
                         ) : (
                           <>
                             {getCryptoIcon(trade.bot?.symbol || '') ? (
                               <img 
                                 src={getCryptoIcon(trade.bot?.symbol || '')} 
                                 alt=""
-                                className="h-6 w-6 rounded-full border border-border/20 shadow-sm"
+                                className="h-8 w-8 rounded-full border border-border/20 shadow-sm"
                                 onError={(e) => {
                                   e.currentTarget.style.display = 'none';
                                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -613,7 +613,7 @@ export default function TradingHistory() {
                               />
                             ) : null}
                             <div className={cn(
-                              "h-6 w-6 rounded-full border border-border/20 shadow-sm bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground",
+                              "h-8 w-8 rounded-full border border-border/20 shadow-sm bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground",
                               getCryptoIcon(trade.bot?.symbol || '') ? "hidden" : ""
                             )}>
                               {trade.bot?.symbol?.slice(0, 2).toUpperCase() || '?'}

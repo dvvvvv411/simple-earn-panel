@@ -134,12 +134,6 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
     return () => clearInterval(interval);
   }, [localBot.created_at, latestTrade]);
 
-  // Get crypto icon helper function
-  const getCryptoIcon = (symbol: string) => {
-    const coin = coins.find(c => c.symbol.toUpperCase() === symbol.toUpperCase());
-    return coin?.image || null;
-  };
-
   return (
     <Card 
       className="relative overflow-hidden transition-all duration-200 hover:shadow-lg" 
@@ -150,6 +144,9 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
             <CardTitle className="text-base">{localBot.cryptocurrency}</CardTitle>
+            <Badge variant="outline" className="text-xs">
+              {localBot.symbol}
+            </Badge>
           </div>
           
           <div className="flex items-center gap-3">
@@ -293,24 +290,6 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           </div>
         )}
       </CardContent>
-      
-      {/* Crypto Icon - Bottom Right */}
-      <div className="absolute bottom-4 right-4 hover:scale-110 transition-transform">
-        {getCryptoIcon(localBot.symbol) ? (
-          <img 
-            src={getCryptoIcon(localBot.symbol)} 
-            alt={localBot.symbol}
-            className="h-6 w-6 rounded-full"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-        ) : null}
-        <div className={`h-6 w-6 rounded-full bg-muted/50 flex items-center justify-center text-xs font-bold text-muted-foreground ${getCryptoIcon(localBot.symbol) ? 'hidden' : ''}`}>
-          {localBot.symbol.slice(0, 2).toUpperCase()}
-        </div>
-      </div>
     </Card>
   );
 }
