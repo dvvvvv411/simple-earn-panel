@@ -295,7 +295,7 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
       </CardContent>
       
       {/* Crypto Icon - Bottom Right */}
-      <div className="absolute bottom-4 right-4 opacity-30 hover:opacity-60 transition-opacity">
+      <div className="absolute bottom-4 right-4 hover:scale-110 transition-transform">
         {getCryptoIcon(localBot.symbol) ? (
           <img 
             src={getCryptoIcon(localBot.symbol)} 
