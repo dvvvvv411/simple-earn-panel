@@ -335,10 +335,13 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
             
             // Check if bot status changed to completed
             if (oldBot?.status !== 'completed' && newBot?.status === 'completed') {
-              console.log('🎯 useDashboardData: Bot COMPLETED - triggering hard refresh in 2 seconds:', newBot.id);
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
+              console.log('🎯 useDashboardData: Bot COMPLETED - triggering data refresh:', newBot.id);
+              // Call onBotCompleted callback if provided
+              if (onBotCompleted) {
+                onBotCompleted(newBot);
+              }
+              // Refresh data instead of reloading page
+              debouncedFetchAllData(true);
             } else {
               // For other updates, just refresh data
               debouncedFetchAllData(true);
@@ -358,10 +361,9 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
             
             // Check if trade status changed to completed
             if (oldTrade?.status !== 'completed' && trade.status === 'completed') {
-              console.log('💰 useDashboardData: Trade COMPLETED - triggering hard refresh in 2 seconds:', trade.bot_id);
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
+              console.log('💰 useDashboardData: Trade COMPLETED - triggering data refresh:', trade.bot_id);
+              // Refresh data instead of reloading page
+              debouncedFetchAllData(true);
             } else {
               console.log('💰 useDashboardData: Trade update received:', payload.eventType, trade?.bot_id || 'unknown');
               debouncedFetchAllData();
