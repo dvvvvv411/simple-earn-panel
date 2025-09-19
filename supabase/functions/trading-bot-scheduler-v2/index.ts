@@ -287,17 +287,33 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
   const topTierScenarios = topScenarios.filter(s => s.score >= bestScore - 5);
   const longInTopTier = topTierScenarios.filter(s => s.tradeType === 'long');
   
+  // **DETERMINISTIC BEST SCENARIO SELECTION** - No more random selection!
   let optimalScenario;
+  
+  // Log top scenarios for debugging
+  console.log(`🔍 Top ${Math.min(5, topScenarios.length)} scenarios for evaluation:`);
+  topScenarios.slice(0, 5).forEach((scenario, index) => {
+    console.log(`  ${index + 1}. ${scenario.tradeType.toUpperCase()} ${scenario.leverage}x: ${scenario.profitPercent.toFixed(2)}% profit, Score: ${scenario.score.toFixed(2)}`);
+  });
+
   if (longInTopTier.length > 0) {
-    // Prioritize LONG trades in top tier
-    const randomLongIndex = Math.floor(Math.random() * longInTopTier.length);
-    optimalScenario = longInTopTier[randomLongIndex];
-    console.log('🎯 Selected LONG trade from top tier (LONG bias applied)');
+    // **DETERMINISTIC**: Select BEST LONG scenario from top tier
+    optimalScenario = longInTopTier.reduce((best, current) => {
+      // First compare by score, then by profit percentage
+      if (current.score > best.score) return current;
+      if (current.score === best.score && current.profitPercent > best.profitPercent) return current;
+      return best;
+    });
+    console.log('🎯 DETERMINISTIC: Selected BEST LONG from top tier (highest score/profit)');
   } else {
-    // Fall back to any top scenario
-    const randomIndex = Math.floor(Math.random() * topScenarios.length);
-    optimalScenario = topScenarios[randomIndex];
-    console.log('🔄 Selected from top scenarios (no LONG available in top tier)');
+    // **DETERMINISTIC**: Select BEST scenario overall from top tier
+    optimalScenario = topScenarios.reduce((best, current) => {
+      // First compare by score, then by profit percentage
+      if (current.score > best.score) return current;
+      if (current.score === best.score && current.profitPercent > best.profitPercent) return current;
+      return best;
+    });
+    console.log('🎯 DETERMINISTIC: Selected BEST scenario overall (highest score/profit)');
   }
 
   console.log(`🎯 Selected BEST trade from top ${top10PercentCount} scenarios (top 10%)`);
