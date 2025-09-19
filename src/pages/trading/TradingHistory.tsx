@@ -20,6 +20,11 @@ import {
 } from "@/components/ui/pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -52,7 +57,9 @@ import {
   ArrowDownLeft,
   CheckCircle,
   XCircle,
-  PlayCircle
+  PlayCircle,
+  Info,
+  Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -106,6 +113,9 @@ export default function TradingHistory() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Info card state
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   // Fetch bots data to join with trades
   useEffect(() => {
@@ -381,6 +391,68 @@ export default function TradingHistory() {
           Detaillierte Übersicht aller Trading-Aktivitäten
         </p>
       </div>
+
+      {/* Trading Explanation Card */}
+      <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-900/20">
+        <Collapsible open={isInfoOpen} onOpenChange={setIsInfoOpen}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/30 transition-colors">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-blue-800 dark:text-blue-200">Was sind Long & Short Trades?</span>
+                </div>
+                <ChevronDown className={cn(
+                  "h-4 w-4 text-blue-600 dark:text-blue-400 transition-transform duration-200",
+                  isInfoOpen && "rotate-180"
+                )} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700">
+                      <ArrowUpRight className="h-3 w-3 mr-1" />
+                      LONG
+                    </Badge>
+                    <span className="font-medium text-green-800 dark:text-green-400">Auf steigende Kurse setzen</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Bei einem Long-Trade kaufen Sie die Kryptowährung und profitieren, wenn der Preis steigt. 
+                    Sie setzen darauf, dass der Wert der Währung in Zukunft höher sein wird.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700">
+                      <ArrowDownLeft className="h-3 w-3 mr-1" />
+                      SHORT
+                    </Badge>
+                    <span className="font-medium text-red-800 dark:text-red-400">Auf fallende Kurse setzen</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Bei einem Short-Trade setzen Sie auf fallende Kurse. Sie "verkaufen" die Kryptowährung 
+                    (ohne sie zu besitzen) und profitieren, wenn der Preis fällt.
+                  </p>
+                </div>
+              </div>
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="font-medium text-blue-800 dark:text-blue-200">Leverage (Hebel)</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Der Hebel multipliziert Ihre Position. Ein 2x Hebel bedeutet, dass Sie mit doppelter Kraft handeln - 
+                  sowohl Gewinne als auch Verluste werden verstärkt. Höhere Hebel = höhere Risiken.
+                </p>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
 
       {/* Statistics Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
