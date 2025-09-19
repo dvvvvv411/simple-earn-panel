@@ -49,12 +49,6 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
   const { coins, getPriceData } = useCoinMarketCap();
   const priceData = getPriceData(bot.symbol);
 
-  // Get crypto icon URL
-  const getCryptoIcon = (symbol: string) => {
-    const coin = coins.find(coin => coin.symbol.toUpperCase() === symbol.toUpperCase());
-    return coin?.image || null;
-  };
-
   // Get bot-specific trades
   const botTrades = useMemo(() => {
     return trades.filter(trade => trade.bot_id === localBot.id)
@@ -150,20 +144,9 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
             <CardTitle className="text-base">{localBot.cryptocurrency}</CardTitle>
-            {getCryptoIcon(localBot.symbol) ? (
-              <img 
-                src={getCryptoIcon(localBot.symbol)} 
-                alt=""
-                className="h-4 w-4 rounded-full border border-border/20 shadow-sm"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`h-4 w-4 rounded-full border border-border/20 shadow-sm bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground ${getCryptoIcon(localBot.symbol) ? "hidden" : ""}`}>
-              {localBot.symbol.slice(0, 2).toUpperCase()}
-            </div>
+            <Badge variant="outline" className="text-xs">
+              {localBot.symbol}
+            </Badge>
           </div>
           
           <div className="flex items-center gap-3">
