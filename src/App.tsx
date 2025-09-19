@@ -10,6 +10,7 @@ import Brandings from "./pages/admin/Brandings";
 import UsersPage from "./pages/admin/Users";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
+import Wallet from "./pages/trading/Wallet";
 import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
@@ -26,6 +27,7 @@ const App: React.FC = () => {
           </Route>
           <Route path="/kryptotrading" element={<TradingLayout />}>
             <Route index element={<TradingDashboard />} />
+            <Route path="wallet" element={<Wallet />} />
             <Route path="historie" element={<TradingHistory />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
