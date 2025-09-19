@@ -60,6 +60,12 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
     return coins.find(coin => coin.symbol.toUpperCase() === localBot.symbol.toUpperCase());
   }, [coins, localBot.symbol]);
 
+  // Get crypto icon helper function
+  const getCryptoIcon = (symbol: string) => {
+    const coin = coins.find(c => c.symbol.toUpperCase() === symbol.toUpperCase());
+    return coin?.image || `https://cryptoicons.org/api/icon/${symbol.toLowerCase()}/32`;
+  };
+
   // Format price to exactly 2 decimal places
   const formatPrice = (price: number) => {
     return price.toLocaleString('de-DE', { 
@@ -139,6 +145,21 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
       className="relative overflow-hidden transition-all duration-200 hover:shadow-lg" 
       data-bot-id={localBot.id}
     >
+      {/* Crypto Icon */}
+      <div className="absolute bottom-4 right-4">
+        <img
+          src={getCryptoIcon(localBot.symbol)}
+          alt={localBot.symbol}
+          className="h-6 w-6"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+          }}
+        />
+        <div className="hidden h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
+          {localBot.symbol.slice(0, 2).toUpperCase()}
+        </div>
+      </div>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
