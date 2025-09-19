@@ -47,6 +47,7 @@ interface DashboardData {
   userBalance: number;
   stats: TradingStats;
   todayStats: TradingStats;
+  todayStartBalance: number;
 }
 
 export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
@@ -69,7 +70,8 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
       successRate: 0,
       totalProfit: 0,
       avgTradeDuration: "0s"
-    }
+    },
+    todayStartBalance: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +80,34 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const fetchingRef = useRef(false);
   const previousBotsRef = useRef<TradingBot[]>([]);
+
+  const getTodayStartBalance = async (userId: string, currentBalance: number, todayProfit: number): Promise<number> => {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      // Get the first transaction of today to find the balance before it
+      const { data: todayTransactions } = await supabase
+        .from('user_transactions')
+        .select('previous_balance, created_at')
+        .eq('user_id', userId)
+        .gte('created_at', `${today}T00:00:00`)
+        .lt('created_at', `${today}T23:59:59`)
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+      if (todayTransactions && todayTransactions.length > 0) {
+        // Return the balance before the first transaction of today
+        return todayTransactions[0].previous_balance;
+      } else {
+        // No transactions today, so start balance = current balance - today's profit
+        return currentBalance - todayProfit;
+      }
+    } catch (error) {
+      console.error('Error getting today start balance:', error);
+      // Fallback: current balance minus today's profit
+      return currentBalance - todayProfit;
+    }
+  };
 
   const calculateStats = (tradesData: BotTrade[], timeFrame: 'today' | 'all' = 'all'): TradingStats => {
     if (tradesData.length === 0) {
@@ -175,7 +205,8 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
             trades: [],
             userBalance: 0,
             stats: calculateStats([]),
-            todayStats: calculateStats([])
+            todayStats: calculateStats([]),
+            todayStartBalance: 0
           });
           setLoading(false);
           return;
@@ -225,6 +256,7 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
 
         const stats = calculateStats(trades, 'all');
         const todayStats = calculateStats(trades, 'today');
+        const todayStartBalance = await getTodayStartBalance(user.id, userBalance, todayStats.totalProfit);
 
         console.log('✅ useDashboardData: Fetch completed successfully');
         
@@ -252,7 +284,8 @@ export function useDashboardData(onBotCompleted?: (bot: TradingBot) => void) {
           trades,
           userBalance,
           stats,
-          todayStats
+          todayStats,
+          todayStartBalance
         });
 
       } catch (err) {

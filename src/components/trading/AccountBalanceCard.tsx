@@ -21,9 +21,10 @@ interface AccountBalanceCardProps {
   balance: number;
   onBalanceUpdate: () => void;
   todayStats: TradingStats;
+  todayStartBalance: number;
 }
 
-export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, todayStats }: AccountBalanceCardProps) {
+export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, todayStats, todayStartBalance }: AccountBalanceCardProps) {
   const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
   const { bots } = useTradingBots();
@@ -74,8 +75,8 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
     .filter(bot => bot.status === 'active')
     .reduce((total, bot) => total + Number(bot.start_amount), 0);
 
-  // Calculate real daily trend percentage
-  const trendPercentage = balance && balance > 0 ? (todayStats.totalProfit / balance) * 100 : 0;
+  // Calculate real daily trend percentage based on today's start balance
+  const trendPercentage = todayStartBalance > 0 ? (todayStats.totalProfit / todayStartBalance) * 100 : 0;
   const isPositive = trendPercentage > 0;
 
   // Placeholder rank data - will be replaced with real ranking system later

@@ -72,6 +72,7 @@ export default function Dashboard() {
             balance={data.userBalance} 
             onBalanceUpdate={handleBalanceUpdate}
             todayStats={data.todayStats}
+            todayStartBalance={data.todayStartBalance}
           />
           <TradesCard stats={data.stats} todayStats={data.todayStats} loading={loading} />
           <MarketOverviewCard />
