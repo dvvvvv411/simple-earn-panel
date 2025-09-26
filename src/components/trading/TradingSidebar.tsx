@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, LogOut, History, Wallet } from "lucide-react";
+import { BarChart3, LogOut, History, Wallet, Headphones } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -36,6 +36,11 @@ const items = [
     title: "Trading-Historie",
     url: "/kryptotrading/historie",
     icon: History,
+  },
+  {
+    title: "Support",
+    url: "/kryptotrading/support",
+    icon: Headphones,
   },
 ];
 

@@ -8,9 +8,11 @@ import { TradingLayout } from "./components/trading/TradingLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Brandings from "./pages/admin/Brandings";
 import UsersPage from "./pages/admin/Users";
+import AdminSupportPage from "./pages/admin/Support";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
+import Support from "./pages/trading/Support";
 import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
@@ -24,11 +26,13 @@ const App: React.FC = () => {
             <Route index element={<Navigate to="/admin/brandings" replace />} />
             <Route path="brandings" element={<Brandings />} />
             <Route path="benutzer" element={<UsersPage />} />
+            <Route path="support" element={<AdminSupportPage />} />
           </Route>
           <Route path="/kryptotrading" element={<TradingLayout />}>
             <Route index element={<TradingDashboard />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="historie" element={<TradingHistory />} />
+            <Route path="support" element={<Support />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
