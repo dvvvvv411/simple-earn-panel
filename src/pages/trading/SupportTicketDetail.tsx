@@ -1,20 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SupportTicket, useSupportTickets } from "@/hooks/useSupportTickets";
-import { Send, MessageCircle, User, Crown } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSupportTickets } from "@/hooks/useSupportTickets";
+import { Send, MessageCircle, User, Crown, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-
-interface SupportTicketDetailDialogProps {
-  ticket: SupportTicket;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -46,34 +41,31 @@ const getPriorityConfig = (priority: string) => {
   }
 };
 
-export const SupportTicketDetailDialog: React.FC<SupportTicketDetailDialogProps> = ({
-  ticket,
-  open,
-  onOpenChange,
-}) => {
+const SupportTicketDetail: React.FC = () => {
+  const { ticketId } = useParams<{ ticketId: string }>();
+  const navigate = useNavigate();
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const { messages, messagesLoading, loadTicketMessages, addTicketMessage } = useSupportTickets();
+  const { tickets, messages, messagesLoading, loadTicketMessages, addTicketMessage } = useSupportTickets();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const statusConfig = getStatusConfig(ticket.status);
-  const priorityConfig = getPriorityConfig(ticket.priority);
+  const ticket = tickets.find(t => t.id === ticketId);
 
   useEffect(() => {
-    if (open && ticket.id) {
-      loadTicketMessages(ticket.id);
+    if (ticketId) {
+      loadTicketMessages(ticketId);
     }
-  }, [open, ticket.id, loadTicketMessages]);
+  }, [ticketId, loadTicketMessages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !ticketId) return;
 
     setSending(true);
-    const success = await addTicketMessage(ticket.id, newMessage.trim());
+    const success = await addTicketMessage(ticketId, newMessage.trim());
     if (success) {
       setNewMessage("");
     }
@@ -87,24 +79,66 @@ export const SupportTicketDetailDialog: React.FC<SupportTicketDetailDialogProps>
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5" />
-            {ticket.subject}
-          </DialogTitle>
-          <DialogDescription className="flex items-center gap-2 flex-wrap">
-            <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-            <Badge className={priorityConfig.className}>{priorityConfig.label}</Badge>
-            <span className="text-sm text-muted-foreground">
-              Erstellt am {format(new Date(ticket.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
-            </span>
-          </DialogDescription>
-        </DialogHeader>
+  if (!ticket) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/kryptotrading/support')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Zurück zum Support
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center text-muted-foreground">Ticket nicht gefunden.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-        <div className="flex-1 flex flex-col min-h-0">
+  const statusConfig = getStatusConfig(ticket.status);
+  const priorityConfig = getPriorityConfig(ticket.priority);
+
+  return (
+    <div className="space-y-6 p-6">
+      {/* Header with back button */}
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/kryptotrading/support')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Zurück zum Support
+        </Button>
+      </div>
+
+      {/* Ticket header */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">{ticket.subject}</h1>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+          <Badge className={priorityConfig.className}>{priorityConfig.label}</Badge>
+          <span className="text-sm text-muted-foreground">
+            Erstellt am {format(new Date(ticket.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
+          </span>
+        </div>
+      </div>
+
+      {/* Chat interface */}
+      <Card className="flex flex-col h-[600px]">
+        <CardHeader>
+          <CardTitle className="text-lg">Ticket-Verlauf</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col min-h-0 p-6">
           {/* Original ticket message */}
           <div className="mb-4 p-4 bg-muted rounded-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -172,7 +206,7 @@ export const SupportTicketDetailDialog: React.FC<SupportTicketDetailDialogProps>
           </ScrollArea>
 
           {/* Message input */}
-          {ticket.status !== 'closed' && (
+          {ticket.status !== 'closed' ? (
             <div className="mt-4 flex gap-2">
               <Textarea
                 placeholder="Ihre Nachricht..."
@@ -191,15 +225,15 @@ export const SupportTicketDetailDialog: React.FC<SupportTicketDetailDialogProps>
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-          )}
-
-          {ticket.status === 'closed' && (
+          ) : (
             <div className="mt-4 p-3 bg-muted rounded-lg text-center text-sm text-muted-foreground">
               Dieses Ticket ist geschlossen. Sie können keine weiteren Nachrichten senden.
             </div>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
+
+export default SupportTicketDetail;
