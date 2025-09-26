@@ -132,50 +132,6 @@ export function useSupportTickets() {
     }
   };
 
-  useEffect(() => {
-    loadTickets();
-
-    // Real-time updates for tickets
-    const ticketsChannel = supabase
-      .channel('support_tickets_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'support_tickets'
-        },
-        () => {
-          loadTickets();
-        }
-      )
-      .subscribe();
-
-    // Real-time updates for messages
-    const messagesChannel = supabase
-      .channel('support_ticket_messages_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'support_ticket_messages'
-        },
-        (payload) => {
-          if (payload.new && payload.eventType === 'INSERT') {
-            const newMessage = payload.new as SupportTicketMessage;
-            setMessages(prev => [...prev, newMessage]);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(ticketsChannel);
-      supabase.removeChannel(messagesChannel);
-    };
-  }, []);
-
   const loadTicketMessages = async (ticketId: string) => {
     try {
       setMessagesLoading(true);
@@ -188,7 +144,7 @@ export function useSupportTickets() {
       if (error) throw error;
       setMessages((data || []) as SupportTicketMessage[]);
     } catch (error) {
-      console.error('Error loading ticket messages:', error);
+      console.error('Error loading messages:', error);
       toast({
         title: "Fehler",
         description: "Nachrichten konnten nicht geladen werden.",
@@ -223,7 +179,7 @@ export function useSupportTickets() {
       await loadTicketMessages(ticketId);
       return true;
     } catch (error) {
-      console.error('Error adding ticket message:', error);
+      console.error('Error adding message:', error);
       toast({
         title: "Fehler",
         description: "Nachricht konnte nicht gesendet werden.",
@@ -232,6 +188,50 @@ export function useSupportTickets() {
       return false;
     }
   };
+
+  useEffect(() => {
+    loadTickets();
+
+    // Real-time updates
+    const channel = supabase
+      .channel('support_tickets_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_tickets'
+        },
+        () => {
+          loadTickets();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_ticket_messages'
+        },
+        (payload) => {
+          if (payload.new && messages.length > 0) {
+            const newMessage = payload.new as SupportTicketMessage;
+            setMessages(prev => {
+              const exists = prev.find(m => m.id === newMessage.id);
+              if (!exists) {
+                return [...prev, newMessage];
+              }
+              return prev;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [messages.length]);
 
   return {
     tickets,
