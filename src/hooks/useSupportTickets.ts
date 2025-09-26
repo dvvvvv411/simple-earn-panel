@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -132,8 +132,9 @@ export function useSupportTickets() {
     }
   };
 
-  const loadTicketMessages = async (ticketId: string) => {
+  const loadTicketMessages = useCallback(async (ticketId: string) => {
     try {
+      console.log('🔍 Loading messages for ticket:', ticketId);
       setMessagesLoading(true);
       const { data, error } = await supabase
         .from('support_ticket_messages')
@@ -145,15 +146,17 @@ export function useSupportTickets() {
         console.error('Supabase error:', error);
         setMessages([]);
       } else {
+        console.log('✅ Messages loaded:', data?.length || 0);
         setMessages((data || []) as SupportTicketMessage[]);
       }
     } catch (error) {
       console.error('Error loading messages:', error);
       setMessages([]);
     } finally {
+      console.log('🔄 Setting messagesLoading to false');
       setMessagesLoading(false);
     }
-  };
+  }, []);
 
   const addTicketMessage = async (ticketId: string, message: string) => {
     try {
@@ -214,7 +217,7 @@ export function useSupportTickets() {
           table: 'support_ticket_messages'
         },
         (payload) => {
-          if (payload.new && messages.length > 0) {
+          if (payload.new) {
             const newMessage = payload.new as SupportTicketMessage;
             setMessages(prev => {
               const exists = prev.find(m => m.id === newMessage.id);
@@ -231,7 +234,7 @@ export function useSupportTickets() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [messages.length]);
+  }, []); // Fixed dependency array
 
   return {
     tickets,

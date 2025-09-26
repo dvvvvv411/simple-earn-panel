@@ -53,6 +53,10 @@ const SupportTicketDetail: React.FC = () => {
 
   useEffect(() => {
     if (ticketId) {
+      console.log('🎯 Loading messages for ticket:', ticketId);
+      console.log('📊 Current messagesLoading:', messagesLoading);
+      console.log('💬 Current messages count:', messages.length);
+      console.log('🎫 Ticket admin_response:', ticket?.admin_response);
       loadTicketMessages(ticketId);
     }
   }, [ticketId, loadTicketMessages]);
