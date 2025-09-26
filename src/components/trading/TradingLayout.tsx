@@ -96,17 +96,17 @@ function TradingContent() {
       <TradingSidebar />
       
       <div className="flex-1 flex flex-col">
-        <header className="h-20 flex items-center justify-between border-b border-border bg-background px-8">
-          <div className="flex items-center gap-6">
-            <SidebarTrigger className="h-8 w-8" />
+        <header className="h-24 lg:h-28 flex items-center justify-between border-b border-border bg-background px-8 lg:px-12">
+          <div className="flex items-center gap-6 lg:gap-8">
+            <SidebarTrigger className="h-8 w-8 lg:h-10 lg:w-10" />
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-foreground">Trading Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Professionelles Krypto-Portfolio Management</p>
+              <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">Trading Dashboard</h1>
+              <p className="text-sm lg:text-base xl:text-lg text-muted-foreground">Professionelles Krypto-Portfolio Management</p>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 p-8 bg-background">
+        <main className="flex-1 p-8 lg:p-12 xl:p-16 bg-background">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

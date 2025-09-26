@@ -117,31 +117,31 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
 
   return (
     <Card className={`${className} border-primary/20`}>
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-text-headline flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
+      <CardHeader className="pb-4 lg:pb-6 xl:pb-8 p-6 lg:p-8 xl:p-10">
+        <CardTitle className="text-lg lg:text-xl xl:text-2xl font-semibold text-text-headline flex items-center gap-2 lg:gap-3">
+          <Users className="h-5 w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7 text-primary" />
           Empfehlungs-System
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 lg:space-y-6 xl:space-y-8 p-6 lg:p-8 xl:p-10 pt-0">
         {/* Referral Code - Compact */}
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3">
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3 lg:p-4 xl:p-6">
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">Referral-Code</div>
-            <div className="flex items-center justify-center gap-2">
-              <code className="bg-background px-2 py-1 rounded font-mono text-sm font-bold text-primary">
+            <div className="text-xs lg:text-sm xl:text-base text-muted-foreground mb-1 lg:mb-2">Referral-Code</div>
+            <div className="flex items-center justify-center gap-2 lg:gap-3">
+              <code className="bg-background px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 xl:py-2 rounded font-mono text-sm lg:text-base xl:text-lg font-bold text-primary">
                 {referralData.referralCode}
               </code>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={copyReferralCode}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 p-0"
               >
                 {copied ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 text-green-500" />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
                 )}
               </Button>
             </div>
@@ -149,18 +149,18 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         </div>
 
         {/* Compact Stats */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="text-center p-2 rounded-lg bg-secondary/30">
-            <div className="text-lg font-bold text-foreground">{referralData.totalReferrals}</div>
-            <div className="text-xs text-muted-foreground">Freunde</div>
+        <div className="grid grid-cols-3 gap-2 lg:gap-3 xl:gap-4">
+          <div className="text-center p-2 lg:p-3 xl:p-4 rounded-lg bg-secondary/30">
+            <div className="text-lg lg:text-xl xl:text-2xl font-bold text-foreground">{referralData.totalReferrals}</div>
+            <div className="text-xs lg:text-sm xl:text-base text-muted-foreground">Freunde</div>
           </div>
-          <div className="text-center p-2 rounded-lg bg-green-50">
-            <div className="text-lg font-bold text-green-600">{referralData.activeReferrals}</div>
-            <div className="text-xs text-green-700">Aktiv</div>
+          <div className="text-center p-2 lg:p-3 xl:p-4 rounded-lg bg-green-50">
+            <div className="text-lg lg:text-xl xl:text-2xl font-bold text-green-600">{referralData.activeReferrals}</div>
+            <div className="text-xs lg:text-sm xl:text-base text-green-700">Aktiv</div>
           </div>
-          <div className="text-center p-2 rounded-lg bg-primary/10">
-            <div className="text-lg font-bold text-primary">{formatCurrency(referralData.bonusEarned)}</div>
-            <div className="text-xs text-primary/70">Verdient</div>
+          <div className="text-center p-2 lg:p-3 xl:p-4 rounded-lg bg-primary/10">
+            <div className="text-lg lg:text-xl xl:text-2xl font-bold text-primary">{formatCurrency(referralData.bonusEarned)}</div>
+            <div className="text-xs lg:text-sm xl:text-base text-primary/70">Verdient</div>
           </div>
         </div>
 
@@ -178,9 +178,9 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
           variant="outline"
           size="sm"
           onClick={() => shareReferral('link')}
-          className="w-full"
+          className="w-full h-10 lg:h-12 xl:h-14 text-sm lg:text-base xl:text-lg"
         >
-          <Share2 className="h-4 w-4 mr-2" />
+          <Share2 className="h-4 w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 mr-2" />
           Code teilen
         </Button>
 

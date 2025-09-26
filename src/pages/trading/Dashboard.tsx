@@ -50,10 +50,10 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground">Trading Dashboard</h1>
-        <p className="text-lg text-muted-foreground">
+    <div className="space-y-8 lg:space-y-10 xl:space-y-12">
+      <div className="flex flex-col gap-3 lg:gap-4 xl:gap-6">
+        <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground">Trading Dashboard</h1>
+        <p className="text-lg lg:text-xl xl:text-2xl text-muted-foreground leading-relaxed">
           Willkommen zurück! Hier ist eine Übersicht über Ihr Trading-Portfolio.
         </p>
       </div>
@@ -61,13 +61,13 @@ export default function Dashboard() {
       <WelcomeCard />
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-32 rounded-lg" />
-          <Skeleton className="h-32 rounded-lg" />
-          <Skeleton className="h-32 rounded-lg" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10">
+          <Skeleton className="h-32 lg:h-40 xl:h-48 rounded-lg" />
+          <Skeleton className="h-32 lg:h-40 xl:h-48 rounded-lg" />
+          <Skeleton className="h-32 lg:h-40 xl:h-48 rounded-lg" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10">
           <AccountBalanceCard 
             balance={data.userBalance} 
             onBalanceUpdate={handleBalanceUpdate}
@@ -80,22 +80,22 @@ export default function Dashboard() {
       )}
 
       {/* Trading Bots Section - Always visible */}
-      <div className="space-y-4">
+      <div className="space-y-4 lg:space-y-6 xl:space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-foreground">Meine Trading-Bots</h2>
-          <span className="text-sm text-muted-foreground">
+          <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">Meine Trading-Bots</h2>
+          <span className="text-sm lg:text-base xl:text-lg text-muted-foreground">
             {data.bots.filter(bot => bot.status === 'active').length} aktive Bots
           </span>
         </div>
         
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Skeleton className="h-80 rounded-lg" />
-            <Skeleton className="h-80 rounded-lg" />
-            <Skeleton className="h-80 rounded-lg" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10">
+            <Skeleton className="h-80 lg:h-96 xl:h-[440px] rounded-lg" />
+            <Skeleton className="h-80 lg:h-96 xl:h-[440px] rounded-lg" />
+            <Skeleton className="h-80 lg:h-96 xl:h-[440px] rounded-lg" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10">
             <CreateBotCard 
               userBalance={data.userBalance}
               onBotCreated={handleBalanceUpdate}
@@ -114,15 +114,15 @@ export default function Dashboard() {
 
       {/* Trading History Section */}
       {!loading && data.bots.filter(bot => bot.status === 'completed').length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-4 lg:space-y-6 xl:space-y-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Trading-Historie</h2>
-            <span className="text-sm text-muted-foreground">
+            <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">Trading-Historie</h2>
+            <span className="text-sm lg:text-base xl:text-lg text-muted-foreground">
               Letzte 3 abgeschlossene Trades
             </span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10">
             {data.bots.filter(bot => bot.status === 'completed').slice(0, 3).map((bot) => (
               <OptimizedBotCard 
                 key={bot.id} 

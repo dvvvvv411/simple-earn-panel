@@ -169,27 +169,27 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
 
   return (
     <Card className={`${className} border-primary/20`}>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-text-headline">
+      <CardHeader className="p-6 lg:p-8 xl:p-10">
+        <CardTitle className="text-lg lg:text-xl xl:text-2xl font-semibold text-text-headline">
           Rang-System
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 lg:space-y-8 xl:space-y-10 p-6 lg:p-8 xl:p-10 pt-0">
         {/* Current Rank */}
-        <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full bg-gradient-to-br ${currentRank.color}`}>
-            <CurrentIcon className="h-6 w-6 text-white" />
+        <div className="flex items-center gap-4 lg:gap-6 xl:gap-8">
+          <div className={`p-3 lg:p-4 xl:p-5 rounded-full bg-gradient-to-br ${currentRank.color}`}>
+            <CurrentIcon className="h-6 w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8 text-white" />
           </div>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge className={`${currentRank.bgColor} ${currentRank.textColor} hover:${currentRank.bgColor}`}>
+            <div className="flex items-center gap-2 lg:gap-3 mb-1 lg:mb-2">
+              <Badge className={`${currentRank.bgColor} ${currentRank.textColor} hover:${currentRank.bgColor} text-sm lg:text-base xl:text-lg px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 xl:py-2`}>
                 {currentRank.name}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm lg:text-base xl:text-lg text-muted-foreground leading-relaxed">
               {currentRank.dailyTrades} Trade{currentRank.dailyTrades !== 1 ? 's' : ''} pro Tag verfügbar
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs lg:text-sm xl:text-base text-muted-foreground mt-1 lg:mt-2 leading-relaxed">
               Gesamtvermögen: {formatCurrency(balance)} + {formatCurrency(investedAmount)} = {formatCurrency(totalWealth)}
             </p>
           </div>
@@ -238,7 +238,7 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
         {/* Show All Ranks Button */}
         <Button 
           onClick={() => setDialogOpen(true)}
-          className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+          className="w-full mt-4 lg:mt-6 xl:mt-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10 lg:h-12 xl:h-14 text-sm lg:text-base xl:text-lg"
         >
           Alle Ränge anzeigen
         </Button>
