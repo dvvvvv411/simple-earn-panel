@@ -3,7 +3,6 @@ import { AccountBalanceCard } from "@/components/trading/wallet/AccountBalanceCa
 import { RankingSystemCard } from "@/components/trading/wallet/RankingSystemCard";
 import { TransactionHistoryCard } from "@/components/trading/wallet/TransactionHistoryCard";
 import { ReferralSystemCard } from "@/components/trading/wallet/ReferralSystemCard";
-import { WalletStatisticsCard } from "@/components/trading/wallet/WalletStatisticsCard";
 
 export default function Wallet() {
   return (
@@ -19,12 +18,11 @@ export default function Wallet() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Row - Account Balance & Ranking */}
-        <AccountBalanceCard />
-        <RankingSystemCard />
+        <AccountBalanceCard className="h-fit" />
+        <RankingSystemCard className="h-fit" />
         
-        {/* Middle Row - Referral & Statistics */}
-        <ReferralSystemCard />
-        <WalletStatisticsCard />
+        {/* Middle Row - Referral System */}
+        <ReferralSystemCard className="h-fit lg:col-span-2" />
         
         {/* Bottom Row - Transaction History (Full Width) */}
         <div className="lg:col-span-2">

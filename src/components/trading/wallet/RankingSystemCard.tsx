@@ -219,12 +219,10 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
           </div>
         </div>
 
-        {/* All Ranks Overview */}
-        <details className="group">
-          <summary className="text-xs text-primary cursor-pointer hover:text-primary/80 transition-colors">
-            Alle Ränge anzeigen
-          </summary>
-          <div className="mt-3 space-y-2">
+        {/* All Ranks Overview - Always Expanded */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold text-text-headline">Alle Ränge</h4>
+          <div className="space-y-2">
             {rankingTiers.map((tier) => {
               const TierIcon = tier.icon;
               const isCurrentTier = tier.name === currentRank.name;
@@ -249,7 +247,7 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
               );
             })}
           </div>
-        </details>
+        </div>
       </CardContent>
     </Card>
   );
