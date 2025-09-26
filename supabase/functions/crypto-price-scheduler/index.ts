@@ -45,17 +45,17 @@ serve(async (req) => {
 
     // Fetch data from CoinMarketCap
     console.log('📊 Fetching crypto data from CoinMarketCap...');
-    const response = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
+    const url = new URL('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest');
+    url.searchParams.set('start', '1');
+    url.searchParams.set('limit', '10');
+    url.searchParams.set('convert', 'EUR');
+
+    const response = await fetch(url.toString(), {
       method: 'GET',
       headers: {
         'X-CMC_PRO_API_KEY': apiKey,
         'Accept': 'application/json',
-      },
-      params: new URLSearchParams({
-        start: '1',
-        limit: '10',
-        convert: 'EUR'
-      })
+      }
     });
 
     if (!response.ok) {
@@ -105,10 +105,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('❌ Crypto price scheduler error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: errorMessage
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -191,47 +191,51 @@ const SupportTicketDetail: React.FC = () => {
                       </div>
                     </div>
                   )}
-                <>
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.is_admin_message ? 'justify-start' : 'justify-end'} group`}
-                    >
-                      <div className={`max-w-[80%] sm:max-w-[70%]`}>
-                        <div className={`flex items-center gap-2 mb-2 ${message.is_admin_message ? 'justify-start' : 'justify-end'}`}>
-                          {message.is_admin_message ? (
-                            <>
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Crown className="h-4 w-4 text-primary" />
-                              </div>
-                              <span className="text-sm font-semibold text-primary">Support Team</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-sm font-medium text-foreground">Sie</span>
-                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            </>
-                          )}
-                        </div>
+                  {/* Regular messages */}
+                  {messages.length > 0 && (
+                    <>
+                      {messages.map((message) => (
                         <div
-                          className={`relative p-4 rounded-2xl shadow-sm border transition-all duration-200 ${
-                            message.is_admin_message
-                              ? 'bg-card border-border rounded-tl-md'
-                              : 'bg-primary/5 border-primary/20 rounded-tr-md'
-                          }`}
+                          key={message.id}
+                          className={`flex ${message.is_admin_message ? 'justify-start' : 'justify-end'} group`}
                         >
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.message}</p>
-                          <div className={`mt-2 flex ${message.is_admin_message ? 'justify-start' : 'justify-end'}`}>
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(message.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
-                            </span>
+                          <div className={`max-w-[80%] sm:max-w-[70%]`}>
+                            <div className={`flex items-center gap-2 mb-2 ${message.is_admin_message ? 'justify-start' : 'justify-end'}`}>
+                              {message.is_admin_message ? (
+                                <>
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <Crown className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <span className="text-sm font-semibold text-primary">Support Team</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-sm font-medium text-foreground">Sie</span>
+                                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            <div
+                              className={`relative p-4 rounded-2xl shadow-sm border transition-all duration-200 ${
+                                message.is_admin_message
+                                  ? 'bg-card border-border rounded-tl-md'
+                                  : 'bg-primary/5 border-primary/20 rounded-tr-md'
+                              }`}
+                            >
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.message}</p>
+                              <div className={`mt-2 flex ${message.is_admin_message ? 'justify-start' : 'justify-end'}`}>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(message.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      ))}
+                    </>
+                  )}
                 </>
               )}
               <div ref={messagesEndRef} />

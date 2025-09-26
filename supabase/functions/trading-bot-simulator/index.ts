@@ -47,8 +47,11 @@ serve(async (req) => {
 
     // Start background trading simulation
     console.log('⏳ Starting background trading loop...');
-    EdgeRuntime.waitUntil(startTradingLoop(bot_id, current_price));
-    console.log('✅ Background task registered with EdgeRuntime.waitUntil');
+    // Note: Background processing without EdgeRuntime.waitUntil
+    startTradingLoop(bot_id, current_price).catch(error => {
+      console.error('❌ Background trading loop error:', error);
+    });
+    console.log('✅ Background task started');
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -61,10 +64,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('💥 Critical error in trading-bot-simulator:', error);
-    console.error('🔍 Error stack:', error.stack);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('🔍 Error stack:', errorStack);
     return new Response(JSON.stringify({ 
-      error: error.message,
-      stack: error.stack,
+      error: errorMessage,
+      stack: errorStack,
       timestamp: new Date().toISOString()
     }), {
       status: 500,
