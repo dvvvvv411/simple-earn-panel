@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { User, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RankingOverviewDialog } from "./RankingOverviewDialog";
 
 const rankingTiers = [
   {
@@ -76,6 +78,7 @@ interface RankingSystemCardProps {
 export function RankingSystemCard({ className }: RankingSystemCardProps) {
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     loadBalance();
@@ -218,7 +221,21 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
             </p>
           </div>
         )}
+
+        {/* Show All Ranks Button */}
+        <Button 
+          onClick={() => setDialogOpen(true)}
+          className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+        >
+          Alle Ränge anzeigen
+        </Button>
       </CardContent>
+
+      <RankingOverviewDialog 
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        currentBalance={balance}
+      />
     </Card>
   );
 }
