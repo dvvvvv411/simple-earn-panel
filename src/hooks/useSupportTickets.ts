@@ -141,15 +141,15 @@ export function useSupportTickets() {
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setMessages((data || []) as SupportTicketMessage[]);
+      if (error) {
+        console.error('Supabase error:', error);
+        setMessages([]);
+      } else {
+        setMessages((data || []) as SupportTicketMessage[]);
+      }
     } catch (error) {
       console.error('Error loading messages:', error);
-      toast({
-        title: "Fehler",
-        description: "Nachrichten konnten nicht geladen werden.",
-        variant: "destructive",
-      });
+      setMessages([]);
     } finally {
       setMessagesLoading(false);
     }

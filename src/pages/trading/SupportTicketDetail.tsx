@@ -29,15 +29,15 @@ const getStatusConfig = (status: string) => {
 const getPriorityConfig = (priority: string) => {
   switch (priority) {
     case 'low':
-      return { label: 'Niedrig', className: 'bg-green-100 text-green-800' };
+      return { label: 'Niedrig', variant: 'secondary' as const };
     case 'medium':
-      return { label: 'Mittel', className: 'bg-yellow-100 text-yellow-800' };
+      return { label: 'Mittel', variant: 'outline' as const };
     case 'high':
-      return { label: 'Hoch', className: 'bg-orange-100 text-orange-800' };
+      return { label: 'Hoch', variant: 'destructive' as const };
     case 'urgent':
-      return { label: 'Dringend', className: 'bg-red-100 text-red-800' };
+      return { label: 'Dringend', variant: 'destructive' as const };
     default:
-      return { label: priority, className: 'bg-gray-100 text-gray-800' };
+      return { label: priority, variant: 'secondary' as const };
   }
 };
 
@@ -126,7 +126,7 @@ const SupportTicketDetail: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-          <Badge className={priorityConfig.className}>{priorityConfig.label}</Badge>
+          <Badge variant={priorityConfig.variant}>{priorityConfig.label}</Badge>
           <span className="text-sm text-muted-foreground">
             Erstellt am {format(new Date(ticket.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
           </span>
@@ -140,66 +140,77 @@ const SupportTicketDetail: React.FC = () => {
         </CardHeader>
         <CardContent className="flex-1 flex flex-col min-h-0 p-6">
           {/* Original ticket message */}
-          <div className="mb-4 p-4 bg-muted rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="h-4 w-4" />
-              <span className="font-medium">Sie</span>
-              <span className="text-sm text-muted-foreground">
-                {format(new Date(ticket.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
-              </span>
+          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">Ursprüngliche Anfrage</span>
+                <div className="text-xs text-muted-foreground">
+                  {format(new Date(ticket.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
+                </div>
+              </div>
             </div>
-            <p className="text-sm">{ticket.message}</p>
+            <p className="text-sm leading-relaxed pl-11">{ticket.message}</p>
           </div>
 
           {/* Messages */}
           <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-4">
+            <div className="space-y-6">
               {messagesLoading ? (
-                <div className="space-y-3">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                      <div className="max-w-[70%]">
-                        <Skeleton className="h-4 w-20 mb-2" />
-                        <Skeleton className="h-16 w-full" />
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Noch keine Nachrichten in diesem Ticket.</p>
+                  <p className="text-sm">Senden Sie eine Nachricht, um die Unterhaltung zu beginnen.</p>
+                </div>
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.is_admin_message ? 'justify-start' : 'justify-end'} group`}
+                    >
+                      <div className={`max-w-[80%] sm:max-w-[70%]`}>
+                        <div className={`flex items-center gap-2 mb-2 ${message.is_admin_message ? 'justify-start' : 'justify-end'}`}>
+                          {message.is_admin_message ? (
+                            <>
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Crown className="h-4 w-4 text-primary" />
+                              </div>
+                              <span className="text-sm font-semibold text-primary">Support Team</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-sm font-medium text-foreground">Sie</span>
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div
+                          className={`relative p-4 rounded-2xl shadow-sm border transition-all duration-200 ${
+                            message.is_admin_message
+                              ? 'bg-card border-border rounded-tl-md'
+                              : 'bg-primary/5 border-primary/20 rounded-tr-md'
+                          }`}
+                        >
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.message}</p>
+                          <div className={`mt-2 flex ${message.is_admin_message ? 'justify-start' : 'justify-end'}`}>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(message.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.is_admin_message ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div className={`max-w-[70%] ${message.is_admin_message ? 'order-1' : 'order-2'}`}>
-                      <div className="flex items-center gap-2 mb-1">
-                        {message.is_admin_message ? (
-                          <>
-                            <Crown className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-medium text-primary">Support Team</span>
-                          </>
-                        ) : (
-                          <>
-                            <User className="h-4 w-4" />
-                            <span className="text-sm font-medium">Sie</span>
-                          </>
-                        )}
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(message.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
-                        </span>
-                      </div>
-                      <div
-                        className={`p-3 rounded-lg text-sm ${
-                          message.is_admin_message
-                            ? 'bg-primary/10 border border-primary/20'
-                            : 'bg-muted'
-                        }`}
-                      >
-                        {message.message}
-                      </div>
-                    </div>
-                  </div>
-                ))
+                </>
               )}
               <div ref={messagesEndRef} />
             </div>
