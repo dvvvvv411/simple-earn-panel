@@ -75,28 +75,28 @@ export function TradingSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-sidebar-border bg-sidebar lg:w-80 xl:w-96">
-      <SidebarHeader className="border-b border-sidebar-border p-6 lg:p-8">
-        <div className="flex items-center gap-3 lg:gap-4">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar">
+      <SidebarHeader className="border-b border-sidebar-border p-6">
+        <div className="flex items-center gap-3">
           {logoUrl ? (
             <img 
               src={logoUrl} 
               alt={branding?.name || "Logo"} 
-              className="h-10 lg:h-12 xl:h-14 w-auto max-w-[120px] lg:max-w-[140px] object-contain"
+              className="h-10 w-auto max-w-[120px] object-contain"
             />
           ) : (
-            <div className="flex h-10 lg:h-12 xl:h-14 w-10 lg:w-12 xl:w-14 items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
-              <span className="text-lg lg:text-xl xl:text-2xl font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
+              <span className="text-lg font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
                 {branding?.name?.charAt(0) || "T"}
               </span>
             </div>
           )}
           {!collapsed && (
             <div className="flex flex-col">
-              <h2 className="text-lg lg:text-xl xl:text-2xl font-semibold text-sidebar-foreground">
+              <h2 className="text-lg font-semibold text-sidebar-foreground">
                 {branding?.name || "Trading Dashboard"}
               </h2>
-              <p className="text-xs lg:text-sm xl:text-base text-sidebar-foreground/60">Krypto Trading</p>
+              <p className="text-xs text-sidebar-foreground/60">Krypto Trading</p>
             </div>
           )}
         </div>
@@ -104,11 +104,11 @@ export function TradingSidebar() {
 
       <SidebarContent className="bg-sidebar">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs lg:text-sm xl:text-base font-medium text-sidebar-foreground/60 px-4 lg:px-6 py-4 lg:py-6 mt-2">
+          <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/60 px-4 py-4 mt-2">
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-2">
-            <SidebarMenu className="space-y-1 lg:space-y-2">
+            <SidebarMenu className="space-y-1">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
@@ -116,7 +116,7 @@ export function TradingSidebar() {
                       to={item.url}
                       end={item.url === "/kryptotrading"}
                       className={({ isActive }) => 
-                        `flex items-center gap-4 lg:gap-6 px-4 lg:px-6 py-3 lg:py-4 xl:py-5 text-base lg:text-lg xl:text-xl font-medium rounded-lg transition-all duration-200 mx-2 lg:mx-3 ${
+                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
                           isActive 
                             ? 'bg-primary/10 text-primary border-l-4 border-primary' 
                             : 'hover:bg-accent/50 text-muted-foreground'
@@ -125,9 +125,9 @@ export function TradingSidebar() {
                     >
                       {({ isActive }) => (
                         <>
-                          <item.icon className={`h-5 w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                           {!collapsed && (
-                            <span className={`leading-relaxed ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                            <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
                               {item.title}
                             </span>
                           )}
@@ -142,20 +142,20 @@ export function TradingSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4 lg:p-6">
+      <SidebarFooter className="border-t border-sidebar-border p-4">
         {userEmail && !collapsed && (
-          <div className="flex items-center gap-3 lg:gap-4 mb-4 lg:mb-6 p-3 lg:p-4 rounded-lg bg-sidebar-accent">
-            <Avatar className="h-8 w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12">
+          <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-sidebar-accent">
+            <Avatar className="h-8 w-8">
               <AvatarImage src="" />
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-sm xl:text-base">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                 {userEmail.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm lg:text-base xl:text-lg font-medium text-sidebar-accent-foreground truncate">
+              <span className="text-sm font-medium text-sidebar-accent-foreground truncate">
                 {userEmail}
               </span>
-              <span className="text-xs lg:text-sm xl:text-base text-sidebar-accent-foreground/60">
+              <span className="text-xs text-sidebar-accent-foreground/60">
                 Trader
               </span>
             </div>
@@ -164,10 +164,10 @@ export function TradingSidebar() {
         
         <SidebarMenuButton 
           onClick={handleLogout}
-          className="w-full flex items-center gap-4 lg:gap-6 px-4 lg:px-6 py-3 lg:py-4 xl:py-5 text-base lg:text-lg xl:text-xl font-medium rounded-lg text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+          className="w-full flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
         >
-          <LogOut className="h-5 w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7 shrink-0 text-destructive" />
-          {!collapsed && <span className="leading-relaxed">Logout</span>}
+          <LogOut className="h-5 w-5 shrink-0 text-destructive" />
+          {!collapsed && <span>Logout</span>}
         </SidebarMenuButton>
       </SidebarFooter>
       

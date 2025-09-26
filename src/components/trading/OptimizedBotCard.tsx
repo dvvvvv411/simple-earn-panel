@@ -160,33 +160,33 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           {localBot.symbol.slice(0, 2).toUpperCase()}
         </div>
       </div>
-      <CardHeader className="pb-3 lg:pb-4 xl:pb-6 p-6 lg:p-8 xl:p-10">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 lg:gap-3">
-            <Bot className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-primary" />
-            <CardTitle className="text-base lg:text-lg xl:text-xl">{localBot.cryptocurrency}</CardTitle>
-            <Badge variant="outline" className="text-xs lg:text-sm xl:text-base">
+          <div className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-primary" />
+            <CardTitle className="text-base">{localBot.cryptocurrency}</CardTitle>
+            <Badge variant="outline" className="text-xs">
               {localBot.symbol}
             </Badge>
           </div>
           
-          <div className="flex items-center gap-3 lg:gap-4">
-            <div className="flex items-center gap-2 lg:gap-3 status-indicator">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 status-indicator">
               {localBot.status === 'completed' ? (
                 <>
-                  <div className="w-2 h-2 lg:w-3 lg:h-3 xl:w-4 xl:h-4 rounded-full bg-blue-500" />
-                  <span className="text-sm lg:text-base xl:text-lg font-medium text-blue-600">Abgeschlossen</span>
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="text-sm font-medium text-blue-600">Abgeschlossen</span>
                 </>
               ) : (
                 <>
-                  <div className="w-2 h-2 lg:w-3 lg:h-3 xl:w-4 xl:h-4 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm lg:text-base xl:text-lg font-medium text-green-600">Aktiv</span>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm font-medium text-green-600">Aktiv</span>
                 </>
               )}
             </div>
-            <div className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm xl:text-base text-muted-foreground">
-              <Clock className="w-3 h-3 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
-              <span className="leading-relaxed">{localBot.status === 'completed' ? 'Abgeschlossen nach:' : 'Läuft seit:'} {runtime}</span>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              <span>{localBot.status === 'completed' ? 'Abgeschlossen nach:' : 'Läuft seit:'} {runtime}</span>
             </div>
           </div>
         </div>
@@ -206,18 +206,18 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
         )}
       </CardHeader>
 
-      <CardContent className="space-y-4 lg:space-y-6 xl:space-y-8 p-6 lg:p-8 xl:p-10 pt-0">
+      <CardContent className="space-y-4">
         {/* Performance Overview */}
-        <div className="grid grid-cols-2 gap-4 lg:gap-6 xl:gap-8">
-          <div className="space-y-1 lg:space-y-2">
-            <p className="text-xs lg:text-sm xl:text-base text-muted-foreground">Startbetrag</p>
-            <p className="font-semibold text-sm lg:text-base xl:text-lg">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Startbetrag</p>
+            <p className="font-semibold">
               {localBot.start_amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
             </p>
           </div>
-          <div className="space-y-1 lg:space-y-2">
-            <p className="text-xs lg:text-sm xl:text-base text-muted-foreground">Aktueller Wert</p>
-            <p className="font-semibold text-sm lg:text-base xl:text-lg">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Aktueller Wert</p>
+            <p className="font-semibold">
               {localBot.current_balance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
             </p>
           </div>

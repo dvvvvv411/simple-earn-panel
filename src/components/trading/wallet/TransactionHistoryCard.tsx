@@ -154,18 +154,18 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
 
   return (
     <Card className={className}>
-      <CardHeader className="p-6 lg:p-8 xl:p-10">
+      <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg lg:text-xl xl:text-2xl font-semibold text-text-headline">
+          <CardTitle className="text-lg font-semibold text-text-headline">
             Transaktionsverlauf
           </CardTitle>
-          <Button variant="outline" size="sm" className="h-9 lg:h-11 xl:h-13 text-sm lg:text-base xl:text-lg px-3 lg:px-4 xl:px-6">
-            <Download className="h-4 w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 mr-2" />
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
             CSV Export
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 lg:space-y-8 xl:space-y-10 p-6 lg:p-8 xl:p-10 pt-0">
+      <CardContent className="space-y-6">
         {/* Filter Buttons */}
         <div className="flex flex-wrap gap-2">
           {filterButtons.map((button) => {
