@@ -124,90 +124,56 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Referral Code Section */}
+        {/* Referral Code - Compact */}
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Ihr Referral-Code</div>
-              <code className="bg-background px-3 py-1.5 rounded font-mono text-sm font-bold text-primary border">
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground mb-1">Referral-Code</div>
+            <div className="flex items-center justify-center gap-2">
+              <code className="bg-background px-2 py-1 rounded font-mono text-sm font-bold text-primary">
                 {referralData.referralCode}
               </code>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={copyReferralCode}
-              className="shrink-0"
-            >
-              {copied ? (
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 rounded-lg bg-secondary/30">
-            <div className="text-lg font-bold text-foreground">
-              {referralData.totalReferrals}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Freunde
-            </div>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
-            <div className="text-lg font-bold text-green-600">
-              {referralData.activeReferrals}
-            </div>
-            <div className="text-xs text-green-700">
-              Aktiv
-            </div>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-primary/10 border border-primary/20">
-            <div className="text-lg font-bold text-primary">
-              {formatCurrency(referralData.bonusEarned)}
-            </div>
-            <div className="text-xs text-primary/70">
-              Verdient
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={copyReferralCode}
+                className="h-8 w-8 p-0"
+              >
+                {copied ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Pending Bonus */}
+        {/* Compact Stats */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="text-center p-2 rounded-lg bg-secondary/30">
+            <div className="text-lg font-bold text-foreground">{referralData.totalReferrals}</div>
+            <div className="text-xs text-muted-foreground">Freunde</div>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-green-50">
+            <div className="text-lg font-bold text-green-600">{referralData.activeReferrals}</div>
+            <div className="text-xs text-green-700">Aktiv</div>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-primary/10">
+            <div className="text-lg font-bold text-primary">{formatCurrency(referralData.bonusEarned)}</div>
+            <div className="text-xs text-primary/70">Verdient</div>
+          </div>
+        </div>
+
+        {/* Pending Bonus - If exists */}
         {referralData.pendingBonus > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+          <div className="bg-yellow-50 rounded-lg p-2 text-center">
             <div className="text-sm font-medium text-yellow-800">
               {formatCurrency(referralData.pendingBonus)} ausstehend
-            </div>
-            <div className="text-xs text-yellow-600">
-              Wird bei nächster Auszahlung gutgeschrieben
             </div>
           </div>
         )}
 
-        {/* Quick Share Actions */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => shareReferral('whatsapp')}
-            className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-          >
-            WhatsApp
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => shareReferral('email')}
-            className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-          >
-            E-Mail
-          </Button>
-        </div>
-
+        {/* Single Share Button */}
         <Button
           variant="outline"
           size="sm"
@@ -215,31 +181,23 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
           className="w-full"
         >
           <Share2 className="h-4 w-4 mr-2" />
-          Link kopieren
+          Code teilen
         </Button>
 
-        {/* Compact Bonus Info */}
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 border border-yellow-200">
-          <div className="flex items-center gap-2 mb-2">
-            <Gift className="h-4 w-4 text-yellow-600" />
-            <span className="text-xs font-medium text-yellow-800">Belohnungen</span>
-          </div>
-          <div className="text-xs text-yellow-700 grid grid-cols-2 gap-1">
-            <div>€25 pro Registrierung</div>
-            <div>€25 pro aktiven Trader</div>
-            <div>€50 bei 5 Freunden</div>
-            <div>€100 bei 10 Freunden</div>
+        {/* Compact Reward Info */}
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <Gift className="h-4 w-4 text-yellow-600" />
+              <span className="text-xs font-medium text-yellow-800">€25 pro Freund</span>
+            </div>
+            {referralData.totalReferrals < 5 && (
+              <span className="text-xs text-muted-foreground">
+                {5 - referralData.totalReferrals} bis €50 Bonus
+              </span>
+            )}
           </div>
         </div>
-
-        {/* Progress to Next Reward */}
-        {referralData.totalReferrals < 5 && (
-          <div className="text-center p-2 bg-secondary/20 rounded-lg">
-            <div className="text-xs text-muted-foreground">
-              Noch <span className="font-medium text-primary">{5 - referralData.totalReferrals} Freunde</span> bis €50 Bonus
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

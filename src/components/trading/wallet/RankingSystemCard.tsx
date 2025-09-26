@@ -198,56 +198,26 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
           </div>
         )}
 
-        {/* Rank Benefits Preview */}
-        <div className="bg-secondary/30 rounded-lg p-4 space-y-3">
-          <h4 className="text-sm font-semibold text-text-headline">Rang-Vorteile</h4>
-          <div className="grid grid-cols-1 gap-2">
-            {nextRank && (
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Nächster Rang ({nextRank.name}):</span>
-                <span className="font-medium text-primary">
-                  {nextRank.dailyTrades} Trades/Tag
-                </span>
-              </div>
-            )}
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Aktuell ({currentRank.name}):</span>
-              <span className="font-medium">
-                {currentRank.dailyTrades} Trade{currentRank.dailyTrades !== 1 ? 's' : ''}/Tag
+        {/* Compact Next Rank Info */}
+        {nextRank && (
+          <div className="bg-secondary/30 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-headline">Nächster Rang</span>
+              <span className="text-xs text-muted-foreground">
+                {Math.min(progressPercentage, 100).toFixed(0)}%
               </span>
             </div>
+            <div className="flex items-center gap-2 text-xs">
+              <nextRank.icon className="h-4 w-4 text-primary" />
+              <span className="font-medium text-primary">{nextRank.name}</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground">{nextRank.dailyTrades} Trades/Tag</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Noch {formatCurrency(amountToNextRank)}
+            </p>
           </div>
-        </div>
-
-        {/* All Ranks Overview - Always Expanded */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-text-headline">Alle Ränge</h4>
-          <div className="space-y-2">
-            {rankingTiers.map((tier) => {
-              const TierIcon = tier.icon;
-              const isCurrentTier = tier.name === currentRank.name;
-              return (
-                <div 
-                  key={tier.name}
-                  className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                    isCurrentTier ? 'bg-primary/10 border border-primary/20' : 'hover:bg-secondary/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <TierIcon className={`h-4 w-4 ${isCurrentTier ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-xs font-medium ${isCurrentTier ? 'text-primary' : 'text-foreground'}`}>
-                      {tier.name}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{formatCurrency(tier.minBalance)}+</span>
-                    <span className="font-medium">{tier.dailyTrades} Trades</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

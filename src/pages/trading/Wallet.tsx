@@ -16,18 +16,16 @@ export default function Wallet() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Row - Account Balance & Ranking */}
-        <AccountBalanceCard className="h-fit" />
-        <RankingSystemCard className="h-fit" />
-        
-        {/* Middle Row - Referral System */}
-        <ReferralSystemCard className="h-fit lg:col-span-2" />
+      <div className="space-y-6">
+        {/* Top Row - 3 Equal Building Block Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <AccountBalanceCard className="min-h-[280px]" />
+          <RankingSystemCard className="min-h-[280px]" />
+          <ReferralSystemCard className="min-h-[280px]" />
+        </div>
         
         {/* Bottom Row - Transaction History (Full Width) */}
-        <div className="lg:col-span-2">
-          <TransactionHistoryCard />
-        </div>
+        <TransactionHistoryCard />
       </div>
     </div>
   );
