@@ -7,6 +7,7 @@ import { User, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RankingOverviewDialog } from "./RankingOverviewDialog";
+import { useTradingBots } from "@/hooks/useTradingBots";
 
 const rankingTiers = [
   {
@@ -79,6 +80,7 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { bots, loading: botsLoading } = useTradingBots();
 
   useEffect(() => {
     loadBalance();
@@ -105,9 +107,17 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
     }
   };
 
+  // Calculate invested amount from active bots
+  const investedAmount = bots
+    .filter(bot => bot.status === 'active')
+    .reduce((sum, bot) => sum + (bot.start_amount || 0), 0);
+
+  // Calculate total wealth (available balance + invested amount)
+  const totalWealth = balance + investedAmount;
+
   const getCurrentRank = () => {
     return rankingTiers.find(tier => 
-      balance >= tier.minBalance && balance <= tier.maxBalance
+      totalWealth >= tier.minBalance && totalWealth <= tier.maxBalance
     ) || rankingTiers[0];
   };
 
@@ -125,7 +135,7 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
     }).format(amount);
   };
 
-  if (loading) {
+  if (loading || botsLoading) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -152,10 +162,10 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
   
   // Calculate progress to next rank
   const progressPercentage = nextRank 
-    ? ((balance - currentRank.minBalance) / (nextRank.minBalance - currentRank.minBalance)) * 100
+    ? ((totalWealth - currentRank.minBalance) / (nextRank.minBalance - currentRank.minBalance)) * 100
     : 100;
 
-  const amountToNextRank = nextRank ? nextRank.minBalance - balance : 0;
+  const amountToNextRank = nextRank ? nextRank.minBalance - totalWealth : 0;
 
   return (
     <Card className={`${className} border-primary/20`}>
@@ -178,6 +188,9 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
             </div>
             <p className="text-sm text-muted-foreground">
               {currentRank.dailyTrades} Trade{currentRank.dailyTrades !== 1 ? 's' : ''} pro Tag verfügbar
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Gesamtvermögen: {formatCurrency(balance)} + {formatCurrency(investedAmount)} = {formatCurrency(totalWealth)}
             </p>
           </div>
         </div>
@@ -234,7 +247,7 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
       <RankingOverviewDialog 
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        currentBalance={balance}
+        currentBalance={totalWealth}
       />
     </Card>
   );
