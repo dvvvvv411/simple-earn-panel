@@ -13,7 +13,7 @@ import {
 import { SupportTicket, useSupportTickets } from "@/hooks/useSupportTickets";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
-import { ArrowLeft, Send, MessageSquare, User, Calendar, Tag, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Send, MessageSquare, User, Calendar, Tag, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface AdminTicketDetailProps {
   ticket: SupportTicket;
@@ -25,6 +25,7 @@ export const AdminTicketDetail: React.FC<AdminTicketDetailProps> = ({ ticket, on
   const [response, setResponse] = useState("");
   const [newStatus, setNewStatus] = useState(ticket.status);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const handleSubmit = async () => {
     if (!response.trim() && newStatus === ticket.status) return;
@@ -41,6 +42,15 @@ export const AdminTicketDetail: React.FC<AdminTicketDetailProps> = ({ ticket, on
       onBack();
     }
     setIsSubmitting(false);
+  };
+
+  const handleCloseTicket = async () => {
+    setIsClosing(true);
+    const success = await updateTicketStatus(ticket.id, 'closed');
+    if (success) {
+      onBack();
+    }
+    setIsClosing(false);
   };
 
   const getStatusConfig = (status: string) => {
@@ -78,12 +88,30 @@ export const AdminTicketDetail: React.FC<AdminTicketDetailProps> = ({ ticket, on
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Zurück zur Liste
-        </Button>
-        <h1 className="text-2xl font-bold">Ticket Details</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Zurück zur Liste
+          </Button>
+          <h1 className="text-2xl font-bold">Ticket Details</h1>
+        </div>
+        {ticket.status !== 'closed' && (
+          <Button 
+            variant="secondary" 
+            onClick={handleCloseTicket}
+            disabled={isClosing}
+          >
+            {isClosing ? (
+              "Wird geschlossen..."
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Als abgeschlossen markieren
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

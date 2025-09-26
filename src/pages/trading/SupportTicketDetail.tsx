@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
-import { Send, MessageCircle, User, Crown, ArrowLeft } from "lucide-react";
+import { Send, MessageCircle, User, Crown, ArrowLeft, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -46,7 +46,8 @@ const SupportTicketDetail: React.FC = () => {
   const navigate = useNavigate();
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const { tickets, messages, messagesLoading, loadTicketMessages, addTicketMessage } = useSupportTickets();
+  const [isClosing, setIsClosing] = useState(false);
+  const { tickets, messages, messagesLoading, loadTicketMessages, addTicketMessage, updateTicketStatus } = useSupportTickets();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const ticket = tickets.find(t => t.id === ticketId);
@@ -83,6 +84,17 @@ const SupportTicketDetail: React.FC = () => {
     }
   };
 
+  const handleCloseTicket = async () => {
+    if (!ticketId) return;
+    
+    setIsClosing(true);
+    const success = await updateTicketStatus(ticketId, 'closed');
+    if (success) {
+      navigate('/kryptotrading/support');
+    }
+    setIsClosing(false);
+  };
+
   if (!ticket) {
     return (
       <div className="space-y-6 p-6">
@@ -111,7 +123,7 @@ const SupportTicketDetail: React.FC = () => {
   return (
     <div className="space-y-6 p-6">
       {/* Header with back button */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
         <Button
           variant="ghost"
           onClick={() => navigate('/kryptotrading/support')}
@@ -120,6 +132,22 @@ const SupportTicketDetail: React.FC = () => {
           <ArrowLeft className="h-4 w-4" />
           Zurück zum Support
         </Button>
+        {ticket.status !== 'closed' && (
+          <Button 
+            variant="outline" 
+            onClick={handleCloseTicket}
+            disabled={isClosing}
+          >
+            {isClosing ? (
+              "Wird geschlossen..."
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Als abgeschlossen markieren
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Ticket header */}
