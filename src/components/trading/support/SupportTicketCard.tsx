@@ -8,9 +8,10 @@ import { MessageSquare, Clock, AlertCircle, CheckCircle, XCircle } from "lucide-
 
 interface SupportTicketCardProps {
   ticket: SupportTicket;
+  onClick?: () => void;
 }
 
-export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) => {
+export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket, onClick }) => {
   const getStatusConfig = (status: SupportTicket['status']) => {
     const configs = {
       open: {
@@ -62,7 +63,7 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) 
   const StatusIcon = statusConfig.icon;
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <CardContent className="p-4">
         <div className="space-y-3">
           <div className="flex items-start justify-between">
@@ -97,14 +98,13 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) 
             </span>
           </div>
 
-          {ticket.admin_response && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-3">
-              <p className="text-xs font-medium text-green-800 mb-1">
-                Antwort vom Support:
-              </p>
-              <p className="text-xs text-green-700">{ticket.admin_response}</p>
+          {/* Click to view hint */}
+          <div className="border-t border-border pt-2">
+            <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
+              <MessageSquare className="h-3 w-3" />
+              <span>Klicken Sie hier, um die Konversation zu öffnen</span>
             </div>
-          )}
+          </div>
         </div>
       </CardContent>
     </Card>

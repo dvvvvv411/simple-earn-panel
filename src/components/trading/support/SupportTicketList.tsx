@@ -1,13 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
 import { SupportTicketCard } from "./SupportTicketCard";
+import { SupportTicketDetailDialog } from "./SupportTicketDetailDialog";
 import { Inbox, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SupportTicket } from "@/hooks/useSupportTickets";
 
 export const SupportTicketList: React.FC = () => {
   const { tickets, loading, refetch } = useSupportTickets();
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleTicketClick = (ticket: SupportTicket) => {
+    setSelectedTicket(ticket);
+    setDialogOpen(true);
+  };
 
   if (loading) {
     return (
@@ -53,10 +62,20 @@ export const SupportTicketList: React.FC = () => {
       ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {userTickets.map((ticket) => (
-            <SupportTicketCard key={ticket.id} ticket={ticket} />
+            <SupportTicketCard 
+              key={ticket.id} 
+              ticket={ticket} 
+              onClick={() => handleTicketClick(ticket)}
+            />
           ))}
         </div>
       )}
+
+      <SupportTicketDetailDialog
+        ticket={selectedTicket}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 };

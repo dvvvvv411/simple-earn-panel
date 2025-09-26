@@ -17,6 +17,16 @@ export interface SupportTicket {
   resolved_at?: string;
 }
 
+export interface SupportTicketMessage {
+  id: string;
+  ticket_id: string;
+  user_id: string;
+  message: string;
+  is_admin_message: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CreateTicketData {
   subject: string;
   message: string;
@@ -26,7 +36,9 @@ export interface CreateTicketData {
 
 export function useSupportTickets() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [messages, setMessages] = useState<SupportTicketMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const { toast } = useToast();
 
   const loadTickets = async () => {
@@ -123,8 +135,8 @@ export function useSupportTickets() {
   useEffect(() => {
     loadTickets();
 
-    // Real-time updates
-    const channel = supabase
+    // Real-time updates for tickets
+    const ticketsChannel = supabase
       .channel('support_tickets_changes')
       .on(
         'postgres_changes',
@@ -139,16 +151,97 @@ export function useSupportTickets() {
       )
       .subscribe();
 
+    // Real-time updates for messages
+    const messagesChannel = supabase
+      .channel('support_ticket_messages_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_ticket_messages'
+        },
+        (payload) => {
+          if (payload.new && payload.eventType === 'INSERT') {
+            const newMessage = payload.new as SupportTicketMessage;
+            setMessages(prev => [...prev, newMessage]);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(ticketsChannel);
+      supabase.removeChannel(messagesChannel);
     };
   }, []);
 
+  const loadTicketMessages = async (ticketId: string) => {
+    try {
+      setMessagesLoading(true);
+      const { data, error } = await supabase
+        .from('support_ticket_messages')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages((data || []) as SupportTicketMessage[]);
+    } catch (error) {
+      console.error('Error loading ticket messages:', error);
+      toast({
+        title: "Fehler",
+        description: "Nachrichten konnten nicht geladen werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setMessagesLoading(false);
+    }
+  };
+
+  const addTicketMessage = async (ticketId: string, message: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('support_ticket_messages')
+        .insert([{ 
+          ticket_id: ticketId, 
+          user_id: user.id, 
+          message,
+          is_admin_message: false 
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Nachricht gesendet",
+        description: "Ihre Nachricht wurde erfolgreich gesendet.",
+      });
+
+      await loadTicketMessages(ticketId);
+      return true;
+    } catch (error) {
+      console.error('Error adding ticket message:', error);
+      toast({
+        title: "Fehler",
+        description: "Nachricht konnte nicht gesendet werden.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     tickets,
+    messages,
     loading,
+    messagesLoading,
     createTicket,
     updateTicketStatus,
+    loadTicketMessages,
+    addTicketMessage,
     refetch: loadTickets
   };
 }
