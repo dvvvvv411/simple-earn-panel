@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { User, TrendingUp, Target, Award, Crown, Gem, ChevronDown } from "lucide-react";
+import { User, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -77,7 +76,6 @@ interface RankingSystemCardProps {
 export function RankingSystemCard({ className }: RankingSystemCardProps) {
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [showAllRanks, setShowAllRanks] = useState(false);
 
   useEffect(() => {
     loadBalance();
@@ -200,48 +198,26 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
           </div>
         )}
 
-        {/* Collapsible All Ranks Overview */}
-        <Collapsible open={showAllRanks} onOpenChange={setShowAllRanks}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors">
-            <span className="text-sm font-medium text-text-headline">Alle Ränge anzeigen</span>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showAllRanks ? 'rotate-180' : ''}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-3">
-            <div className="space-y-2">
-              {rankingTiers.map((tier, index) => {
-                const TierIcon = tier.icon;
-                const isCurrentRank = tier.name === currentRank.name;
-                const isAchieved = balance >= tier.minBalance;
-                
-                return (
-                  <div 
-                    key={tier.name} 
-                    className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
-                      isCurrentRank ? 'bg-primary/10 border border-primary/20' : 'bg-secondary/10'
-                    }`}
-                  >
-                    <div className={`p-2 rounded-full bg-gradient-to-br ${tier.color} ${!isAchieved ? 'opacity-50' : ''}`}>
-                      <TierIcon className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-medium ${isCurrentRank ? 'text-primary' : 'text-text-headline'}`}>
-                          {tier.name}
-                        </span>
-                        {isCurrentRank && (
-                          <Badge variant="secondary" className="text-xs">Aktuell</Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Ab {formatCurrency(tier.minBalance)} • {tier.dailyTrades} Trades/Tag
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+        {/* Compact Next Rank Info */}
+        {nextRank && (
+          <div className="bg-secondary/30 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-headline">Nächster Rang</span>
+              <span className="text-xs text-muted-foreground">
+                {Math.min(progressPercentage, 100).toFixed(0)}%
+              </span>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
+            <div className="flex items-center gap-2 text-xs">
+              <nextRank.icon className="h-4 w-4 text-primary" />
+              <span className="font-medium text-primary">{nextRank.name}</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground">{nextRank.dailyTrades} Trades/Tag</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Noch {formatCurrency(amountToNextRank)}
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
