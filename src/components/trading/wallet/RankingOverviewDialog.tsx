@@ -114,7 +114,7 @@ export function RankingOverviewDialog({
           </p>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rankingTiers.map((rank, index) => {
             const RankIcon = rank.icon;
             const isAchieved = isRankAchieved(rank);
@@ -123,7 +123,7 @@ export function RankingOverviewDialog({
             return (
               <div
                 key={rank.name}
-                className={`relative p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
+                className={`relative p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
                   isCurrent 
                     ? "border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20" 
                     : isAchieved
@@ -139,39 +139,32 @@ export function RankingOverviewDialog({
                   </div>
                 )}
                 
-                <div className="flex items-center space-x-4">
-                  <div className={`p-3 rounded-full bg-gradient-to-br ${rank.color} ${
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className={`p-4 rounded-full bg-gradient-to-br ${rank.color} ${
                     !isAchieved && !isCurrent ? "opacity-50" : ""
                   }`}>
-                    <RankIcon className="h-6 w-6 text-white" />
+                    <RankIcon className="h-8 w-8 text-white" />
                   </div>
                   
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Badge 
-                        className={`${rank.bgColor} ${rank.textColor} hover:${rank.bgColor} ${
-                          !isAchieved && !isCurrent ? "opacity-50" : ""
-                        }`}
-                      >
-                        {rank.name}
-                      </Badge>
-                      {isAchieved && !isCurrent && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      )}
-                    </div>
+                  <div>
+                    <Badge 
+                      className={`${rank.bgColor} ${rank.textColor} hover:${rank.bgColor} mb-2 ${
+                        !isAchieved && !isCurrent ? "opacity-50" : ""
+                      }`}
+                    >
+                      {rank.name}
+                    </Badge>
                     
-                    <div className={`grid grid-cols-2 gap-4 ${!isAchieved && !isCurrent ? "opacity-60" : ""}`}>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          Ab {formatCurrency(rank.minBalance)}
+                    <div className={`space-y-2 ${!isAchieved && !isCurrent ? "opacity-60" : ""}`}>
+                      <p className="text-sm font-medium text-foreground">
+                        Ab {formatCurrency(rank.minBalance)}
+                      </p>
+                      {rank.maxBalance < 999999 && (
+                        <p className="text-xs text-muted-foreground">
+                          Bis {formatCurrency(rank.maxBalance)}
                         </p>
-                        {rank.maxBalance < 999999 && (
-                          <p className="text-xs text-muted-foreground">
-                            Bis {formatCurrency(rank.maxBalance)}
-                          </p>
-                        )}
-                      </div>
-                      <div>
+                      )}
+                      <div className="pt-2 border-t border-border/50">
                         <p className="text-sm font-medium text-primary">
                           {rank.dailyTrades} Trade{rank.dailyTrades !== 1 ? 's' : ''}
                         </p>
@@ -181,6 +174,12 @@ export function RankingOverviewDialog({
                       </div>
                     </div>
                   </div>
+                  
+                  {isAchieved && !isCurrent && (
+                    <div className="absolute bottom-2 right-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
