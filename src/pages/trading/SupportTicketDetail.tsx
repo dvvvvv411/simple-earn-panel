@@ -162,13 +162,35 @@ const SupportTicketDetail: React.FC = () => {
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
-              ) : messages.length === 0 ? (
+              ) : messages.length === 0 && !ticket.admin_response ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Noch keine Nachrichten in diesem Ticket.</p>
                   <p className="text-sm">Senden Sie eine Nachricht, um die Unterhaltung zu beginnen.</p>
                 </div>
               ) : (
+                <>
+                  {/* Fallback: Show admin_response if no messages exist but admin_response is present */}
+                  {messages.length === 0 && ticket.admin_response && (
+                    <div className="flex justify-start group">
+                      <div className="max-w-[80%] sm:max-w-[70%]">
+                        <div className="flex items-center gap-2 mb-2 justify-start">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Crown className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="text-sm font-semibold text-primary">Support Team</span>
+                        </div>
+                        <div className="relative p-4 rounded-2xl shadow-sm border transition-all duration-200 bg-card border-border rounded-tl-md">
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{ticket.admin_response}</p>
+                          <div className="mt-2 flex justify-start">
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(ticket.updated_at), "dd.MM.yyyy HH:mm", { locale: de })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 <>
                   {messages.map((message) => (
                     <div
