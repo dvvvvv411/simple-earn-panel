@@ -12,7 +12,7 @@ export const PersonalConsultantCTA: React.FC = () => {
   };
 
   return (
-    <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl shadow-2xl hover:shadow-primary/20 hover:shadow-3xl transition-all duration-500">
+    <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl shadow-xl hover:shadow-primary/10 hover:shadow-xl transition-all duration-300">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
       <CardContent className="relative p-8">
         <div className="flex items-center justify-between">
