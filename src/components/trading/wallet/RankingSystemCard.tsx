@@ -1,141 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { User, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RankingOverviewDialog } from "./RankingOverviewDialog";
-import { useTradingBots } from "@/hooks/useTradingBots";
-
-const rankingTiers = [
-  {
-    name: "Starter",
-    minBalance: 0,
-    maxBalance: 999,
-    dailyTrades: 1,
-    icon: User,
-    color: "from-amber-500 to-amber-600",
-    bgColor: "bg-amber-100",
-    textColor: "text-amber-700"
-  },
-  {
-    name: "Trader",
-    minBalance: 1000,
-    maxBalance: 4999,
-    dailyTrades: 2,
-    icon: TrendingUp,
-    color: "from-gray-400 to-gray-500",
-    bgColor: "bg-gray-100",
-    textColor: "text-gray-700"
-  },
-  {
-    name: "Pro-Trader",
-    minBalance: 5000,
-    maxBalance: 9999,
-    dailyTrades: 4,
-    icon: Target,
-    color: "from-yellow-400 to-yellow-500",
-    bgColor: "bg-yellow-100",
-    textColor: "text-yellow-700"
-  },
-  {
-    name: "Expert",
-    minBalance: 10000,
-    maxBalance: 49999,
-    dailyTrades: 6,
-    icon: Award,
-    color: "from-blue-400 to-blue-500",
-    bgColor: "bg-blue-100",
-    textColor: "text-blue-700"
-  },
-  {
-    name: "Elite",
-    minBalance: 50000,
-    maxBalance: 99999,
-    dailyTrades: 8,
-    icon: Crown,
-    color: "from-purple-400 to-purple-500",
-    bgColor: "bg-purple-100",
-    textColor: "text-purple-700"
-  },
-  {
-    name: "VIP",
-    minBalance: 100000,
-    maxBalance: 999999,
-    dailyTrades: 10,
-    icon: Gem,
-    color: "from-emerald-400 to-emerald-500",
-    bgColor: "bg-emerald-100",
-    textColor: "text-emerald-700"
-  }
-];
+import { useUserRanking } from "@/hooks/useUserRanking";
 
 interface RankingSystemCardProps {
   className?: string;
 }
 
 export function RankingSystemCard({ className }: RankingSystemCardProps) {
-  const [balance, setBalance] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { bots, loading: botsLoading } = useTradingBots();
+  const {
+    balance,
+    investedAmount,
+    totalWealth,
+    loading,
+    getCurrentRank,
+    getNextRank,
+    formatCurrency
+  } = useUserRanking();
 
-  useEffect(() => {
-    loadBalance();
-  }, []);
-
-  const loadBalance = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profile) {
-        setBalance(profile.balance);
-      }
-    } catch (error) {
-      console.error('Error loading balance:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Calculate invested amount from active bots
-  const investedAmount = bots
-    .filter(bot => bot.status === 'active')
-    .reduce((sum, bot) => sum + (bot.start_amount || 0), 0);
-
-  // Calculate total wealth (available balance + invested amount)
-  const totalWealth = balance + investedAmount;
-
-  const getCurrentRank = () => {
-    return rankingTiers.find(tier => 
-      totalWealth >= tier.minBalance && totalWealth <= tier.maxBalance
-    ) || rankingTiers[0];
-  };
-
-  const getNextRank = () => {
-    const currentRank = getCurrentRank();
-    const currentIndex = rankingTiers.findIndex(tier => tier.name === currentRank.name);
-    return currentIndex < rankingTiers.length - 1 ? rankingTiers[currentIndex + 1] : null;
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('de-DE', {
-      style: 'currency',
-      currency: 'EUR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  if (loading || botsLoading) {
+  if (loading) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -158,6 +46,22 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
 
   const currentRank = getCurrentRank();
   const nextRank = getNextRank();
+  
+  if (!currentRank) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-text-headline">
+            Rang-System
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Keine Rang-Daten verfügbar</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   const CurrentIcon = currentRank.icon;
   
   // Calculate progress to next rank

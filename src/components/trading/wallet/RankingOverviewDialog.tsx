@@ -6,70 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { User, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
-
-const rankingTiers = [
-  {
-    name: "Starter",
-    minBalance: 0,
-    maxBalance: 999,
-    dailyTrades: 1,
-    icon: User,
-    color: "from-amber-500 to-amber-600",
-    bgColor: "bg-amber-100",
-    textColor: "text-amber-700"
-  },
-  {
-    name: "Trader",
-    minBalance: 1000,
-    maxBalance: 4999,
-    dailyTrades: 2,
-    icon: TrendingUp,
-    color: "from-gray-400 to-gray-500",
-    bgColor: "bg-gray-100",
-    textColor: "text-gray-700"
-  },
-  {
-    name: "Pro-Trader",
-    minBalance: 5000,
-    maxBalance: 9999,
-    dailyTrades: 4,
-    icon: Target,
-    color: "from-yellow-400 to-yellow-500",
-    bgColor: "bg-yellow-100",
-    textColor: "text-yellow-700"
-  },
-  {
-    name: "Expert",
-    minBalance: 10000,
-    maxBalance: 49999,
-    dailyTrades: 6,
-    icon: Award,
-    color: "from-blue-400 to-blue-500",
-    bgColor: "bg-blue-100",
-    textColor: "text-blue-700"
-  },
-  {
-    name: "Elite",
-    minBalance: 50000,
-    maxBalance: 99999,
-    dailyTrades: 8,
-    icon: Crown,
-    color: "from-purple-400 to-purple-500",
-    bgColor: "bg-purple-100",
-    textColor: "text-purple-700"
-  },
-  {
-    name: "VIP",
-    minBalance: 100000,
-    maxBalance: 999999,
-    dailyTrades: 10,
-    icon: Gem,
-    color: "from-emerald-400 to-emerald-500",
-    bgColor: "bg-emerald-100",
-    textColor: "text-emerald-700"
-  }
-];
+import { useRankingTiers } from "@/hooks/useRankingTiers";
 
 interface RankingOverviewDialogProps {
   open: boolean;
@@ -82,6 +19,8 @@ export function RankingOverviewDialog({
   onOpenChange, 
   currentBalance 
 }: RankingOverviewDialogProps) {
+  const { tiers, loading } = useRankingTiers();
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-DE', {
       style: 'currency',
@@ -91,16 +30,31 @@ export function RankingOverviewDialog({
   };
 
   const getCurrentRank = () => {
-    return rankingTiers.find(tier => 
+    return tiers.find(tier => 
       currentBalance >= tier.minBalance && currentBalance <= tier.maxBalance
-    ) || rankingTiers[0];
+    ) || tiers[0];
   };
 
-  const isRankAchieved = (rank: typeof rankingTiers[0]) => {
+  const isRankAchieved = (rank: typeof tiers[0]) => {
     return currentBalance >= rank.minBalance;
   };
 
   const currentRank = getCurrentRank();
+
+  if (loading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl">
+          <DialogHeader className="text-center pb-6">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Rang-System Übersicht
+            </DialogTitle>
+            <p className="text-muted-foreground mt-2">Lädt...</p>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,7 +69,7 @@ export function RankingOverviewDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rankingTiers.map((rank, index) => {
+          {tiers.map((rank, index) => {
             const RankIcon = rank.icon;
             const isAchieved = isRankAchieved(rank);
             const isCurrent = rank.name === currentRank.name;
