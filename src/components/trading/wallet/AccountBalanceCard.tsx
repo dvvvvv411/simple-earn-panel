@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, TrendingUp, TrendingDown, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTradingBots } from "@/hooks/useTradingBots";
-import { useUserRanking } from "@/hooks/useUserRanking";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 interface AccountBalanceCardProps {
   className?: string;
@@ -17,7 +14,6 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const { bots } = useTradingBots();
-  const { userRanking } = useUserRanking();
 
   useEffect(() => {
     loadBalance();
@@ -96,16 +92,6 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
           <div className="text-4xl font-bold text-text-headline mb-2">
             {formatBalance(balance)}
           </div>
-          {userRanking && (
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Badge variant="secondary" className={cn("text-xs", userRanking.text_color)}>
-                {userRanking.name}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                {userRanking.daily_trades} Trades/Tag
-              </span>
-            </div>
-          )}
           <div className="flex items-center justify-center gap-2">
             {todayPnL >= 0 ? (
               <TrendingUp className="h-4 w-4 text-green-500" />
