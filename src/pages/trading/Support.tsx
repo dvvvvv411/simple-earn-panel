@@ -19,15 +19,17 @@ const Support: React.FC = () => {
 
       <div className="space-y-6">
         {/* Support Ticket Form */}
-        <Card>
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+          <CardContent className="relative p-8">
             <SupportTicketForm />
           </CardContent>
         </Card>
 
         {/* Support Ticket List */}
-        <Card>
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+          <CardContent className="relative p-8">
             <SupportTicketList />
           </CardContent>
         </Card>
