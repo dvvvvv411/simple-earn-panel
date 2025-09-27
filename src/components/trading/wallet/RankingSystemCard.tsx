@@ -1,76 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { User, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import { RankingOverviewDialog } from "./RankingOverviewDialog";
-import { useTradingBots } from "@/hooks/useTradingBots";
+import { useRankingTiers, type RankingTier } from "@/hooks/useRankingTiers";
+import { useUserRanking } from "@/hooks/useUserRanking";
+import * as Icons from "lucide-react";
 
-const rankingTiers = [
-  {
-    name: "Starter",
-    minBalance: 0,
-    maxBalance: 999,
-    dailyTrades: 1,
-    icon: User,
-    color: "from-amber-500 to-amber-600",
-    bgColor: "bg-amber-100",
-    textColor: "text-amber-700"
-  },
-  {
-    name: "Trader",
-    minBalance: 1000,
-    maxBalance: 4999,
-    dailyTrades: 2,
-    icon: TrendingUp,
-    color: "from-gray-400 to-gray-500",
-    bgColor: "bg-gray-100",
-    textColor: "text-gray-700"
-  },
-  {
-    name: "Pro-Trader",
-    minBalance: 5000,
-    maxBalance: 9999,
-    dailyTrades: 4,
-    icon: Target,
-    color: "from-yellow-400 to-yellow-500",
-    bgColor: "bg-yellow-100",
-    textColor: "text-yellow-700"
-  },
-  {
-    name: "Expert",
-    minBalance: 10000,
-    maxBalance: 49999,
-    dailyTrades: 6,
-    icon: Award,
-    color: "from-blue-400 to-blue-500",
-    bgColor: "bg-blue-100",
-    textColor: "text-blue-700"
-  },
-  {
-    name: "Elite",
-    minBalance: 50000,
-    maxBalance: 99999,
-    dailyTrades: 8,
-    icon: Crown,
-    color: "from-purple-400 to-purple-500",
-    bgColor: "bg-purple-100",
-    textColor: "text-purple-700"
-  },
-  {
-    name: "VIP",
-    minBalance: 100000,
-    maxBalance: 999999,
-    dailyTrades: 10,
-    icon: Gem,
-    color: "from-emerald-400 to-emerald-500",
-    bgColor: "bg-emerald-100",
-    textColor: "text-emerald-700"
-  }
-];
+const getIconComponent = (iconName: string) => {
+  const IconComponent = (Icons as any)[iconName];
+  return IconComponent || Icons.User;
+};
 
 interface RankingSystemCardProps {
   className?: string;
@@ -79,175 +23,178 @@ interface RankingSystemCardProps {
 export function RankingSystemCard({ className }: RankingSystemCardProps) {
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const { bots, loading: botsLoading } = useTradingBots();
-
-  useEffect(() => {
-    loadBalance();
-  }, []);
+  const [showDialog, setShowDialog] = useState(false);
+  const [totalWealth, setTotalWealth] = useState<number>(0);
+  const { tiers } = useRankingTiers();
+  const { userRanking } = useUserRanking();
 
   const loadBalance = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
 
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', session.user.id)
+        .from("profiles")
+        .select("balance")
+        .eq("id", user.user.id)
         .single();
 
       if (profile) {
-        setBalance(profile.balance);
+        setBalance(profile.balance || 0);
+        
+        // Calculate invested amount from active trading bots
+        const { data: bots } = await supabase
+          .from("trading_bots")
+          .select("start_amount")
+          .eq("user_id", user.user.id)
+          .eq("status", "active");
+
+        const investedAmount = bots?.reduce((sum, bot) => sum + (bot.start_amount || 0), 0) || 0;
+        const totalWealth = (profile.balance || 0) + investedAmount;
+        setTotalWealth(totalWealth);
       }
     } catch (error) {
-      console.error('Error loading balance:', error);
+      console.error("Error loading balance:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate invested amount from active bots
-  const investedAmount = bots
-    .filter(bot => bot.status === 'active')
-    .reduce((sum, bot) => sum + (bot.start_amount || 0), 0);
+  useEffect(() => {
+    loadBalance();
+  }, []);
 
-  // Calculate total wealth (available balance + invested amount)
-  const totalWealth = balance + investedAmount;
-
-  const getCurrentRank = () => {
-    return rankingTiers.find(tier => 
-      totalWealth >= tier.minBalance && totalWealth <= tier.maxBalance
-    ) || rankingTiers[0];
+  const getCurrentRank = (wealth: number): RankingTier | null => {
+    return tiers.find(tier => 
+      wealth >= tier.min_balance && wealth <= tier.max_balance
+    ) || tiers[0] || null;
   };
 
-  const getNextRank = () => {
-    const currentRank = getCurrentRank();
-    const currentIndex = rankingTiers.findIndex(tier => tier.name === currentRank.name);
-    return currentIndex < rankingTiers.length - 1 ? rankingTiers[currentIndex + 1] : null;
+  const getNextRank = (wealth: number): RankingTier | null => {
+    return tiers.find(tier => tier.min_balance > wealth) || null;
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-DE', {
       style: 'currency',
-      currency: 'EUR',
-      maximumFractionDigits: 0,
+      currency: 'EUR'
     }).format(amount);
   };
 
-  if (loading || botsLoading) {
+  if (loading || !tiers.length) {
     return (
-      <Card className={className}>
+      <Card className={cn("", className)}>
         <CardHeader>
-          <Skeleton className="h-6 w-32" />
+          <CardTitle className="text-lg">
+            <Skeleton className="h-6 w-32" />
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div>
-              <Skeleton className="h-6 w-24 mb-2" />
-              <Skeleton className="h-4 w-32" />
-            </div>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-2 w-full" />
           </div>
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-10 w-full" />
         </CardContent>
       </Card>
     );
   }
 
-  const currentRank = getCurrentRank();
-  const nextRank = getNextRank();
-  const CurrentIcon = currentRank.icon;
+  const currentRank = userRanking || getCurrentRank(totalWealth);
+  const nextRank = getNextRank(totalWealth);
   
-  // Calculate progress to next rank
-  const progressPercentage = nextRank 
-    ? ((totalWealth - currentRank.minBalance) / (nextRank.minBalance - currentRank.minBalance)) * 100
-    : 100;
+  if (!currentRank) return null;
 
-  const amountToNextRank = nextRank ? nextRank.minBalance - totalWealth : 0;
+  const CurrentIcon = getIconComponent(currentRank.icon_name);
+
+  let progressPercentage = 0;
+  if (nextRank) {
+    const currentProgress = totalWealth - currentRank.min_balance;
+    const totalNeeded = nextRank.min_balance - currentRank.min_balance;
+    progressPercentage = Math.min((currentProgress / totalNeeded) * 100, 100);
+  } else {
+    progressPercentage = 100; // Max rank achieved
+  }
 
   return (
-    <Card className={`${className} border-primary/20`}>
+    <Card className={cn("", className)}>
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-text-headline">
           Rang-System
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Current Rank */}
         <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full bg-gradient-to-br ${currentRank.color}`}>
+          <div 
+            className="flex items-center justify-center w-12 h-12 rounded-full"
+            style={{
+              background: `linear-gradient(135deg, ${currentRank.gradient_from}, ${currentRank.gradient_to})`
+            }}
+          >
             <CurrentIcon className="h-6 w-6 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <Badge className={`${currentRank.bgColor} ${currentRank.textColor} hover:${currentRank.bgColor}`}>
+              <h3 className={cn("text-xl font-bold", currentRank.text_color)}>
                 {currentRank.name}
+              </h3>
+              <Badge variant="secondary" className={cn("text-xs", currentRank.border_color)}>
+                {currentRank.daily_trades} Trades/Tag
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {currentRank.dailyTrades} Trade{currentRank.dailyTrades !== 1 ? 's' : ''} pro Tag verfügbar
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Gesamtvermögen: {formatCurrency(balance)} + {formatCurrency(investedAmount)} = {formatCurrency(totalWealth)}
+              {formatCurrency(currentRank.min_balance)} - {
+                currentRank.max_balance >= 99999999 
+                  ? "∞" 
+                  : formatCurrency(currentRank.max_balance)
+              }
             </p>
           </div>
         </div>
 
-        {/* Progress to Next Rank */}
         {nextRank && (
           <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Fortschritt zu {nextRank.name}</span>
-              <span className="text-sm text-muted-foreground">
-                {Math.min(progressPercentage, 100).toFixed(0)}%
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                Fortschritt zu {nextRank.name}
+              </span>
+              <span className="font-medium">
+                {formatCurrency(totalWealth)} / {formatCurrency(nextRank.min_balance)}
               </span>
             </div>
-            <Progress 
-              value={Math.min(progressPercentage, 100)} 
-              className="h-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Noch {formatCurrency(amountToNextRank)} bis zum nächsten Rang
+            <Progress value={progressPercentage} className="h-2" />
+            <p className="text-xs text-muted-foreground text-center">
+              Noch {formatCurrency(nextRank.min_balance - totalWealth)} bis zum nächsten Rang
             </p>
           </div>
         )}
 
-        {/* Compact Next Rank Info */}
-        {nextRank && (
-          <div className="bg-secondary/30 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-text-headline">Nächster Rang</span>
-              <span className="text-xs text-muted-foreground">
-                {Math.min(progressPercentage, 100).toFixed(0)}%
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <nextRank.icon className="h-4 w-4 text-primary" />
-              <span className="font-medium text-primary">{nextRank.name}</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground">{nextRank.dailyTrades} Trades/Tag</span>
-            </div>
+        {!nextRank && (
+          <div className="text-center py-4">
+            <p className="text-sm font-medium text-primary">
+              🎉 Höchster Rang erreicht!
+            </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Noch {formatCurrency(amountToNextRank)}
+              Sie haben den VIP-Rang erreicht
             </p>
           </div>
         )}
 
-        {/* Show All Ranks Button */}
         <Button 
-          onClick={() => setDialogOpen(true)}
-          className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+          variant="outline" 
+          onClick={() => setShowDialog(true)}
+          className="w-full"
         >
           Alle Ränge anzeigen
         </Button>
       </CardContent>
 
       <RankingOverviewDialog 
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        open={showDialog}
+        onOpenChange={setShowDialog}
         currentBalance={totalWealth}
+        tiers={tiers}
       />
     </Card>
   );

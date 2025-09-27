@@ -1,187 +1,119 @@
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { User, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { type RankingTier } from "@/hooks/useRankingTiers";
+import * as Icons from "lucide-react";
 
-const rankingTiers = [
-  {
-    name: "Starter",
-    minBalance: 0,
-    maxBalance: 999,
-    dailyTrades: 1,
-    icon: User,
-    color: "from-amber-500 to-amber-600",
-    bgColor: "bg-amber-100",
-    textColor: "text-amber-700"
-  },
-  {
-    name: "Trader",
-    minBalance: 1000,
-    maxBalance: 4999,
-    dailyTrades: 2,
-    icon: TrendingUp,
-    color: "from-gray-400 to-gray-500",
-    bgColor: "bg-gray-100",
-    textColor: "text-gray-700"
-  },
-  {
-    name: "Pro-Trader",
-    minBalance: 5000,
-    maxBalance: 9999,
-    dailyTrades: 4,
-    icon: Target,
-    color: "from-yellow-400 to-yellow-500",
-    bgColor: "bg-yellow-100",
-    textColor: "text-yellow-700"
-  },
-  {
-    name: "Expert",
-    minBalance: 10000,
-    maxBalance: 49999,
-    dailyTrades: 6,
-    icon: Award,
-    color: "from-blue-400 to-blue-500",
-    bgColor: "bg-blue-100",
-    textColor: "text-blue-700"
-  },
-  {
-    name: "Elite",
-    minBalance: 50000,
-    maxBalance: 99999,
-    dailyTrades: 8,
-    icon: Crown,
-    color: "from-purple-400 to-purple-500",
-    bgColor: "bg-purple-100",
-    textColor: "text-purple-700"
-  },
-  {
-    name: "VIP",
-    minBalance: 100000,
-    maxBalance: 999999,
-    dailyTrades: 10,
-    icon: Gem,
-    color: "from-emerald-400 to-emerald-500",
-    bgColor: "bg-emerald-100",
-    textColor: "text-emerald-700"
-  }
-];
+const getIconComponent = (iconName: string) => {
+  const IconComponent = (Icons as any)[iconName];
+  return IconComponent || Icons.User;
+};
 
 interface RankingOverviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentBalance: number;
+  tiers: RankingTier[];
 }
 
 export function RankingOverviewDialog({ 
   open, 
   onOpenChange, 
-  currentBalance 
+  currentBalance,
+  tiers 
 }: RankingOverviewDialogProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-DE', {
       style: 'currency',
-      currency: 'EUR',
-      maximumFractionDigits: 0,
+      currency: 'EUR'
     }).format(amount);
   };
 
   const getCurrentRank = () => {
-    return rankingTiers.find(tier => 
-      currentBalance >= tier.minBalance && currentBalance <= tier.maxBalance
-    ) || rankingTiers[0];
+    return tiers.find(tier => 
+      currentBalance >= tier.min_balance && currentBalance <= tier.max_balance
+    );
   };
 
-  const isRankAchieved = (rank: typeof rankingTiers[0]) => {
-    return currentBalance >= rank.minBalance;
+  const isRankAchieved = (rank: RankingTier) => {
+    return currentBalance >= rank.min_balance;
   };
-
-  const currentRank = getCurrentRank();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl">
-        <DialogHeader className="text-center pb-6">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-center">
             Rang-System Übersicht
           </DialogTitle>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground text-center">
             Erreichen Sie höhere Ränge und erhalten Sie mehr Trading-Möglichkeiten
           </p>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rankingTiers.map((rank, index) => {
-            const RankIcon = rank.icon;
+        <div className="grid gap-4 max-h-96 overflow-y-auto">
+          {tiers.map((rank, index) => {
+            const IconComponent = getIconComponent(rank.icon_name);
+            const isCurrent = getCurrentRank()?.name === rank.name;
             const isAchieved = isRankAchieved(rank);
-            const isCurrent = rank.name === currentRank.name;
             
             return (
-              <div
+              <Card
                 key={rank.name}
-                className={`relative p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
-                  isCurrent 
-                    ? "border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20" 
-                    : isAchieved
-                    ? "border-green-200 bg-green-50/50"
-                    : "border-border bg-card hover:border-primary/30"
-                }`}
-              >
-                {isCurrent && (
-                  <div className="absolute -top-2 -right-2">
-                    <Badge className="bg-primary text-primary-foreground text-xs font-semibold">
-                      Aktuell
-                    </Badge>
-                  </div>
+                className={cn(
+                  "p-4 transition-all duration-200",
+                  isCurrent && "ring-2 ring-primary",
+                  isAchieved ? "opacity-100" : "opacity-60",
+                  !isAchieved && "grayscale"
                 )}
-                
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className={`p-4 rounded-full bg-gradient-to-br ${rank.color} ${
-                    !isAchieved && !isCurrent ? "opacity-50" : ""
-                  }`}>
-                    <RankIcon className="h-8 w-8 text-white" />
+              >
+                <div className="flex items-center gap-4">
+                  <div 
+                    className="flex items-center justify-center w-10 h-10 rounded-full"
+                    style={{
+                      background: `linear-gradient(135deg, ${rank.gradient_from}, ${rank.gradient_to})`
+                    }}
+                  >
+                    <IconComponent className="h-5 w-5 text-white" />
                   </div>
-                  
-                  <div>
-                    <Badge 
-                      className={`${rank.bgColor} ${rank.textColor} hover:${rank.bgColor} mb-2 ${
-                        !isAchieved && !isCurrent ? "opacity-50" : ""
-                      }`}
-                    >
-                      {rank.name}
-                    </Badge>
-                    
-                    <div className={`space-y-2 ${!isAchieved && !isCurrent ? "opacity-60" : ""}`}>
-                      <p className="text-sm font-medium text-foreground">
-                        Ab {formatCurrency(rank.minBalance)}
-                      </p>
-                      {rank.maxBalance < 999999 && (
-                        <p className="text-xs text-muted-foreground">
-                          Bis {formatCurrency(rank.maxBalance)}
-                        </p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className={cn("font-semibold", rank.text_color)}>
+                        {rank.name}
+                      </h4>
+                      {isCurrent && (
+                        <Badge variant="default" className="text-xs">
+                          Aktuell
+                        </Badge>
                       )}
-                      <div className="pt-2 border-t border-border/50">
-                        <p className="text-sm font-medium text-primary">
-                          {rank.dailyTrades} Trade{rank.dailyTrades !== 1 ? 's' : ''}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          pro Tag
-                        </p>
-                      </div>
+                      {isAchieved && !isCurrent && (
+                        <Badge variant="secondary" className="text-xs">
+                          ✓ Erreicht
+                        </Badge>
+                      )}
+                      {!isAchieved && (
+                        <Badge variant="outline" className="text-xs">
+                          🔒 Gesperrt
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {formatCurrency(rank.min_balance)} - {
+                          rank.max_balance >= 99999999 
+                            ? "∞" 
+                            : formatCurrency(rank.max_balance)
+                        }
+                      </span>
+                      <Badge variant="outline" className="text-xs">
+                        {rank.daily_trades} Trades/Tag
+                      </Badge>
                     </div>
                   </div>
-                  
-                  {isAchieved && !isCurrent && (
-                    <div className="absolute bottom-2 right-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    </div>
-                  )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
