@@ -12,7 +12,7 @@ export const PersonalConsultantCTA: React.FC = () => {
   };
 
   return (
-    <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl shadow-xl hover:shadow-primary/10 hover:shadow-xl transition-all duration-300">
+    <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
       <CardContent className="relative p-8">
         <div className="flex items-center justify-between">
@@ -52,9 +52,9 @@ export const PersonalConsultantCTA: React.FC = () => {
               <img 
                 src={consultantImage} 
                 alt="Persönlicher Trading-Berater" 
-                className="w-24 h-24 rounded-full object-cover border-4 border-primary/20 shadow-lg"
+                className="w-24 h-24 rounded-full object-cover border-4 border-primary/20"
               />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-background shadow-md" />
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-background" />
             </div>
             
             <div className="text-center space-y-2">
@@ -62,7 +62,7 @@ export const PersonalConsultantCTA: React.FC = () => {
                 onClick={handleCallClick}
                 className="cursor-pointer group"
               >
-                <div className="flex items-center justify-center space-x-2 px-6 py-3 bg-primary/10 hover:bg-primary/20 border-2 border-primary/30 rounded-2xl transition-all duration-300 group-hover:scale-105">
+                <div className="flex items-center justify-center space-x-2 px-6 py-3 bg-primary/10 border-2 border-primary/30 rounded-2xl">
                   <Phone className="h-5 w-5 text-primary" />
                   <span className="text-primary font-bold text-lg">0800 123123</span>
                 </div>
