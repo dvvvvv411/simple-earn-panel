@@ -32,8 +32,8 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) 
         label: "Gelöst"
       },
       closed: {
-        color: "bg-gray-500/10 text-gray-700 border-gray-200",
-        icon: XCircle,
+        color: "bg-green-500/10 text-green-700 border-green-200",
+        icon: CheckCircle,
         label: "Geschlossen"
       }
     };
@@ -74,9 +74,6 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) 
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-sm truncate">{ticket.subject}</h4>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                {ticket.message}
-              </p>
             </div>
             <div className="flex items-center space-x-2 ml-3">
               <Badge className={statusConfig.color}>
@@ -88,9 +85,11 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) 
 
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center space-x-3">
-              <Badge variant="outline" className={priorityConfig.color}>
-                {priorityConfig.label}
-              </Badge>
+              {ticket.status !== 'closed' && (
+                <Badge variant="outline" className={priorityConfig.color}>
+                  {priorityConfig.label}
+                </Badge>
+              )}
               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded">
                 {getCategoryLabel(ticket.category)}
               </span>
