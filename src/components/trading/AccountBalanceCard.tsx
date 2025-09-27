@@ -2,11 +2,75 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus, Bot } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus, Bot, User, Target, Award, Crown, Gem } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CreateBotDialog } from "./CreateBotDialog";
 import { useTradingBots } from "@/hooks/useTradingBots";
+
+// Ranking tiers definition
+const rankingTiers = [
+  {
+    name: "Starter",
+    minBalance: 0,
+    maxBalance: 999,
+    dailyTrades: 1,
+    icon: User,
+    color: "from-amber-500 to-amber-600",
+    bgColor: "bg-amber-100",
+    textColor: "text-amber-700"
+  },
+  {
+    name: "Trader",
+    minBalance: 1000,
+    maxBalance: 4999,
+    dailyTrades: 2,
+    icon: TrendingUp,
+    color: "from-gray-400 to-gray-500",
+    bgColor: "bg-gray-100",
+    textColor: "text-gray-700"
+  },
+  {
+    name: "Pro-Trader",
+    minBalance: 5000,
+    maxBalance: 9999,
+    dailyTrades: 4,
+    icon: Target,
+    color: "from-yellow-400 to-yellow-500",
+    bgColor: "bg-yellow-100",
+    textColor: "text-yellow-700"
+  },
+  {
+    name: "Expert",
+    minBalance: 10000,
+    maxBalance: 49999,
+    dailyTrades: 6,
+    icon: Award,
+    color: "from-blue-400 to-blue-500",
+    bgColor: "bg-blue-100",
+    textColor: "text-blue-700"
+  },
+  {
+    name: "Elite",
+    minBalance: 50000,
+    maxBalance: 99999,
+    dailyTrades: 8,
+    icon: Crown,
+    color: "from-purple-400 to-purple-500",
+    bgColor: "bg-purple-100",
+    textColor: "text-purple-700"
+  },
+  {
+    name: "VIP",
+    minBalance: 100000,
+    maxBalance: 999999,
+    dailyTrades: 10,
+    icon: Gem,
+    color: "from-emerald-400 to-emerald-500",
+    bgColor: "bg-emerald-100",
+    textColor: "text-emerald-700"
+  }
+];
 
 interface TradingStats {
   totalTrades: number;
@@ -79,18 +143,29 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
   const trendPercentage = todayStartBalance > 0 ? (todayStats.totalProfit / todayStartBalance) * 100 : 0;
   const isPositive = trendPercentage > 0;
 
-  // Placeholder rank data - will be replaced with real ranking system later
-  const rankData = {
-    currentRank: "Gold Tier",
-    position: 247,
-    totalUsers: 1847,
-    nextRank: "Platinum",
-    currentXP: 8450,
-    nextRankXP: 10000,
-    tradesNeeded: 15
+  // Calculate total wealth (available balance + invested amount)
+  const totalWealth = (balance || 0) + botInvestments;
+
+  // Ranking system functions
+  const getCurrentRank = () => {
+    return rankingTiers.find(tier => 
+      totalWealth >= tier.minBalance && totalWealth <= tier.maxBalance
+    ) || rankingTiers[0];
   };
 
-  const progressPercentage = (rankData.currentXP / rankData.nextRankXP) * 100;
+  const getNextRank = () => {
+    const currentRank = getCurrentRank();
+    const currentIndex = rankingTiers.findIndex(tier => tier.name === currentRank.name);
+    return currentIndex < rankingTiers.length - 1 ? rankingTiers[currentIndex + 1] : null;
+  };
+
+  const currentRank = getCurrentRank();
+  const nextRank = getNextRank();
+  
+  // Calculate progress to next rank
+  const progressPercentage = nextRank 
+    ? ((totalWealth - currentRank.minBalance) / (nextRank.minBalance - currentRank.minBalance)) * 100
+    : 100;
 
   if (loading) {
     return (
@@ -131,7 +206,7 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
             </div>
             <div className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-primary" />
-              <span className="text-lg font-semibold text-foreground">{rankData.currentRank}</span>
+              <span className="text-lg font-semibold text-foreground">{currentRank.name}</span>
             </div>
           </div>
           {botInvestments > 0 && (
@@ -164,13 +239,20 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
         
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Fortschritt zu {rankData.nextRank}</span>
+            <span className="text-muted-foreground">
+              {nextRank ? `Fortschritt zu ${nextRank.name}` : 'Höchster Rang erreicht!'}
+            </span>
             <span className="font-medium text-foreground">{Math.round(progressPercentage)}%</span>
           </div>
           <Progress value={progressPercentage} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{rankData.currentXP.toLocaleString('de-DE')} XP</span>
-            <span>{rankData.nextRankXP.toLocaleString('de-DE')} XP benötigt</span>
+            <span>{totalWealth.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}</span>
+            <span>
+              {nextRank 
+                ? `${nextRank.minBalance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })} benötigt`
+                : 'Maximum erreicht'
+              }
+            </span>
           </div>
         </div>
 
