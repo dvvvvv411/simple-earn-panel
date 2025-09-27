@@ -17,7 +17,7 @@ const Support: React.FC = () => {
       {/* Personal Consultant CTA */}
       <PersonalConsultantCTA />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
         {/* Support Ticket Form */}
         <Card>
           <CardContent className="p-6">
