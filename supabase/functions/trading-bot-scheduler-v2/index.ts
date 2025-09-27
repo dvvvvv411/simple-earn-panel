@@ -279,46 +279,47 @@ function analyzeHistoricalPrices(prices: HistoricalPrice[], bot: TradingBot) {
 
   console.log(`📈 Final selection pool: ${finalScenarios.length} scenarios`);
 
-  // Sort by score (best first) and select from top 10%
+  // Sort by score (best first)
   finalScenarios.sort((a, b) => b.score - a.score);
-  const top10PercentCount = Math.max(1, Math.ceil(finalScenarios.length * 0.1));
-  const topScenarios = finalScenarios.slice(0, top10PercentCount);
   
-  // For equal scores (within 5 points), prioritize LONG
-  const bestScore = topScenarios[0].score;
-  const topTierScenarios = topScenarios.filter(s => s.score >= bestScore - 5);
-  const longInTopTier = topTierScenarios.filter(s => s.tradeType === 'long');
+  // Group scenarios by profit tiers for weighted selection
+  const highProfitScenarios = finalScenarios.filter(s => s.profitPercent >= 2.5);
+  const mediumProfitScenarios = finalScenarios.filter(s => s.profitPercent >= 1.5 && s.profitPercent < 2.5);
+  const lowProfitScenarios = finalScenarios.filter(s => s.profitPercent < 1.5);
   
-  // **DETERMINISTIC BEST SCENARIO SELECTION** - No more random selection!
+  console.log(`📊 Profit tier distribution: High(2.5%+): ${highProfitScenarios.length}, Medium(1.5-2.5%): ${mediumProfitScenarios.length}, Low(<1.5%): ${lowProfitScenarios.length}`);
+  
+  // **WEIGHTED SELECTION** - Target distribution: 20% high, 50% medium, 30% low
   let optimalScenario;
+  const randomValue = Math.random();
   
   // Log top scenarios for debugging
-  console.log(`🔍 Top ${Math.min(5, topScenarios.length)} scenarios for evaluation:`);
-  topScenarios.slice(0, 5).forEach((scenario, index) => {
+  console.log(`🔍 Top 5 scenarios overall:`);
+  finalScenarios.slice(0, 5).forEach((scenario, index) => {
     console.log(`  ${index + 1}. ${scenario.tradeType.toUpperCase()} ${scenario.leverage}x: ${scenario.profitPercent.toFixed(2)}% profit, Score: ${scenario.score.toFixed(2)}`);
   });
-
-  if (longInTopTier.length > 0) {
-    // **DETERMINISTIC**: Select BEST LONG scenario from top tier
-    optimalScenario = longInTopTier.reduce((best, current) => {
-      // First compare by score, then by profit percentage
-      if (current.score > best.score) return current;
-      if (current.score === best.score && current.profitPercent > best.profitPercent) return current;
-      return best;
-    });
-    console.log('🎯 DETERMINISTIC: Selected BEST LONG from top tier (highest score/profit)');
+  
+  if (randomValue < 0.2 && highProfitScenarios.length > 0) {
+    // 20% chance for high profit (2.5%+)
+    optimalScenario = highProfitScenarios[0]; // Best from high profit tier
+    console.log('🎯 WEIGHTED: Selected HIGH profit scenario (2.5%+)');
+  } else if (randomValue < 0.7 && mediumProfitScenarios.length > 0) {
+    // 50% chance for medium profit (1.5-2.5%)
+    const topMedium = mediumProfitScenarios.slice(0, Math.max(1, Math.ceil(mediumProfitScenarios.length * 0.3)));
+    optimalScenario = topMedium[Math.floor(Math.random() * topMedium.length)];
+    console.log('🎯 WEIGHTED: Selected MEDIUM profit scenario (1.5-2.5%)');
+  } else if (lowProfitScenarios.length > 0) {
+    // 30% chance for low profit (<1.5%)
+    const topLow = lowProfitScenarios.slice(0, Math.max(1, Math.ceil(lowProfitScenarios.length * 0.5)));
+    optimalScenario = topLow[Math.floor(Math.random() * topLow.length)];
+    console.log('🎯 WEIGHTED: Selected LOW profit scenario (<1.5%)');
   } else {
-    // **DETERMINISTIC**: Select BEST scenario overall from top tier
-    optimalScenario = topScenarios.reduce((best, current) => {
-      // First compare by score, then by profit percentage
-      if (current.score > best.score) return current;
-      if (current.score === best.score && current.profitPercent > best.profitPercent) return current;
-      return best;
-    });
-    console.log('🎯 DETERMINISTIC: Selected BEST scenario overall (highest score/profit)');
+    // Fallback to best overall scenario
+    optimalScenario = finalScenarios[0];
+    console.log('🎯 FALLBACK: Selected best overall scenario');
   }
 
-  console.log(`🎯 Selected BEST trade from top ${top10PercentCount} scenarios (top 10%)`);
+  console.log(`🎯 Selected trade using weighted profit distribution`);
   console.log(`💎 Trade: ${optimalScenario.tradeType} ${optimalScenario.leverage}x, ${optimalScenario.profitPercent.toFixed(2)}% profit, Natural movement: ${optimalScenario.naturalMovement.toFixed(3)}%, Score: ${optimalScenario.score.toFixed(2)}`);
 
   return {
@@ -367,9 +368,18 @@ function calculateTradeScore(buyPrice: number, sellPrice: number, leverage: numb
   
   // === END LONG BIAS IMPLEMENTATION ===
   
-  // Leverage penalty - prefer lower leverage for same profit
-  const leveragePenalty = Math.log(leverage) * 5;
+  // Reduced leverage penalty to allow higher profits
+  const leveragePenalty = Math.log(leverage) * 2;
   score -= leveragePenalty;
+  
+  // Profit percentage bonus - encourage higher profits in 2-3% range
+  if (naturalMovement * leverage >= 2.5) {
+    score += 25; // Strong bonus for 2.5%+ profits
+  } else if (naturalMovement * leverage >= 2.0) {
+    score += 15; // Good bonus for 2.0%+ profits
+  } else if (naturalMovement * leverage >= 1.5) {
+    score += 8; // Small bonus for 1.5%+ profits
+  }
   
   // Bonus for realistic leverage ranges based on movement
   if (naturalMovement >= 1.0 && leverage <= 5) {
