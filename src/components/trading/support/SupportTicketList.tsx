@@ -28,16 +28,16 @@ export const SupportTicketList: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20">
-            <Inbox className="h-6 w-6 text-primary" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted">
+            <Inbox className="h-4 w-4 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-foreground">Ihre Support-Tickets</h3>
+            <h3 className="text-lg font-medium text-foreground">Ihre Support-Tickets</h3>
             <div className="flex items-center space-x-2 mt-1">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+              <Badge variant="outline" className="text-xs">
                 {userTickets.length} Tickets
               </Badge>
-              <span className="text-muted-foreground">Übersicht Ihrer Anfragen</span>
+              <span className="text-xs text-muted-foreground">Übersicht Ihrer Anfragen</span>
             </div>
           </div>
         </div>
@@ -45,9 +45,9 @@ export const SupportTicketList: React.FC = () => {
           variant="ghost"
           size="sm"
           onClick={refetch}
-          className="text-muted-foreground hover:text-foreground hover:bg-primary/5 rounded-xl"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className="h-3 w-3" />
         </Button>
       </div>
 

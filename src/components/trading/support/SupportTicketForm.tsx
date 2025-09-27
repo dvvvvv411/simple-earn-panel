@@ -74,12 +74,12 @@ export const SupportTicketForm: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3">
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20">
-          <MessageSquarePlus className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 border border-blue-200">
+          <MessageSquarePlus className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-foreground">Support-Ticket erstellen</h3>
-          <p className="text-muted-foreground">Beschreiben Sie Ihr Anliegen und erhalten Sie schnelle Hilfe</p>
+          <h3 className="text-xl font-semibold text-foreground">Support-Ticket erstellen</h3>
+          <p className="text-sm text-muted-foreground">Beschreiben Sie Ihr Anliegen und erhalten Sie schnelle Hilfe</p>
         </div>
       </div>
       
