@@ -188,6 +188,7 @@ export type Database = {
           balance: number
           branding_id: string | null
           created_at: string
+          current_ranking_id: string | null
           email: string | null
           first_name: string | null
           id: string
@@ -199,6 +200,7 @@ export type Database = {
           balance?: number
           branding_id?: string | null
           created_at?: string
+          current_ranking_id?: string | null
           email?: string | null
           first_name?: string | null
           id: string
@@ -210,6 +212,7 @@ export type Database = {
           balance?: number
           branding_id?: string | null
           created_at?: string
+          current_ranking_id?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
@@ -225,7 +228,62 @@ export type Database = {
             referencedRelation: "brandings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_current_ranking_id_fkey"
+            columns: ["current_ranking_id"]
+            isOneToOne: false
+            referencedRelation: "ranking_tiers"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      ranking_tiers: {
+        Row: {
+          border_color: string
+          created_at: string
+          daily_trades: number
+          gradient_from: string
+          gradient_to: string
+          icon_name: string
+          id: string
+          max_balance: number
+          min_balance: number
+          name: string
+          sort_order: number
+          text_color: string
+          updated_at: string
+        }
+        Insert: {
+          border_color: string
+          created_at?: string
+          daily_trades?: number
+          gradient_from: string
+          gradient_to: string
+          icon_name: string
+          id?: string
+          max_balance: number
+          min_balance: number
+          name: string
+          sort_order: number
+          text_color: string
+          updated_at?: string
+        }
+        Update: {
+          border_color?: string
+          created_at?: string
+          daily_trades?: number
+          gradient_from?: string
+          gradient_to?: string
+          icon_name?: string
+          id?: string
+          max_balance?: number
+          min_balance?: number
+          name?: string
+          sort_order?: number
+          text_color?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       support_ticket_messages: {
         Row: {
@@ -430,12 +488,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_user_ranking: {
+        Args: { bot_investments?: number; user_balance: number }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      initialize_user_rankings: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_user_balance: {
         Args: {

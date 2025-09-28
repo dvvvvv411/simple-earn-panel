@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { UserPlus, Rocket, TrendingUp, Target, Award, Crown, Gem } from "lucide-react";
+import { UserPlus, Rocket, TrendingUp, Target, Award, Crown, Gem, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface RankingTier {
@@ -23,7 +23,8 @@ const iconMap: Record<string, LucideIcon> = {
   Target,
   Award,
   Crown,
-  Gem
+  Gem,
+  Star
 };
 
 // Color mappings for different ranks
@@ -62,6 +63,16 @@ const colorMap: Record<string, { color: string; bgColor: string; textColor: stri
     color: "from-emerald-400 to-emerald-500",
     bgColor: "bg-emerald-100",
     textColor: "text-emerald-700"
+  },
+  Platinum: {
+    color: "from-slate-300 to-slate-400",
+    bgColor: "bg-slate-50",
+    textColor: "text-slate-600"
+  },
+  Diamond: {
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-50",
+    textColor: "text-blue-700"
   }
 };
 
