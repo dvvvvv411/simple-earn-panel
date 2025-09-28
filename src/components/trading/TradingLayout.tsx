@@ -44,7 +44,7 @@ export function DashboardLoadingProvider({ children }: { children: React.ReactNo
 }
 
 function TradingContent() {
-  const { loading: brandingLoading, branding, logoUrl } = useBranding();
+  const { branding, logoUrl } = useBranding();
   const { isBalanceLoading, setIsBalanceLoading, setUserName } = useDashboardLoading();
   const isMobile = useIsMobile();
 
@@ -78,18 +78,6 @@ function TradingContent() {
     if (!isBalanceLoading) return; // Prevent multiple calls
     fetchUserData();
   }, [setIsBalanceLoading, setUserName, isBalanceLoading]);
-
-  // Show central loading screen until branding is loaded
-  if (brandingLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Trading-Dashboard wird geladen...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Render the full layout only after branding is loaded
   return (
@@ -148,16 +136,37 @@ function TradingContent() {
   );
 }
 
+function TradingLayoutContent() {
+  const { loading: brandingLoading } = useBranding();
+
+  // Show fixed, perfectly centered loading screen until branding is loaded
+  if (brandingLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Trading-Dashboard wird geladen...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Only render providers and content when branding is fully loaded
+  return (
+    <DashboardLoadingProvider>
+      <SidebarProvider defaultOpen={true}>
+        <TradingContent />
+      </SidebarProvider>
+    </DashboardLoadingProvider>
+  );
+}
+
 export function TradingLayout() {
   return (
     <TradingGuard>
       <BrandingProvider>
         <CoinMarketCapProvider>
-          <DashboardLoadingProvider>
-            <SidebarProvider defaultOpen={true}>
-              <TradingContent />
-            </SidebarProvider>
-          </DashboardLoadingProvider>
+          <TradingLayoutContent />
         </CoinMarketCapProvider>
       </BrandingProvider>
     </TradingGuard>
