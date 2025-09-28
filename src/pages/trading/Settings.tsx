@@ -52,8 +52,7 @@ export default function Settings() {
   
   // Edit states
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [showWalletPasswordForm, setShowWalletPasswordForm] = useState(false);
+  const [securityMode, setSecurityMode] = useState<'menu' | 'login-password' | 'wallet-password'>('menu');
 
   const passwordForm = useForm({
     resolver: zodResolver(passwordSchema),
@@ -126,7 +125,7 @@ export default function Settings() {
 
       toast.success('Passwort erfolgreich geändert');
       passwordForm.reset();
-      setShowPasswordForm(false);
+      setSecurityMode('menu');
     } catch (error: any) {
       toast.error('Fehler beim Ändern des Passworts: ' + error.message);
     }
@@ -151,7 +150,7 @@ export default function Settings() {
 
       toast.success('Wallet-Passwort erfolgreich gesetzt');
       walletPasswordForm.reset();
-      setShowWalletPasswordForm(false);
+      setSecurityMode('menu');
       fetchUserProfile();
     } catch (error: any) {
       toast.error('Fehler beim Setzen des Wallet-Passworts: ' + error.message);
@@ -305,134 +304,155 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Password Change Card */}
+        {/* Combined Security Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Passwort ändern</CardTitle>
+            <CardTitle>Sicherheit & Passwörter</CardTitle>
             <CardDescription>
-              Aktualisieren Sie Ihr Login-Passwort
+              Verwalten Sie Ihre Passwörter und Sicherheitseinstellungen
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!showPasswordForm ? (
-              <Button
-                onClick={() => setShowPasswordForm(true)}
-                className="w-full"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Passwort ändern
-              </Button>
-            ) : (
-              <Form {...passwordForm}>
-                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                  <FormField
-                    control={passwordForm.control}
-                    name="currentPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Aktuelles Passwort</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input 
-                              type={showPassword ? "text" : "password"} 
-                              {...field} 
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={passwordForm.control}
-                    name="newPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Neues Passwort</FormLabel>
-                        <FormControl>
-                          <Input type={showPassword ? "text" : "password"} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={passwordForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Neues Passwort bestätigen</FormLabel>
-                        <FormControl>
-                          <Input type={showPassword ? "text" : "password"} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex gap-2">
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading ? "Ändern..." : "Passwort ändern"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setShowPasswordForm(false);
-                        passwordForm.reset();
-                      }}
-                    >
-                      Abbrechen
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Wallet Password Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Wallet-Passwort</CardTitle>
-            <CardDescription>
-              Separates Passwort für Wallet-Operationen
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Status:</span>
-                {userProfile?.wallet_password_hash ? (
-                  <div className="flex items-center gap-1 text-green-600">
-                    <CheckCircle className="h-4 w-4" />
-                    <span className="text-sm">Eingerichtet</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-red-600">
-                    <XCircle className="h-4 w-4" />
-                    <span className="text-sm">Nicht gesetzt</span>
-                  </div>
-                )}
-              </div>
-              
-              {!showWalletPasswordForm ? (
+            {securityMode === 'menu' && (
+              <div className="space-y-3">
                 <Button
-                  onClick={() => setShowWalletPasswordForm(true)}
-                  className="w-full"
+                  onClick={() => setSecurityMode('login-password')}
+                  variant="outline"
+                  className="w-full justify-start"
                 >
                   <Shield className="h-4 w-4 mr-2" />
-                  {userProfile?.wallet_password_hash ? 'Wallet-Passwort ändern' : 'Wallet-Passwort einrichten'}
+                  Login-Passwort ändern
                 </Button>
-              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Wallet-Passwort:</span>
+                      {userProfile?.wallet_password_hash ? (
+                        <div className="flex items-center gap-1 text-green-600">
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="text-xs">Eingerichtet</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-red-600">
+                          <XCircle className="h-4 w-4" />
+                          <span className="text-xs">Nicht gesetzt</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setSecurityMode('wallet-password')}
+                    variant="outline"
+                    className="w-full justify-start"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    {userProfile?.wallet_password_hash ? 'Wallet-Passwort ändern' : 'Wallet-Passwort einrichten'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {securityMode === 'login-password' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSecurityMode('menu')}
+                  >
+                    ← Zurück
+                  </Button>
+                  <span className="text-sm font-medium">Login-Passwort ändern</span>
+                </div>
+                <Form {...passwordForm}>
+                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                    <FormField
+                      control={passwordForm.control}
+                      name="currentPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Aktuelles Passwort</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showPassword ? "text" : "password"} 
+                                {...field} 
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={passwordForm.control}
+                      name="newPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Neues Passwort</FormLabel>
+                          <FormControl>
+                            <Input type={showPassword ? "text" : "password"} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={passwordForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Neues Passwort bestätigen</FormLabel>
+                          <FormControl>
+                            <Input type={showPassword ? "text" : "password"} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex gap-2">
+                      <Button type="submit" disabled={isLoading}>
+                        {isLoading ? "Ändern..." : "Passwort ändern"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setSecurityMode('menu');
+                          passwordForm.reset();
+                        }}
+                      >
+                        Abbrechen
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </div>
+            )}
+
+            {securityMode === 'wallet-password' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSecurityMode('menu')}
+                  >
+                    ← Zurück
+                  </Button>
+                  <span className="text-sm font-medium">
+                    {userProfile?.wallet_password_hash ? 'Wallet-Passwort ändern' : 'Wallet-Passwort einrichten'}
+                  </span>
+                </div>
                 <Form {...walletPasswordForm}>
                   <form onSubmit={walletPasswordForm.handleSubmit(onWalletPasswordSubmit)} className="space-y-4">
                     <FormField
@@ -477,13 +497,13 @@ export default function Settings() {
                     />
                     <div className="flex gap-2">
                       <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Setzen..." : "Wallet-Passwort setzen"}
+                        {isLoading ? "Speichern..." : userProfile?.wallet_password_hash ? 'Ändern' : 'Einrichten'}
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => {
-                          setShowWalletPasswordForm(false);
+                          setSecurityMode('menu');
                           walletPasswordForm.reset();
                         }}
                       >
@@ -492,25 +512,25 @@ export default function Settings() {
                     </div>
                   </form>
                 </Form>
-              )}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Email Notifications Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Benachrichtigungen</CardTitle>
+            <CardTitle>E-Mail Benachrichtigungen</CardTitle>
             <CardDescription>
-              E-Mail-Benachrichtigungseinstellungen
+              Verwalten Sie Ihre Benachrichtigungseinstellungen
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">E-Mail-Benachrichtigungen</Label>
-                <p className="text-sm text-muted-foreground">
-                  Erhalten Sie Updates zu Ihren Trading-Aktivitäten
+              <div>
+                <p className="text-sm font-medium">E-Mail Benachrichtigungen</p>
+                <p className="text-xs text-muted-foreground">
+                  Erhalten Sie wichtige Updates per E-Mail
                 </p>
               </div>
               <Switch
@@ -521,28 +541,27 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Account Deletion Card - Full Width */}
-        <Card className="lg:col-span-2 border-destructive">
+        {/* Delete Account Card */}
+        <Card className="border-destructive/20">
           <CardHeader>
             <CardTitle className="text-destructive">Gefahrenbereich</CardTitle>
             <CardDescription>
-              Dieser Vorgang kann nicht rückgängig gemacht werden
+              Irreversible und gefährliche Aktionen
             </CardDescription>
           </CardHeader>
           <CardContent>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">
+                <Button variant="destructive" className="w-full">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Account permanent löschen
+                  Account löschen
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Account wirklich löschen?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten, 
-                    Trading-Bots und Transaktionen werden permanent gelöscht.
+                    Diese Aktion kann nicht rückgängig gemacht werden. Ihr Account und alle Daten werden permanent gelöscht.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <Form {...deleteForm}>
@@ -554,7 +573,7 @@ export default function Settings() {
                         <FormItem>
                           <FormLabel>Passwort zur Bestätigung</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input type="password" {...field} placeholder="Ihr aktuelles Passwort" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -565,9 +584,9 @@ export default function Settings() {
                       name="confirmText"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Geben Sie "LÖSCHEN" ein um zu bestätigen</FormLabel>
+                          <FormLabel>Geben Sie "LÖSCHEN" ein, um zu bestätigen</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} placeholder="LÖSCHEN" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -575,12 +594,12 @@ export default function Settings() {
                     />
                     <AlertDialogFooter>
                       <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                      <AlertDialogAction
-                        type="submit"
+                      <AlertDialogAction 
+                        type="submit" 
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         disabled={isLoading}
                       >
-                        {isLoading ? "Löschen..." : "Account endgültig löschen"}
+                        {isLoading ? "Löschen..." : "Account löschen"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </form>
