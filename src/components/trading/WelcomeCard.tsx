@@ -2,14 +2,16 @@ import React, { useContext } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Trophy } from "lucide-react";
 import { useDashboardLoading } from "./TradingLayout";
+import { useLoginStats } from "@/hooks/useLoginStats";
 
 export function WelcomeCard() {
-  // Simulated streak data - in real app this would come from user data
-  const currentStreak = 5;
-  const weeklyGoal = 7;
-  
-  // Use the hook safely with a fallback
+  // Use the hooks
   const { userName } = useDashboardLoading();
+  const { loginStats, loading: loginLoading } = useLoginStats();
+  
+  // Use real data from login stats, fallback to 0 if loading
+  const currentStreak = loginLoading ? 0 : loginStats.currentStreak;
+  const weeklyGoal = loginStats.weeklyGoal;
 
   const animationStyles = {
     floating: {

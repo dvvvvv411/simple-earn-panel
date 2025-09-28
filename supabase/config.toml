@@ -1,5 +1,11 @@
 project_id = "fyloldkiuxtcdiazbtwn"
 
+[functions.track-login]
+verify_jwt = true
+
+[functions.get-weekly-login-stats]
+verify_jwt = true
+
 [functions.trading-bot-simulator]
 verify_jwt = false
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useLoginStats } from "@/hooks/useLoginStats";
 
 interface TradingGuardProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ export function TradingGuard({ children }: TradingGuardProps) {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const { trackLogin } = useLoginStats();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -23,6 +25,11 @@ export function TradingGuard({ children }: TradingGuardProps) {
         }
 
         setIsAuthenticated(true);
+        
+        // Track login in background
+        setTimeout(() => {
+          trackLogin();
+        }, 0);
       } catch (error) {
         console.error('Auth check failed:', error);
         navigate('/auth');

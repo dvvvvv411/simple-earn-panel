@@ -11,8 +11,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
-import { Eye, EyeOff, Trash2, Edit, Shield, CheckCircle, XCircle } from "lucide-react";
+import { Eye, EyeOff, Trash2, Edit, Shield, CheckCircle, XCircle, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDashboardLoading } from "@/components/trading/TradingLayout";
+import { useLoginStats } from "@/hooks/useLoginStats";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Aktuelles Passwort ist erforderlich"),
@@ -45,6 +47,8 @@ const deleteAccountSchema = z.object({
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { userName } = useDashboardLoading();
+  const { loginStats, loading: loginLoading } = useLoginStats();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showWalletPassword, setShowWalletPassword] = useState(false);
@@ -312,6 +316,23 @@ export default function Settings() {
                   </form>
                 </Form>
               )}
+            </div>
+            
+            {/* Login Activity Section */}
+            <div className="pt-4 border-t border-border">
+              <Label className="text-sm font-medium">Login-Aktivität diese Woche</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="text-sm text-muted-foreground">
+                  {loginLoading ? (
+                    "Lade..."
+                  ) : (
+                    `${loginStats.currentStreak} von ${loginStats.weeklyGoal} Tagen`
+                  )}
+                </div>
+                {!loginLoading && loginStats.currentStreak > 0 && (
+                  <Flame className="h-4 w-4 text-primary" />
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
