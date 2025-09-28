@@ -179,10 +179,15 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
                   setFilter(button.key);
                   setCurrentPage(1);
                 }}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 text-xs sm:text-sm"
               >
                 <Icon className="h-3 w-3" />
-                {button.label}
+                <span className="hidden xs:inline">{button.label}</span>
+                <span className="xs:hidden">
+                  {button.key === 'all' ? 'Alle' : 
+                   button.key === 'credit' ? 'Ein' : 
+                   button.key === 'debit' ? 'Aus' : 'Adj'}
+                </span>
               </Button>
             );
           })}
@@ -198,7 +203,8 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
           </div>
         ) : (
           <>
-            <div className="border rounded-lg overflow-hidden">
+            {/* Desktop Table */}
+            <div className="hidden md:block border rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -238,11 +244,43 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
               </Table>
             </div>
 
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+              {paginatedTransactions.map((transaction) => (
+                <div key={transaction.id} className="bg-card border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {getTransactionIcon(transaction.type)}
+                      {getTransactionBadge(transaction.type)}
+                    </div>
+                    <div className={`text-right font-semibold ${getAmountColor(transaction.type)}`}>
+                      {formatAmount(transaction.amount, transaction.type)}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium text-foreground">
+                      {transaction.description}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatDate(transaction.created_at)}
+                    </div>
+                  </div>
+                  
+                  <div className="text-right pt-2 border-t border-border/50">
+                    <span className="text-xs text-muted-foreground">Neuer Saldo: </span>
+                    <span className="text-sm font-medium">{formatCurrency(transaction.new_balance)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Zeige {startIndex + 1} bis {Math.min(startIndex + ITEMS_PER_PAGE, transactions.length)} von {transactions.length} Transaktionen
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs sm:text-sm text-muted-foreground text-center">
+                  <span className="hidden sm:inline">Zeige {startIndex + 1} bis {Math.min(startIndex + ITEMS_PER_PAGE, transactions.length)} von {transactions.length} Transaktionen</span>
+                  <span className="sm:hidden">{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, transactions.length)} von {transactions.length}</span>
                 </p>
                 <div className="flex gap-2">
                   <Button
