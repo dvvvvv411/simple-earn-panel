@@ -44,9 +44,33 @@ export function useReferralData() {
         return;
       }
 
+      // If no referral code exists, generate one
       if (!profile?.referral_code) {
-        setError('Kein Referral-Code gefunden');
-        return;
+        console.log('No referral code found, generating one...');
+        
+        // Generate a new referral code
+        const { data: newCode, error: codeError } = await supabase.rpc('generate_referral_code');
+        
+        if (codeError) {
+          console.error('Error generating referral code:', codeError);
+          setError('Fehler beim Generieren des Referral-Codes');
+          return;
+        }
+        
+        // Update the profile with the new code
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ referral_code: newCode })
+          .eq('id', session.user.id);
+        
+        if (updateError) {
+          console.error('Error updating referral code:', updateError);
+          setError('Fehler beim Speichern des Referral-Codes');
+          return;
+        }
+        
+        // Use the new code
+        profile.referral_code = newCode;
       }
 
       // Get referral statistics
