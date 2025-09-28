@@ -141,35 +141,33 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div className="text-center p-3 sm:p-4 rounded-lg bg-muted/50 border">
-            <div className="text-xl sm:text-2xl font-bold text-foreground mb-1">{referralData.totalReferrals}</div>
-            <div className="text-sm text-muted-foreground">Geworbene Freunde</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="text-center p-3 rounded-lg bg-muted/50 border">
+            <div className="text-lg sm:text-xl font-bold text-foreground mb-1">{referralData.totalReferrals}</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Geworbene Freunde</div>
           </div>
-          <div className="text-center p-3 sm:p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <div className="text-xl sm:text-2xl font-bold text-primary mb-1">{formatCurrency(referralData.bonusEarned)}</div>
-            <div className="text-sm text-primary/70">Verdient</div>
+          <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="text-lg sm:text-xl font-bold text-primary mb-1">{formatCurrency(referralData.bonusEarned)}</div>
+            <div className="text-xs sm:text-sm text-primary/70">Verdient</div>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-secondary/20 border col-span-2 sm:col-span-1">
+            <div className="text-lg sm:text-xl font-bold text-primary mb-1">€50</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Bonus pro Freund</div>
           </div>
         </div>
 
         {/* Action Button */}
-        <Button
-          onClick={() => shareReferral('link')}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-          size={isMobile ? "mobile" : "lg"}
-        >
-          <Share2 className="h-4 w-4 mr-2" />
-          Code teilen
-        </Button>
-
-        {/* Reward Info */}
-        <div className="text-center p-4 rounded-lg bg-muted/30 border space-y-2">
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <Gift className="h-4 w-4" />
-            <span className="text-sm font-medium">€50 pro erfolgreich geworbenen Freund</span>
-          </div>
-          <div className="text-xs text-muted-foreground/80">
-            Der geworbene Freund muss Rang "Starter" erreichen, um den Verdienst freizuschalten
+        <div className="space-y-2">
+          <Button
+            onClick={() => shareReferral('link')}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            size={isMobile ? "mobile" : "lg"}
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Code teilen
+          </Button>
+          <div className="text-center text-xs text-muted-foreground/70">
+            Freund muss Rang "Starter" erreichen
           </div>
         </div>
       </CardContent>
