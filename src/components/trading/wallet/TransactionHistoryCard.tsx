@@ -7,6 +7,7 @@ import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus } from 
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -21,6 +22,7 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     loadTransactions();
@@ -159,7 +161,7 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
           <CardTitle className="text-lg font-semibold text-text-headline">
             Transaktionsverlauf
           </CardTitle>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size={isMobile ? "mobile" : "sm"}>
             <Download className="h-4 w-4 mr-2" />
             CSV Export
           </Button>
@@ -174,7 +176,7 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
               <Button
                 key={button.key}
                 variant={filter === button.key ? "default" : "outline"}
-                size="sm"
+                size={isMobile ? "mobile" : "sm"}
                 onClick={() => {
                   setFilter(button.key);
                   setCurrentPage(1);
@@ -278,7 +280,7 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size={isMobile ? "mobile" : "sm"}
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
                   >
@@ -286,7 +288,7 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size={isMobile ? "mobile" : "sm"}
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
                   >

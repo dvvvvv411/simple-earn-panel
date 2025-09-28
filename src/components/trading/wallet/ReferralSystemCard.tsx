@@ -6,6 +6,7 @@ import { Copy, Users, Gift, Share2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReferralData {
   referralCode: string;
@@ -25,6 +26,7 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
   });
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     loadReferralData();
@@ -124,9 +126,9 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
               </code>
               <Button
                 variant="ghost"
-                size="sm"
+                size={isMobile ? "mobile" : "sm"}
                 onClick={copyReferralCode}
-                className="h-9 w-9 p-0 hover:bg-primary/10 shrink-0"
+                className={`${isMobile ? "h-12 w-12" : "h-9 w-9"} p-0 hover:bg-primary/10 shrink-0`}
               >
                 {copied ? (
                   <CheckCircle className="h-4 w-4 text-primary" />
@@ -154,7 +156,7 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         <Button
           onClick={() => shareReferral('link')}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-          size="lg"
+          size={isMobile ? "mobile" : "lg"}
         >
           <Share2 className="h-4 w-4 mr-2" />
           Code teilen

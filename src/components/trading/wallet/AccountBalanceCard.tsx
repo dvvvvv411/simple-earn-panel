@@ -5,6 +5,7 @@ import { Plus, Minus, TrendingUp, TrendingDown, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTradingBots } from "@/hooks/useTradingBots";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AccountBalanceCardProps {
   className?: string;
@@ -14,6 +15,7 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const { bots } = useTradingBots();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     loadBalance();
@@ -127,11 +129,11 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button className="flex-1 bg-primary hover:bg-primary/90" size="sm">
+          <Button className="flex-1 bg-primary hover:bg-primary/90" size={isMobile ? "mobile" : "sm"}>
             <Plus className="h-4 w-4 mr-2" />
             Einzahlen
           </Button>
-          <Button variant="outline" className="flex-1" size="sm">
+          <Button variant="outline" className="flex-1" size={isMobile ? "mobile" : "sm"}>
             <Minus className="h-4 w-4 mr-2" />
             Auszahlen
           </Button>
