@@ -33,6 +33,8 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
       const hslValue = hexToHsl(branding.accent_color);
       document.documentElement.style.setProperty('--primary', hslValue);
       document.documentElement.style.setProperty('--accent', hslValue);
+      document.documentElement.style.setProperty('--ring', hslValue);
+      document.documentElement.style.setProperty('--border', hslValue);
     }
   }, [branding]);
 
