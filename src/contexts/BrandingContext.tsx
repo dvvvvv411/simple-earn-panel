@@ -29,10 +29,11 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (branding?.accent_color) {
-      // Convert hex to HSL and set as primary and accent colors
+      // Convert hex to HSL and set as primary, accent, and ring colors
       const hslValue = hexToHsl(branding.accent_color);
       document.documentElement.style.setProperty('--primary', hslValue);
       document.documentElement.style.setProperty('--accent', hslValue);
+      document.documentElement.style.setProperty('--ring', hslValue);
     }
   }, [branding]);
 
