@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,21 +144,21 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
   };
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
       {/* Only show trigger if not controlled externally */}
       {open === undefined && (
-        <DialogTrigger asChild>
+        <ResponsiveDialogTrigger>
           <Button className="w-full" size="sm">
             <Bot className="w-4 h-4 mr-2" />
             Bot erstellen
           </Button>
-        </DialogTrigger>
+        </ResponsiveDialogTrigger>
       )}
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="relative overflow-hidden">
+      <ResponsiveDialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <ResponsiveDialogHeader className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
           <div className="relative">
-            <DialogTitle className="flex items-center gap-3 text-xl">
+            <ResponsiveDialogTitle className="flex items-center gap-3 text-lg sm:text-xl">
               <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
                 <Bot className="w-6 h-6" />
               </div>
@@ -170,7 +170,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                   KI-gestützter automatisierter Handel
                 </p>
               </div>
-            </DialogTitle>
+            </ResponsiveDialogTitle>
             
             {/* Trust Badges */}
             <div className="flex gap-2 mt-4">
@@ -188,9 +188,9 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
               </Badge>
             </div>
           </div>
-        </DialogHeader>
+        </ResponsiveDialogHeader>
         
-        <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
           {/* Left Column - Form */}
           <div className="space-y-6">
             <div className="space-y-3">
@@ -271,7 +271,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
               </div>
 
               {/* Preset Buttons */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[25, 50, 75, 100].map((percentage) => (
                   <Button
                     key={percentage}
@@ -451,7 +451,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
             )}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

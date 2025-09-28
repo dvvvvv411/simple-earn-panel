@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle } from '@/components/ui/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Trophy, BarChart3, Activity } from 'lucide-react';
 import { useBranding } from '@/contexts/BrandingContext';
@@ -108,9 +108,9 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
   const isProfit = profit > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg bg-background/95 backdrop-blur-lg border border-primary/20">
-        <DialogHeader className="text-center space-y-4">
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="sm:max-w-lg bg-background/95 backdrop-blur-lg border border-primary/20">
+        <ResponsiveDialogHeader className="text-center space-y-4">
           <div 
             className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
             style={{ 
@@ -121,8 +121,8 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
           </div>
           
           
-          <DialogTitle 
-            className="text-2xl font-bold bg-clip-text text-transparent text-center"
+          <ResponsiveDialogTitle 
+            className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent text-center"
             style={{ 
               background: `linear-gradient(to right, ${accentColor}, ${accentColor}dd)`,
               WebkitBackgroundClip: 'text',
@@ -130,14 +130,14 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
             }}
           >
             Glückwunsch!
-          </DialogTitle>
+          </ResponsiveDialogTitle>
           
           <div className="text-center space-y-2">
             <p className="text-lg text-muted-foreground">
               Dein <span className="font-semibold text-foreground">{completedBot.cryptocurrency}</span> Trading-Bot ist erfolgreich abgeschlossen!
             </p>
           </div>
-        </DialogHeader>
+        </ResponsiveDialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Profit Display */}
@@ -165,7 +165,7 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
               <span className="font-semibold text-center">Trade Details</span>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div className="text-center">
                 <span className="text-muted-foreground block">Cryptocurrency</span>
                 <div className="font-semibold">{completedBot.cryptocurrency} ({completedBot.symbol})</div>
@@ -227,7 +227,7 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
             Verstanden
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

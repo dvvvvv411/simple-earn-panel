@@ -1,10 +1,10 @@
 import React from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import { Badge } from "@/components/ui/badge";
 import { useRankingTiers } from "@/hooks/useRankingTiers";
 
@@ -43,32 +43,32 @@ export function RankingOverviewDialog({
 
   if (loading) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl">
-          <DialogHeader className="text-center pb-6">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+      <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+        <ResponsiveDialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl">
+          <ResponsiveDialogHeader className="text-center pb-6">
+            <ResponsiveDialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Rang-System Übersicht
-            </DialogTitle>
+            </ResponsiveDialogTitle>
             <p className="text-muted-foreground mt-2">Lädt...</p>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogHeader>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl">
-        <DialogHeader className="text-center pb-6">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl">
+        <ResponsiveDialogHeader className="text-center pb-6">
+          <ResponsiveDialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             Rang-System Übersicht
-          </DialogTitle>
+          </ResponsiveDialogTitle>
           <p className="text-muted-foreground mt-2">
             Erreichen Sie höhere Ränge und erhalten Sie mehr Trading-Möglichkeiten
           </p>
-        </DialogHeader>
+        </ResponsiveDialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
           {tiers.map((rank, index) => {
             const RankIcon = rank.icon;
             const isAchieved = isRankAchieved(rank);
@@ -148,7 +148,7 @@ export function RankingOverviewDialog({
             Erhöhen Sie Ihr Guthaben, um höhere Ränge zu erreichen
           </p>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
