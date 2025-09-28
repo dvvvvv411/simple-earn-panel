@@ -164,22 +164,20 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         </Button>
 
         {/* Compact Reward Info with Tooltip */}
-        <TooltipProvider>
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Gift className="h-4 w-4" />
-            <span className="font-medium">€50 pro erfolgreich geworbenen Freund</span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs max-w-64">
-                  Der geworbene Freund muss Rang "Starter" erreichen, um den Verdienst freizuschalten
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Gift className="h-4 w-4" />
+          <span className="font-medium">€50 pro erfolgreich geworbenen Freund</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs max-w-64">
+                Der geworbene Freund muss Rang "Starter" erreichen, um den Verdienst freizuschalten
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </CardContent>
     </Card>
   );
