@@ -7,6 +7,7 @@ import { BrandingProvider, useBranding } from "@/contexts/BrandingContext";
 import { CoinMarketCapProvider } from "@/contexts/CoinMarketCapContext";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Context for managing dashboard-level loading states
 interface DashboardLoadingContextType {
@@ -43,8 +44,9 @@ export function DashboardLoadingProvider({ children }: { children: React.ReactNo
 }
 
 function TradingContent() {
-  const { loading: brandingLoading } = useBranding();
+  const { loading: brandingLoading, branding, logoUrl } = useBranding();
   const { isBalanceLoading, setIsBalanceLoading, setUserName } = useDashboardLoading();
+  const isMobile = useIsMobile();
 
   // Fetch user balance and name in a single request
   useEffect(() => {
@@ -99,10 +101,28 @@ function TradingContent() {
         <header className="h-20 flex items-center justify-between border-b border-border bg-background px-8">
           <div className="flex items-center gap-6">
             <SidebarTrigger className="h-8 w-8" />
-            <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-foreground">Trading Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Professionelles Krypto-Portfolio Management</p>
-            </div>
+            {isMobile ? (
+              <div className="flex items-center">
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt={branding?.name || "Logo"} 
+                    className="h-8 w-auto max-w-[150px] object-contain"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
+                    <span className="text-sm font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                      {branding?.name?.charAt(0) || "T"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-bold text-foreground">Trading Dashboard</h1>
+                <p className="text-sm text-muted-foreground">Professionelles Krypto-Portfolio Management</p>
+              </div>
+            )}
           </div>
         </header>
 

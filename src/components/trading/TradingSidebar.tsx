@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import { useBranding } from "@/contexts/BrandingContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const items = [
   {
@@ -45,13 +46,14 @@ const items = [
 ];
 
 export function TradingSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpen } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
   const [userEmail, setUserEmail] = useState<string>("");
   const { branding, logoUrl } = useBranding();
+  const isMobile = useIsMobile();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -65,6 +67,12 @@ export function TradingSidebar() {
     getUserInfo();
   }, []);
 
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -77,26 +85,18 @@ export function TradingSidebar() {
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar">
       <SidebarHeader className="border-b border-sidebar-border p-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-full">
           {logoUrl ? (
             <img 
               src={logoUrl} 
               alt={branding?.name || "Logo"} 
-              className="h-10 w-auto max-w-[120px] object-contain"
+              className="h-10 w-full max-w-full object-contain"
             />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
+            <div className="flex h-10 w-full items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
               <span className="text-lg font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
                 {branding?.name?.charAt(0) || "T"}
               </span>
-            </div>
-          )}
-          {!collapsed && (
-            <div className="flex flex-col">
-              <h2 className="text-lg font-semibold text-sidebar-foreground">
-                {branding?.name || "Trading Dashboard"}
-              </h2>
-              <p className="text-xs text-sidebar-foreground/60">Krypto Trading</p>
             </div>
           )}
         </div>
@@ -115,6 +115,7 @@ export function TradingSidebar() {
                     <NavLink 
                       to={item.url}
                       end={item.url === "/kryptotrading"}
+                      onClick={handleNavClick}
                       className={({ isActive }) => 
                         `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
                           isActive 
