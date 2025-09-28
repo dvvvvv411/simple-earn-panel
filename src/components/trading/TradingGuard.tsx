@@ -13,26 +13,26 @@ export function TradingGuard({ children }: TradingGuardProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          navigate('/auth');
+          return;
+        }
 
-  const checkAuth = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Auth check failed:', error);
         navigate('/auth');
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      navigate('/auth');
-    } finally {
-      setLoading(false);
-    }
-  };
+    checkAuth();
+  }, [navigate]);
 
   if (loading) {
     return (
