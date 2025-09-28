@@ -24,6 +24,7 @@ const passwordSchema = z.object({
 });
 
 const walletPasswordSchema = z.object({
+  loginPassword: z.string().min(1, "Login-Passwort ist erforderlich zur Verifikation"),
   walletPassword: z.string().min(4, "Wallet-Passwort muss mindestens 4 Zeichen lang sein"),
   confirmWalletPassword: z.string().min(1, "Wallet-Passwort bestätigen ist erforderlich")
 }).refine((data) => data.walletPassword === data.confirmWalletPassword, {
@@ -66,6 +67,7 @@ export default function Settings() {
   const walletPasswordForm = useForm({
     resolver: zodResolver(walletPasswordSchema),
     defaultValues: {
+      loginPassword: "",
       walletPassword: "",
       confirmWalletPassword: ""
     }
@@ -135,6 +137,16 @@ export default function Settings() {
   const onWalletPasswordSubmit = async (data: z.infer<typeof walletPasswordSchema>) => {
     setIsLoading(true);
     try {
+      // First verify login password
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: userProfile?.email || '',
+        password: data.loginPassword
+      });
+
+      if (verifyError) {
+        throw new Error('Login-Passwort ist nicht korrekt');
+      }
+
       // Simple hash function for demo purposes - in production use proper server-side hashing
       const simpleHash = btoa(data.walletPassword + "salt123");
       
@@ -224,7 +236,7 @@ export default function Settings() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profile Information Card */}
-        <Card>
+        <Card className="h-fit">
           <CardHeader>
             <CardTitle>Profil-Informationen</CardTitle>
             <CardDescription>
@@ -304,49 +316,69 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Combined Security Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sicherheit & Passwörter</CardTitle>
-            <CardDescription>
-              Verwalten Sie Ihre Passwörter und Sicherheitseinstellungen
-            </CardDescription>
+        {/* Premium Security Card */}
+        <Card className="relative overflow-hidden bg-gradient-hero border-primary/20 shadow-glow">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+          <CardHeader className="relative">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-xl text-primary">Sicherheit & Passwörter</CardTitle>
+                <CardDescription className="text-primary/70">
+                  Verwalten Sie Ihre Passwörter und Sicherheitseinstellungen
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
             {securityMode === 'menu' && (
-              <div className="space-y-3">
-                <Button
-                  onClick={() => setSecurityMode('login-password')}
-                  variant="outline"
-                  className="w-full justify-start"
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Login-Passwort ändern
-                </Button>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Wallet-Passwort:</span>
-                      {userProfile?.wallet_password_hash ? (
-                        <div className="flex items-center gap-1 text-green-600">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="text-xs">Eingerichtet</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-red-600">
-                          <XCircle className="h-4 w-4" />
-                          <span className="text-xs">Nicht gesetzt</span>
-                        </div>
-                      )}
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-white/50 border border-primary/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-primary">Login-Passwort</h4>
+                    <div className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                      Aktiv
                     </div>
                   </div>
+                  <p className="text-sm text-primary/70 mb-3">
+                    Schützt Ihren Account-Zugang
+                  </p>
+                  <Button
+                    onClick={() => setSecurityMode('login-password')}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Passwort ändern
+                  </Button>
+                </div>
+
+                <div className="p-4 rounded-lg bg-white/50 border border-primary/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-primary">Wallet-Passwort</h4>
+                    {userProfile?.wallet_password_hash ? (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                        <CheckCircle className="h-3 w-3" />
+                        Eingerichtet
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
+                        <XCircle className="h-3 w-3" />
+                        Nicht gesetzt
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm text-primary/70 mb-3">
+                    Zusätzliche Sicherheit für Wallet-Operationen
+                  </p>
                   <Button
                     onClick={() => setSecurityMode('wallet-password')}
                     variant="outline"
-                    className="w-full justify-start"
+                    className="w-full border-primary/30 text-primary hover:bg-primary/10"
                   >
                     <Shield className="h-4 w-4 mr-2" />
-                    {userProfile?.wallet_password_hash ? 'Wallet-Passwort ändern' : 'Wallet-Passwort einrichten'}
+                    {userProfile?.wallet_password_hash ? 'Passwort ändern' : 'Passwort einrichten'}
                   </Button>
                 </div>
               </div>
@@ -354,15 +386,21 @@ export default function Settings() {
 
             {securityMode === 'login-password' && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
+                <div className="flex items-center gap-3 pb-4 border-b border-primary/20">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSecurityMode('menu')}
+                    className="text-primary hover:bg-primary/10"
                   >
                     ← Zurück
                   </Button>
-                  <span className="text-sm font-medium">Login-Passwort ändern</span>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 rounded bg-primary/10">
+                      <Shield className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-primary">Login-Passwort ändern</span>
+                  </div>
                 </div>
                 <Form {...passwordForm}>
                   <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
@@ -419,8 +457,12 @@ export default function Settings() {
                         </FormItem>
                       )}
                     />
-                    <div className="flex gap-2">
-                      <Button type="submit" disabled={isLoading}>
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        type="submit" 
+                        disabled={isLoading}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
                         {isLoading ? "Ändern..." : "Passwort ändern"}
                       </Button>
                       <Button
@@ -430,6 +472,7 @@ export default function Settings() {
                           setSecurityMode('menu');
                           passwordForm.reset();
                         }}
+                        className="border-primary/30 text-primary hover:bg-primary/10"
                       >
                         Abbrechen
                       </Button>
@@ -441,31 +484,75 @@ export default function Settings() {
 
             {securityMode === 'wallet-password' && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
+                <div className="flex items-center gap-3 pb-4 border-b border-primary/20">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSecurityMode('menu')}
+                    className="text-primary hover:bg-primary/10"
                   >
                     ← Zurück
                   </Button>
-                  <span className="text-sm font-medium">
-                    {userProfile?.wallet_password_hash ? 'Wallet-Passwort ändern' : 'Wallet-Passwort einrichten'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 rounded bg-primary/10">
+                      <Shield className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-primary">
+                      {userProfile?.wallet_password_hash ? 'Wallet-Passwort ändern' : 'Wallet-Passwort einrichten'}
+                    </span>
+                  </div>
                 </div>
+
+                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-sm text-amber-800">
+                    <strong>Sicherheitshinweis:</strong> Zur Verifikation benötigen wir zunächst Ihr Login-Passwort.
+                  </p>
+                </div>
+
                 <Form {...walletPasswordForm}>
                   <form onSubmit={walletPasswordForm.handleSubmit(onWalletPasswordSubmit)} className="space-y-4">
+                    <FormField
+                      control={walletPasswordForm.control}
+                      name="loginPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-primary font-medium">Login-Passwort zur Verifikation</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showPassword ? "text" : "password"} 
+                                {...field} 
+                                className="border-primary/30 focus:ring-primary"
+                                placeholder="Geben Sie Ihr Login-Passwort ein"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={walletPasswordForm.control}
                       name="walletPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Wallet-Passwort</FormLabel>
+                          <FormLabel className="text-primary font-medium">Neues Wallet-Passwort</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input 
                                 type={showWalletPassword ? "text" : "password"} 
                                 {...field} 
+                                className="border-primary/30 focus:ring-primary"
+                                placeholder="Mindestens 4 Zeichen"
                               />
                               <Button
                                 type="button"
@@ -487,17 +574,26 @@ export default function Settings() {
                       name="confirmWalletPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Wallet-Passwort bestätigen</FormLabel>
+                          <FormLabel className="text-primary font-medium">Wallet-Passwort bestätigen</FormLabel>
                           <FormControl>
-                            <Input type={showWalletPassword ? "text" : "password"} {...field} />
+                            <Input 
+                              type={showWalletPassword ? "text" : "password"} 
+                              {...field} 
+                              className="border-primary/30 focus:ring-primary"
+                              placeholder="Passwort wiederholen"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <div className="flex gap-2">
-                      <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Speichern..." : userProfile?.wallet_password_hash ? 'Ändern' : 'Einrichten'}
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        type="submit" 
+                        disabled={isLoading}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        {isLoading ? "Wird eingerichtet..." : (userProfile?.wallet_password_hash ? 'Passwort ändern' : 'Passwort einrichten')}
                       </Button>
                       <Button
                         type="button"
@@ -506,6 +602,7 @@ export default function Settings() {
                           setSecurityMode('menu');
                           walletPasswordForm.reset();
                         }}
+                        className="border-primary/30 text-primary hover:bg-primary/10"
                       >
                         Abbrechen
                       </Button>
@@ -517,97 +614,100 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Email Notifications Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>E-Mail Benachrichtigungen</CardTitle>
-            <CardDescription>
-              Verwalten Sie Ihre Benachrichtigungseinstellungen
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">E-Mail Benachrichtigungen</p>
-                <p className="text-xs text-muted-foreground">
-                  Erhalten Sie wichtige Updates per E-Mail
-                </p>
+        {/* Second Row - Notifications and Danger Zone */}
+        <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Email Notifications Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Benachrichtigungen</CardTitle>
+              <CardDescription>
+                E-Mail Benachrichtigungseinstellungen
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium">E-Mail Benachrichtigungen</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Erhalten Sie wichtige Updates per E-Mail
+                  </p>
+                </div>
+                <Switch
+                  checked={emailNotifications}
+                  onCheckedChange={onNotificationToggle}
+                />
               </div>
-              <Switch
-                checked={emailNotifications}
-                onCheckedChange={onNotificationToggle}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Delete Account Card */}
-        <Card className="border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Gefahrenbereich</CardTitle>
-            <CardDescription>
-              Irreversible und gefährliche Aktionen
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Account löschen
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Account wirklich löschen?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Diese Aktion kann nicht rückgängig gemacht werden. Ihr Account und alle Daten werden permanent gelöscht.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <Form {...deleteForm}>
-                  <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-4">
-                    <FormField
-                      control={deleteForm.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Passwort zur Bestätigung</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} placeholder="Ihr aktuelles Passwort" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={deleteForm.control}
-                      name="confirmText"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Geben Sie "LÖSCHEN" ein, um zu bestätigen</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="LÖSCHEN" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                      <AlertDialogAction 
-                        type="submit" 
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Löschen..." : "Account löschen"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </form>
-                </Form>
-              </AlertDialogContent>
-            </AlertDialog>
-          </CardContent>
-        </Card>
+          {/* Delete Account Card */}
+          <Card className="border-destructive/20">
+            <CardHeader>
+              <CardTitle className="text-destructive">Gefahrenbereich</CardTitle>
+              <CardDescription>
+                Permanente Account-Aktionen
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Account löschen
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Account unwiderruflich löschen?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Diese Aktion kann nicht rückgängig gemacht werden. Ihr Account und alle Daten werden permanent gelöscht.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <Form {...deleteForm}>
+                    <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-4">
+                      <FormField
+                        control={deleteForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Passwort zur Bestätigung</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={deleteForm.control}
+                        name="confirmText"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Geben Sie "LÖSCHEN" ein</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="LÖSCHEN" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction 
+                          type="submit" 
+                          className="bg-destructive hover:bg-destructive/90"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? "Löschen..." : "Account löschen"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </form>
+                  </Form>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
