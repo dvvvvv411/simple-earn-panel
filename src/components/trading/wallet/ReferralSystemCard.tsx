@@ -1,58 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Users, Gift, Share2, CheckCircle, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface ReferralData {
-  referralCode: string;
-  totalReferrals: number;
-  bonusEarned: number;
-}
+import { useReferralData } from "@/hooks/useReferralData";
 
 interface ReferralSystemCardProps {
   className?: string;
 }
 
 export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
-  const [referralData, setReferralData] = useState<ReferralData>({
-    referralCode: '',
-    totalReferrals: 0,
-    bonusEarned: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const { data: referralData, loading, error } = useReferralData();
   const [copied, setCopied] = useState(false);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    loadReferralData();
-  }, []);
-
-  const loadReferralData = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      // Generate referral code based on user ID (first 8 characters)
-      const referralCode = session.user.id.replace(/-/g, '').substring(0, 8).toUpperCase();
-      
-      // Mock data for now - in real app, fetch from referrals table
-      setReferralData({
-        referralCode,
-        totalReferrals: 3,
-        bonusEarned: 150.00,
-      });
-    } catch (error) {
-      console.error('Error loading referral data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -89,6 +53,24 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         break;
     }
   };
+
+  if (error) {
+    return (
+      <Card className={className}>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-text-headline flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Empfehlungs-System
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            Fehler beim Laden der Referral-Daten
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (loading) {
     return (

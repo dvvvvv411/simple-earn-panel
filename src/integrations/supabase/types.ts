@@ -194,6 +194,7 @@ export type Database = {
           id: string
           last_name: string | null
           phone: string | null
+          referral_code: string | null
           updated_at: string
         }
         Insert: {
@@ -206,6 +207,7 @@ export type Database = {
           id: string
           last_name?: string | null
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -218,6 +220,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -284,6 +287,65 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string | null
+          id: string
+          referral_id: string
+          referred_id: string
+          referrer_id: string
+          reward_amount: number
+          transaction_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referral_id: string
+          referred_id: string
+          referrer_id: string
+          reward_amount?: number
+          transaction_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referral_id?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_amount?: number
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "user_referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_rewards_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_rewards_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_rewards_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "user_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_ticket_messages: {
         Row: {
@@ -411,6 +473,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          qualified_at: string | null
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          qualified_at?: string | null
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          qualified_at?: string | null
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          rewarded_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -490,6 +600,10 @@ export type Database = {
     Functions: {
       calculate_user_ranking: {
         Args: { bot_investments?: number; user_balance: number }
+        Returns: string
+      }
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       has_role: {

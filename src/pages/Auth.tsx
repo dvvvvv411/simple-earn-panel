@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Mail, Lock, User, Phone, Shield, Key, CreditCard } from "lucide-react";
+import { Mail, Lock, User, Phone, Shield, Key, CreditCard, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -21,6 +21,7 @@ const registerSchema = z.object({
   email: z.string().email("Ungültige E-Mail-Adresse"),
   phone: z.string().min(1, "Telefonnummer ist erforderlich"),
   password: z.string().min(8, "Passwort muss mindestens 8 Zeichen haben"),
+  referralCode: z.string().optional(),
 });
 
 const resetPasswordSchema = z.object({
@@ -32,6 +33,7 @@ const Auth = () => {
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -49,6 +51,7 @@ const Auth = () => {
       email: "",
       phone: "",
       password: "",
+      referralCode: searchParams.get('ref') || "",
     },
   });
 
@@ -133,6 +136,25 @@ const Auth = () => {
   const onRegister = async (values: z.infer<typeof registerSchema>) => {
     setLoading(true);
     try {
+      // Validate referral code if provided
+      if (values.referralCode) {
+        const { data: referrerProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('referral_code', values.referralCode)
+          .single();
+
+        if (!referrerProfile) {
+          toast({
+            title: "Ungültiger Referral-Code",
+            description: "Der eingegebene Referral-Code existiert nicht.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -142,6 +164,7 @@ const Auth = () => {
             first_name: values.firstName,
             last_name: values.lastName,
             phone: values.phone,
+            referral_code: values.referralCode || null,
           },
         },
       });
@@ -390,6 +413,27 @@ const Auth = () => {
                             <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
                           </div>
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="referralCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Referral-Code (Optional)</FormLabel>
+                        <div className="relative">
+                          <Gift className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <FormControl>
+                            <Input 
+                              type="text"
+                              placeholder="Referral-Code von einem Freund" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
