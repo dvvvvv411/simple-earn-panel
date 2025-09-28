@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
-import { Eye, EyeOff, Trash2, User, Shield, Bell, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Trash2, Edit, Shield, CheckCircle, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const passwordSchema = z.object({
@@ -32,10 +31,7 @@ const walletPasswordSchema = z.object({
   path: ["confirmWalletPassword"],
 });
 
-const profileSchema = z.object({
-  firstName: z.string().min(1, "Vorname ist erforderlich"),
-  lastName: z.string().min(1, "Nachname ist erforderlich"),
-  email: z.string().email("Ungültige E-Mail-Adresse"),
+const phoneSchema = z.object({
   phone: z.string().optional(),
 });
 
@@ -53,6 +49,11 @@ export default function Settings() {
   const [showWalletPassword, setShowWalletPassword] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  
+  // Edit states
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showWalletPasswordForm, setShowWalletPasswordForm] = useState(false);
 
   const passwordForm = useForm({
     resolver: zodResolver(passwordSchema),
@@ -71,12 +72,9 @@ export default function Settings() {
     }
   });
 
-  const profileForm = useForm({
-    resolver: zodResolver(profileSchema),
+  const phoneForm = useForm({
+    resolver: zodResolver(phoneSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
       phone: ""
     }
   });
@@ -106,10 +104,7 @@ export default function Settings() {
         if (profile) {
           setUserProfile(profile);
           setEmailNotifications(profile.email_notifications ?? true);
-          profileForm.reset({
-            firstName: profile.first_name || "",
-            lastName: profile.last_name || "",
-            email: profile.email || user.email || "",
+          phoneForm.reset({
             phone: profile.phone || ""
           });
         }
@@ -131,6 +126,7 @@ export default function Settings() {
 
       toast.success('Passwort erfolgreich geändert');
       passwordForm.reset();
+      setShowPasswordForm(false);
     } catch (error: any) {
       toast.error('Fehler beim Ändern des Passworts: ' + error.message);
     }
@@ -155,41 +151,34 @@ export default function Settings() {
 
       toast.success('Wallet-Passwort erfolgreich gesetzt');
       walletPasswordForm.reset();
+      setShowWalletPasswordForm(false);
+      fetchUserProfile();
     } catch (error: any) {
       toast.error('Fehler beim Setzen des Wallet-Passworts: ' + error.message);
     }
     setIsLoading(false);
   };
 
-  const onProfileSubmit = async (data: z.infer<typeof profileSchema>) => {
+  const onPhoneSubmit = async (data: z.infer<typeof phoneSchema>) => {
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Nicht angemeldet');
 
-      const { error: profileError } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email,
           phone: data.phone || null
         })
         .eq('id', user.id);
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
-      if (data.email !== user.email) {
-        const { error: authError } = await supabase.auth.updateUser({
-          email: data.email
-        });
-        if (authError) throw authError;
-      }
-
-      toast.success('Profil erfolgreich aktualisiert');
+      toast.success('Telefonnummer erfolgreich aktualisiert');
+      setIsEditingPhone(false);
       fetchUserProfile();
     } catch (error: any) {
-      toast.error('Fehler beim Aktualisieren des Profils: ' + error.message);
+      toast.error('Fehler beim Aktualisieren der Telefonnummer: ' + error.message);
     }
     setIsLoading(false);
   };
@@ -226,7 +215,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-6 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Einstellungen</h1>
         <p className="text-muted-foreground mt-2">
@@ -234,181 +223,216 @@ export default function Settings() {
         </p>
       </div>
 
-      <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="account" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Account
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Sicherheit
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            Benachrichtigungen
-          </TabsTrigger>
-          <TabsTrigger value="danger" className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-4 w-4" />
-            Gefahrenbereich
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account-Informationen</CardTitle>
-              <CardDescription>
-                Aktualisieren Sie Ihre persönlichen Informationen
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...profileForm}>
-                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={profileForm.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Vorname</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={profileForm.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nachname</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={profileForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>E-Mail-Adresse</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={profileForm.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefonnummer (optional)</FormLabel>
-                        <FormControl>
-                          <Input type="tel" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Speichern..." : "Änderungen speichern"}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Profile Information Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Profil-Informationen</CardTitle>
+            <CardDescription>
+              Ihre persönlichen Daten
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Vorname</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                {userProfile?.first_name || 'Nicht angegeben'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Nachname</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                {userProfile?.last_name || 'Nicht angegeben'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">E-Mail-Adresse</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                {userProfile?.email || 'Nicht angegeben'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Telefonnummer</Label>
+              {!isEditingPhone ? (
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm text-muted-foreground">
+                    {userProfile?.phone || 'Nicht angegeben'}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingPhone(true)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Bearbeiten
                   </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </div>
+              ) : (
+                <Form {...phoneForm}>
+                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-2 mt-1">
+                    <FormField
+                      control={phoneForm.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input type="tel" {...field} placeholder="Telefonnummer" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex gap-2">
+                      <Button type="submit" size="sm" disabled={isLoading}>
+                        {isLoading ? "Speichern..." : "Speichern"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditingPhone(false);
+                          phoneForm.reset({ phone: userProfile?.phone || "" });
+                        }}
+                      >
+                        Abbrechen
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="security">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Passwort ändern</CardTitle>
-                <CardDescription>
-                  Aktualisieren Sie Ihr Login-Passwort
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...passwordForm}>
-                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                    <FormField
-                      control={passwordForm.control}
-                      name="currentPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Aktuelles Passwort</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input 
-                                type={showPassword ? "text" : "password"} 
-                                {...field} 
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                onClick={() => setShowPassword(!showPassword)}
-                              >
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                              </Button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={passwordForm.control}
-                      name="newPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Neues Passwort</FormLabel>
-                          <FormControl>
-                            <Input type={showPassword ? "text" : "password"} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={passwordForm.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Neues Passwort bestätigen</FormLabel>
-                          <FormControl>
-                            <Input type={showPassword ? "text" : "password"} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+        {/* Password Change Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Passwort ändern</CardTitle>
+            <CardDescription>
+              Aktualisieren Sie Ihr Login-Passwort
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!showPasswordForm ? (
+              <Button
+                onClick={() => setShowPasswordForm(true)}
+                className="w-full"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Passwort ändern
+              </Button>
+            ) : (
+              <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                  <FormField
+                    control={passwordForm.control}
+                    name="currentPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Aktuelles Passwort</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input 
+                              type={showPassword ? "text" : "password"} 
+                              {...field} 
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={passwordForm.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Neues Passwort</FormLabel>
+                        <FormControl>
+                          <Input type={showPassword ? "text" : "password"} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={passwordForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Neues Passwort bestätigen</FormLabel>
+                        <FormControl>
+                          <Input type={showPassword ? "text" : "password"} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex gap-2">
                     <Button type="submit" disabled={isLoading}>
                       {isLoading ? "Ändern..." : "Passwort ändern"}
                     </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowPasswordForm(false);
+                        passwordForm.reset();
+                      }}
+                    >
+                      Abbrechen
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            )}
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Wallet-Passwort</CardTitle>
-                <CardDescription>
-                  Setzen Sie ein separates Passwort für Wallet-Operationen
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+        {/* Wallet Password Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Wallet-Passwort</CardTitle>
+            <CardDescription>
+              Separates Passwort für Wallet-Operationen
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Status:</span>
+                {userProfile?.wallet_password_hash ? (
+                  <div className="flex items-center gap-1 text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm">Eingerichtet</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-red-600">
+                    <XCircle className="h-4 w-4" />
+                    <span className="text-sm">Nicht gesetzt</span>
+                  </div>
+                )}
+              </div>
+              
+              {!showWalletPasswordForm ? (
+                <Button
+                  onClick={() => setShowWalletPasswordForm(true)}
+                  className="w-full"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  {userProfile?.wallet_password_hash ? 'Wallet-Passwort ändern' : 'Wallet-Passwort einrichten'}
+                </Button>
+              ) : (
                 <Form {...walletPasswordForm}>
                   <form onSubmit={walletPasswordForm.handleSubmit(onWalletPasswordSubmit)} className="space-y-4">
                     <FormField
@@ -451,117 +475,121 @@ export default function Settings() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading ? "Setzen..." : "Wallet-Passwort setzen"}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button type="submit" disabled={isLoading}>
+                        {isLoading ? "Setzen..." : "Wallet-Passwort setzen"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowWalletPasswordForm(false);
+                          walletPasswordForm.reset();
+                        }}
+                      >
+                        Abbrechen
+                      </Button>
+                    </div>
                   </form>
                 </Form>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Benachrichtigungseinstellungen</CardTitle>
-              <CardDescription>
-                Verwalten Sie Ihre E-Mail-Benachrichtigungen
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">E-Mail-Benachrichtigungen</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Erhalten Sie E-Mail-Updates über Trading-Aktivitäten und Account-Änderungen
-                  </p>
-                </div>
-                <Switch
-                  checked={emailNotifications}
-                  onCheckedChange={onNotificationToggle}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="danger">
-          <Card className="border-destructive">
-            <CardHeader>
-              <CardTitle className="text-destructive">Gefahrenbereich</CardTitle>
-              <CardDescription>
-                Irreversible und destruktive Aktionen
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-                <h3 className="text-lg font-medium text-destructive mb-2">Account löschen</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Das Löschen Ihres Accounts ist permanent und kann nicht rückgängig gemacht werden. 
-                  Alle Ihre Daten, Trading-Historie und Wallet-Informationen werden unwiderruflich gelöscht.
+        {/* Email Notifications Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Benachrichtigungen</CardTitle>
+            <CardDescription>
+              E-Mail-Benachrichtigungseinstellungen
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">E-Mail-Benachrichtigungen</Label>
+                <p className="text-sm text-muted-foreground">
+                  Erhalten Sie Updates zu Ihren Trading-Aktivitäten
                 </p>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="flex items-center gap-2">
-                      <Trash2 className="h-4 w-4" />
-                      Account löschen
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Account löschen bestätigen</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten werden permanent gelöscht.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <Form {...deleteForm}>
-                      <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-4">
-                        <FormField
-                          control={deleteForm.control}
-                          name="confirmText"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Geben Sie "LÖSCHEN" ein, um zu bestätigen</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="LÖSCHEN" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={deleteForm.control}
-                          name="confirmPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Passwort zur Bestätigung</FormLabel>
-                              <FormControl>
-                                <Input type="password" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                          <AlertDialogAction 
-                            type="submit"
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? "Lösche..." : "Account endgültig löschen"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </form>
-                    </Form>
-                  </AlertDialogContent>
-                </AlertDialog>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <Switch
+                checked={emailNotifications}
+                onCheckedChange={onNotificationToggle}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Account Deletion Card - Full Width */}
+        <Card className="lg:col-span-2 border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Gefahrenbereich</CardTitle>
+            <CardDescription>
+              Dieser Vorgang kann nicht rückgängig gemacht werden
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Account permanent löschen
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Account wirklich löschen?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten, 
+                    Trading-Bots und Transaktionen werden permanent gelöscht.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <Form {...deleteForm}>
+                  <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-4">
+                    <FormField
+                      control={deleteForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Passwort zur Bestätigung</FormLabel>
+                          <FormControl>
+                            <Input type="password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={deleteForm.control}
+                      name="confirmText"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Geben Sie "LÖSCHEN" ein um zu bestätigen</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction
+                        type="submit"
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Löschen..." : "Account endgültig löschen"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </form>
+                </Form>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
