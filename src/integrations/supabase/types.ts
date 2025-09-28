@@ -190,12 +190,14 @@ export type Database = {
           created_at: string
           current_ranking_id: string | null
           email: string | null
+          email_notifications: boolean | null
           first_name: string | null
           id: string
           last_name: string | null
           phone: string | null
           referral_code: string | null
           updated_at: string
+          wallet_password_hash: string | null
         }
         Insert: {
           balance?: number
@@ -203,12 +205,14 @@ export type Database = {
           created_at?: string
           current_ranking_id?: string | null
           email?: string | null
+          email_notifications?: boolean | null
           first_name?: string | null
           id: string
           last_name?: string | null
           phone?: string | null
           referral_code?: string | null
           updated_at?: string
+          wallet_password_hash?: string | null
         }
         Update: {
           balance?: number
@@ -216,12 +220,14 @@ export type Database = {
           created_at?: string
           current_ranking_id?: string | null
           email?: string | null
+          email_notifications?: boolean | null
           first_name?: string | null
           id?: string
           last_name?: string | null
           phone?: string | null
           referral_code?: string | null
           updated_at?: string
+          wallet_password_hash?: string | null
         }
         Relationships: [
           {

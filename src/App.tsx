@@ -14,6 +14,7 @@ import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
 import Support from "./pages/trading/Support";
 import SupportTicketDetail from "./pages/trading/SupportTicketDetail";
+import Settings from "./pages/trading/Settings";
 import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
@@ -35,6 +36,7 @@ const App: React.FC = () => {
             <Route path="historie" element={<TradingHistory />} />
             <Route path="support" element={<Support />} />
             <Route path="support/ticket/:ticketId" element={<SupportTicketDetail />} />
+            <Route path="einstellungen" element={<Settings />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
