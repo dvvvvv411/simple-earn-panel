@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Trophy } from "lucide-react";
 import { useDashboardLoading } from "./TradingLayout";
@@ -7,6 +7,8 @@ export function WelcomeCard() {
   // Simulated streak data - in real app this would come from user data
   const currentStreak = 5;
   const weeklyGoal = 7;
+  
+  // Use the hook safely with a fallback
   const { userName } = useDashboardLoading();
 
   const animationStyles = {
