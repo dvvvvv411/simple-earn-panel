@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useTradingStats } from "@/hooks/useTradingStats";
 import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { useBranding } from "@/contexts/BrandingContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -99,6 +100,7 @@ export default function TradingHistory() {
   const { trades, stats, loading, error } = useTradingStats('all');
   const { coins } = useCoinMarketCap();
   const { branding } = useBranding();
+  const isMobile = useIsMobile();
   const [bots, setBots] = useState<TradingBot[]>([]);
   const [enhancedTrades, setEnhancedTrades] = useState<EnhancedBotTrade[]>([]);
 
@@ -457,7 +459,7 @@ export default function TradingHistory() {
       </Card>
 
       {/* Statistics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Gesamt Trades</CardTitle>
@@ -510,7 +512,7 @@ export default function TradingHistory() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -589,199 +591,295 @@ export default function TradingHistory() {
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card className="shadow-lg border-border/50">
-        <CardContent className="p-0">
-          <ScrollArea className="h-[600px]">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow className="border-b-2">
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
-                    onClick={() => handleSort('cryptocurrency')}
-                  >
-                    <div className="flex items-center gap-1">
-                      Kryptowährung
-                      {sortField === 'cryptocurrency' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead className="font-semibold">Trade Typ</TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
-                    onClick={() => handleSort('started_at')}
-                  >
-                    <div className="flex items-center gap-1">
-                      Start Datum
-                      {sortField === 'started_at' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
-                    onClick={() => handleSort('completed_at')}
-                  >
-                    <div className="flex items-center gap-1">
-                      End Datum
-                      {sortField === 'completed_at' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
-                    onClick={() => handleSort('amount')}
-                  >
-                    <div className="flex items-center gap-1">
-                      Betrag
-                      {sortField === 'amount' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
-                    onClick={() => handleSort('profit_amount')}
-                  >
-                    <div className="flex items-center gap-1">
-                      Profit/Loss
-                      {sortField === 'profit_amount' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead className="font-semibold">Entry Price</TableHead>
-                  <TableHead className="font-semibold">Exit Price</TableHead>
-                  <TableHead className="font-semibold">Leverage</TableHead>
-                  <TableHead className="font-semibold min-w-[120px]">Dauer</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold">Bot ID</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedTrades.map((trade, index) => (
-                  <TableRow 
-                    key={trade.id} 
-                    className={cn(
-                      "hover:bg-accent/20 transition-all duration-200 border-b border-border/50",
-                      index % 2 === 0 ? "bg-background" : "bg-muted/20"
-                    )}
-                  >
-                    <TableCell className="font-medium py-4">
-                      <div className="flex items-center gap-3">
-                        {coinsLoading ? (
-                          <Skeleton className="h-8 w-8 rounded-full" />
-                        ) : (
-                          <>
-                            {getCryptoIcon(trade.bot?.symbol || '') ? (
-                              <img 
-                                src={getCryptoIcon(trade.bot?.symbol || '')} 
-                                alt=""
-                                className="h-8 w-8 rounded-full border border-border/20 shadow-sm"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                                }}
-                              />
-                            ) : null}
-                            <div className={cn(
-                              "h-8 w-8 rounded-full border border-border/20 shadow-sm bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground",
-                              getCryptoIcon(trade.bot?.symbol || '') ? "hidden" : ""
-                            )}>
-                              {trade.bot?.symbol?.slice(0, 2).toUpperCase() || '?'}
-                            </div>
-                          </>
-                        )}
-                        <div>
-                          <div className="font-semibold text-sm">{trade.bot?.cryptocurrency || 'Unknown'}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {renderTradeTypeBadge(trade.trade_type)}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="text-sm font-medium">
-                        {format(new Date(trade.started_at), 'dd.MM.yyyy')}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(trade.started_at), 'HH:mm:ss')}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {trade.completed_at ? (
-                        <div>
-                          <div className="text-sm font-medium">
-                            {format(new Date(trade.completed_at), 'dd.MM.yyyy')}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {format(new Date(trade.completed_at), 'HH:mm:ss')}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground font-medium">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="font-semibold">€{trade.amount.toFixed(2)}</div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {trade.profit_amount !== null ? (
+      {/* Table / Mobile Cards */}
+      {isMobile ? (
+        // Mobile Card Layout
+        <div className="space-y-4">
+          {paginatedTrades.map((trade) => (
+            <Card key={trade.id} className="p-4 border-border/50 shadow-sm">
+              <div className="space-y-3">
+                {/* Header Row: Crypto + Status */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {coinsLoading ? (
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                    ) : (
+                      <>
+                        {getCryptoIcon(trade.bot?.symbol || '') ? (
+                          <img 
+                            src={getCryptoIcon(trade.bot?.symbol || '')} 
+                            alt=""
+                            className="h-8 w-8 rounded-full border border-border/20 shadow-sm"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
                         <div className={cn(
-                          "flex items-center gap-1.5 font-semibold px-2 py-1 rounded-md transition-colors",
-                          trade.profit_amount >= 0 
-                            ? "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-900/20" 
-                            : "text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-900/20"
+                          "h-8 w-8 rounded-full border border-border/20 shadow-sm bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground",
+                          getCryptoIcon(trade.bot?.symbol || '') ? "hidden" : ""
                         )}>
-                          {trade.profit_amount >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          <div>
-                            <div>€{trade.profit_amount.toFixed(2)}</div>
-                            {trade.profit_percentage && (
-                              <div className="text-xs opacity-75">
-                                ({trade.profit_percentage.toFixed(1)}%)
+                          {trade.bot?.symbol?.slice(0, 2).toUpperCase() || '?'}
+                        </div>
+                      </>
+                    )}
+                    <div>
+                      <div className="font-semibold text-sm">{trade.bot?.cryptocurrency || 'Unknown'}</div>
+                      <div className="text-xs text-muted-foreground">({trade.bot?.symbol})</div>
+                    </div>
+                  </div>
+                  {renderStatusBadge(trade.status)}
+                </div>
+
+                {/* Trade Info Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {renderTradeTypeBadge(trade.trade_type)}
+                    <Badge variant="outline" className="font-semibold border-border/60 text-xs">
+                      {trade.leverage}x
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    {trade.profit_amount !== null ? (
+                      <div className={cn(
+                        "font-semibold text-sm",
+                        trade.profit_amount >= 0 ? "text-green-600" : "text-red-600"
+                      )}>
+                        {trade.profit_amount >= 0 ? '+' : ''}€{trade.profit_amount.toFixed(2)}
+                        {trade.profit_percentage && (
+                          <span className="text-xs opacity-75 ml-1">
+                            ({trade.profit_percentage.toFixed(1)}%)
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">-</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Details Row */}
+                <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                  <div>
+                    <div className="font-medium">Start:</div>
+                    <div>{format(new Date(trade.started_at), 'dd.MM.yyyy HH:mm')}</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">Dauer:</div>
+                    <div className="font-mono">{formatDuration(trade.started_at, trade.completed_at)}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                  <div>
+                    <div className="font-medium">Betrag:</div>
+                    <div className="font-semibold">€{trade.amount.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">Bot ID:</div>
+                    <div className="font-mono">{trade.bot_id.substring(0, 8)}...</div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        // Desktop Table Layout
+        <Card className="shadow-lg border-border/50">
+          <CardContent className="p-0">
+            <ScrollArea className="h-[600px]">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="border-b-2">
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
+                      onClick={() => handleSort('cryptocurrency')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Kryptowährung
+                        {sortField === 'cryptocurrency' && (
+                          sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-semibold">Trade Typ</TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
+                      onClick={() => handleSort('started_at')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Start Datum
+                        {sortField === 'started_at' && (
+                          sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
+                      onClick={() => handleSort('completed_at')}
+                    >
+                      <div className="flex items-center gap-1">
+                        End Datum
+                        {sortField === 'completed_at' && (
+                          sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
+                      onClick={() => handleSort('amount')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Betrag
+                        {sortField === 'amount' && (
+                          sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/70 transition-colors font-semibold"
+                      onClick={() => handleSort('profit_amount')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Profit/Loss
+                        {sortField === 'profit_amount' && (
+                          sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-semibold">Entry Price</TableHead>
+                    <TableHead className="font-semibold">Exit Price</TableHead>
+                    <TableHead className="font-semibold">Leverage</TableHead>
+                    <TableHead className="font-semibold min-w-[120px]">Dauer</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="font-semibold">Bot ID</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedTrades.map((trade, index) => (
+                    <TableRow 
+                      key={trade.id} 
+                      className={cn(
+                        "hover:bg-accent/20 transition-all duration-200 border-b border-border/50",
+                        index % 2 === 0 ? "bg-background" : "bg-muted/20"
+                      )}
+                    >
+                      <TableCell className="font-medium py-4">
+                        <div className="flex items-center gap-3">
+                          {coinsLoading ? (
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                          ) : (
+                            <>
+                              {getCryptoIcon(trade.bot?.symbol || '') ? (
+                                <img 
+                                  src={getCryptoIcon(trade.bot?.symbol || '')} 
+                                  alt=""
+                                  className="h-8 w-8 rounded-full border border-border/20 shadow-sm"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                              ) : null}
+                              <div className={cn(
+                                "h-8 w-8 rounded-full border border-border/20 shadow-sm bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground",
+                                getCryptoIcon(trade.bot?.symbol || '') ? "hidden" : ""
+                              )}>
+                                {trade.bot?.symbol?.slice(0, 2).toUpperCase() || '?'}
                               </div>
-                            )}
+                            </>
+                          )}
+                          <div>
+                            <div className="font-semibold text-sm">{trade.bot?.cryptocurrency || 'Unknown'}</div>
                           </div>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground font-medium">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="py-4">
-                       <div className="text-sm font-mono font-medium">
-                         €{(trade.entry_price || trade.buy_price).toFixed(4)}
-                       </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                       <div className="text-sm font-mono font-medium">
-                         €{(trade.exit_price || trade.sell_price || 0).toFixed(4)}
-                       </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Badge variant="outline" className="font-semibold border-border/60">{trade.leverage}x</Badge>
-                    </TableCell>
-                     <TableCell className="py-4 min-w-[120px]">
-                       <span className="text-sm font-mono font-medium bg-muted/30 px-2 py-1 rounded whitespace-nowrap">
-                         {formatDuration(trade.started_at, trade.completed_at)}
-                       </span>
-                     </TableCell>
-                    <TableCell className="py-4">
-                      {renderStatusBadge(trade.status)}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <span className="text-xs font-mono text-muted-foreground bg-muted/30 px-2 py-1 rounded">
-                        {trade.bot_id.substring(0, 8)}...
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {renderTradeTypeBadge(trade.trade_type)}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <div className="text-sm font-medium">
+                          {format(new Date(trade.started_at), 'dd.MM.yyyy')}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(trade.started_at), 'HH:mm:ss')}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {trade.completed_at ? (
+                          <div>
+                            <div className="text-sm font-medium">
+                              {format(new Date(trade.completed_at), 'dd.MM.yyyy')}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {format(new Date(trade.completed_at), 'HH:mm:ss')}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground font-medium">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <div className="font-semibold">€{trade.amount.toFixed(2)}</div>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {trade.profit_amount !== null ? (
+                          <div className={cn(
+                            "flex items-center gap-1.5 font-semibold px-2 py-1 rounded-md transition-colors",
+                            trade.profit_amount >= 0 
+                              ? "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-900/20" 
+                              : "text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-900/20"
+                          )}>
+                            {trade.profit_amount >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                            <div>
+                              <div>€{trade.profit_amount.toFixed(2)}</div>
+                              {trade.profit_percentage && (
+                                <div className="text-xs opacity-75">
+                                  ({trade.profit_percentage.toFixed(1)}%)
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground font-medium">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4">
+                         <div className="text-sm font-mono font-medium">
+                           €{(trade.entry_price || trade.buy_price).toFixed(4)}
+                         </div>
+                      </TableCell>
+                      <TableCell className="py-4">
+                         <div className="text-sm font-mono font-medium">
+                           €{(trade.exit_price || trade.sell_price || 0).toFixed(4)}
+                         </div>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Badge variant="outline" className="font-semibold border-border/60">{trade.leverage}x</Badge>
+                      </TableCell>
+                       <TableCell className="py-4 min-w-[120px]">
+                         <span className="text-sm font-mono font-medium bg-muted/30 px-2 py-1 rounded whitespace-nowrap">
+                           {formatDuration(trade.started_at, trade.completed_at)}
+                         </span>
+                       </TableCell>
+                      <TableCell className="py-4">
+                        {renderStatusBadge(trade.status)}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <span className="text-xs font-mono text-muted-foreground bg-muted/30 px-2 py-1 rounded">
+                          {trade.bot_id.substring(0, 8)}...
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
