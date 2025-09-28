@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUserRanking } from "@/hooks/useUserRanking";
 
 const items = [
   {
@@ -59,6 +60,13 @@ export function TradingSidebar() {
   const [userEmail, setUserEmail] = useState<string>("");
   const { branding, logoUrl } = useBranding();
   const isMobile = useIsMobile();
+  const { 
+    balance, 
+    investedAmount, 
+    getCurrentRank, 
+    formatCurrency, 
+    loading: rankingLoading 
+  } = useUserRanking();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -162,8 +170,18 @@ export function TradingSidebar() {
                 {userEmail}
               </span>
               <span className="text-xs text-sidebar-accent-foreground/60">
-                Trader
+                {rankingLoading ? 'Lädt...' : getCurrentRank()?.name || 'Trader'}
               </span>
+              {!rankingLoading && (
+                <div className="mt-1 space-y-1">
+                  <div className="text-xs text-sidebar-accent-foreground/80">
+                    Guthaben: {formatCurrency(balance)}
+                  </div>
+                  <div className="text-xs text-sidebar-accent-foreground/80">
+                    In Bots: {formatCurrency(investedAmount)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
