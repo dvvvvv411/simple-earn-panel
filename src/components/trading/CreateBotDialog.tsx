@@ -157,45 +157,45 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
       <ResponsiveDialogContent className="sm:max-w-3xl sm:max-h-[90vh] sm:overflow-y-auto">
         {/* Mobile: Center content vertically */}
         <div className="flex flex-col h-full lg:block">
-        <ResponsiveDialogHeader className="relative overflow-hidden p-6 sm:p-6 lg:relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
-          <div className="relative">
-            <ResponsiveDialogTitle className="flex items-center gap-3 text-xl sm:text-lg">
-              <div className="p-3 sm:p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
-                <Bot className="w-8 h-8 sm:w-6 sm:h-6" />
-              </div>
-              <div>
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Neuen Trading-Bot erstellen
-                </span>
-                <p className="text-base sm:text-sm font-normal text-muted-foreground mt-1">
-                  KI-gestützter automatisierter Handel
-                </p>
-              </div>
-            </ResponsiveDialogTitle>
-            
-            {/* Trust Badges */}
-            <div className="flex gap-3 sm:gap-2 mt-6 sm:mt-4">
-              <Badge variant="secondary" className="text-sm sm:text-xs">
-                <Shield className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                Sicher
-              </Badge>
-              <Badge variant="secondary" className="text-sm sm:text-xs">
-                <Clock className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                24/7 Trading
-              </Badge>
-              <Badge variant="secondary" className="text-sm sm:text-xs">
-                <Sparkles className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                KI-gestützt
-              </Badge>
-            </div>
-          </div>
-        </ResponsiveDialogHeader>
-         
-        {/* Mobile: Centered content container */}
-        <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
-          <div className="w-full">
-            <div className="grid lg:grid-cols-2 gap-8 sm:gap-4 mt-6 sm:mt-4 lg:mt-6">
+          {/* Mobile: Centered content container */}
+          <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
+            <div className="w-full">
+              <ResponsiveDialogHeader className="relative overflow-hidden p-0 sm:p-6 lg:p-6 mb-6 sm:mb-4">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
+                <div className="relative">
+                  <ResponsiveDialogTitle className="flex items-center gap-3 text-xl sm:text-lg">
+                    <div className="p-3 sm:p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
+                      <Bot className="w-8 h-8 sm:w-6 sm:h-6" />
+                    </div>
+                    <div>
+                      <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                        Neuen Trading-Bot erstellen
+                      </span>
+                      <p className="text-base sm:text-sm font-normal text-muted-foreground mt-1">
+                        KI-gestützter automatisierter Handel
+                      </p>
+                    </div>
+                  </ResponsiveDialogTitle>
+                  
+                  {/* Trust Badges */}
+                  <div className="flex gap-3 sm:gap-2 mt-6 sm:mt-4">
+                    <Badge variant="secondary" className="text-sm sm:text-xs">
+                      <Shield className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                      Sicher
+                    </Badge>
+                    <Badge variant="secondary" className="text-sm sm:text-xs">
+                      <Clock className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                      24/7 Trading
+                    </Badge>
+                    <Badge variant="secondary" className="text-sm sm:text-xs">
+                      <Sparkles className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                      KI-gestützt
+                    </Badge>
+                  </div>
+                </div>
+              </ResponsiveDialogHeader>
+              
+              <div className="grid lg:grid-cols-2 gap-8 sm:gap-4">
             {/* Left Column - Form */}
             <div className="space-y-8 sm:space-y-6">
               <div className="space-y-4 sm:space-y-3">
