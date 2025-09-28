@@ -373,8 +373,7 @@ export default function Settings() {
                   </p>
                   <Button
                     onClick={() => setSecurityMode('wallet-password')}
-                    variant="outline"
-                    className="w-full border-primary/30 text-primary hover:bg-primary/10"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     <Shield className="h-4 w-4 mr-2" />
                     {userProfile?.wallet_password_hash ? 'Passwort ändern' : 'Passwort einrichten'}
@@ -390,7 +389,7 @@ export default function Settings() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSecurityMode('menu')}
-                    className="text-primary hover:bg-primary/10"
+                    className="text-primary hover:bg-primary hover:text-white"
                   >
                     ← Zurück
                   </Button>
@@ -471,7 +470,7 @@ export default function Settings() {
                           setSecurityMode('menu');
                           passwordForm.reset();
                         }}
-                        className="border-primary/30 text-primary hover:bg-primary/10"
+                        className="border-primary/30 text-primary hover:bg-primary hover:text-white"
                       >
                         Abbrechen
                       </Button>
@@ -488,7 +487,7 @@ export default function Settings() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSecurityMode('menu')}
-                    className="text-primary hover:bg-primary/10"
+                    className="text-primary hover:bg-primary hover:text-white"
                   >
                     ← Zurück
                   </Button>
@@ -601,7 +600,7 @@ export default function Settings() {
                           setSecurityMode('menu');
                           walletPasswordForm.reset();
                         }}
-                        className="border-primary/30 text-primary hover:bg-primary/10"
+                        className="border-primary/30 text-primary hover:bg-primary hover:text-white"
                       >
                         Abbrechen
                       </Button>
