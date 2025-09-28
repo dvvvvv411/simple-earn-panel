@@ -79,10 +79,19 @@ function TradingContent() {
     fetchUserData();
   }, [setIsBalanceLoading, setUserName, isBalanceLoading]);
 
-  // Show loading spinner until both branding and balance are loaded
-  const isLoading = brandingLoading || isBalanceLoading;
+  // Show central loading screen until branding is loaded
+  if (brandingLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Trading-Dashboard wird geladen...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Always render the layout, but conditionally show loading content
+  // Render the full layout only after branding is loaded
   return (
     <div className="min-h-screen flex w-full bg-background">
       <TradingSidebar />
@@ -122,11 +131,11 @@ function TradingContent() {
 
         <main className="flex-1 p-8 bg-background">
           <div className="max-w-7xl mx-auto">
-            {isLoading ? (
+            {isBalanceLoading ? (
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-4">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  <p className="text-muted-foreground">Trading-Dashboard wird geladen...</p>
+                  <p className="text-muted-foreground">Benutzerdaten werden geladen...</p>
                 </div>
               </div>
             ) : (
