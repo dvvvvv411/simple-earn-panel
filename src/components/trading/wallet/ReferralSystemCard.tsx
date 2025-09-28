@@ -27,7 +27,7 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
 
   const copyReferralCode = async () => {
     try {
-      await navigator.clipboard.writeText(referralData.referralCode);
+      await navigator.clipboard.writeText(referralData.code);
       setCopied(true);
       toast.success('Referral-Code kopiert!');
       setTimeout(() => setCopied(false), 2000);
@@ -38,8 +38,8 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
 
   const shareReferral = (platform: 'whatsapp' | 'email' | 'link') => {
     const baseUrl = window.location.origin;
-    const referralUrl = `${baseUrl}/auth?ref=${referralData.referralCode}`;
-    const message = `Tritt unserem Krypto-Trading-Programm bei und erhalte einen Bonus! Nutze meinen Referral-Code: ${referralData.referralCode}`;
+    const referralUrl = `${baseUrl}/auth?ref=${referralData.code}`;
+    const message = `Tritt unserem Krypto-Trading-Programm bei und erhalte einen Bonus! Nutze meinen Referral-Code: ${referralData.code}`;
 
     switch (platform) {
       case 'whatsapp':
@@ -105,7 +105,7 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
             <div className="text-sm text-muted-foreground">Referral-Code</div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <code className="bg-background px-4 py-3 rounded-md font-mono text-xl sm:text-2xl lg:text-3xl font-bold text-primary border border-primary/20 break-all min-w-0 tracking-wider">
-                {referralData.referralCode}
+                {referralData.code}
               </code>
               <Button
                 variant="ghost"
