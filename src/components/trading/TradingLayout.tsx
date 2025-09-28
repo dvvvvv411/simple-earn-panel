@@ -145,7 +145,7 @@ export function TradingLayout() {
       <BrandingProvider>
         <CoinMarketCapProvider>
           <DashboardLoadingProvider>
-            <SidebarProvider>
+            <SidebarProvider defaultOpen={true}>
               <TradingContent />
             </SidebarProvider>
           </DashboardLoadingProvider>
