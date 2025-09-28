@@ -236,14 +236,14 @@ export default function Settings() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profile Information Card */}
-        <Card className="h-fit">
+        <Card className="min-h-[600px] flex flex-col">
           <CardHeader>
             <CardTitle>Profil-Informationen</CardTitle>
             <CardDescription>
               Ihre persönlichen Daten
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 flex-1">
             <div>
               <Label className="text-sm font-medium">Vorname</Label>
               <p className="text-sm text-muted-foreground mt-1">
@@ -317,7 +317,7 @@ export default function Settings() {
         </Card>
 
         {/* Premium Security Card */}
-        <Card className="relative overflow-hidden">{/* Removed gradient background */}
+        <Card className="min-h-[600px] flex flex-col relative overflow-hidden">{/* Removed gradient background */}
           <CardHeader className="relative">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10 text-primary">
