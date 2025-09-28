@@ -422,6 +422,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
             </Card>
           </div>
         </div>
+        </div>
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-6 border-t">
