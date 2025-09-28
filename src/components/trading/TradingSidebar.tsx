@@ -127,7 +127,7 @@ export function TradingSidebar() {
                       {({ isActive }) => (
                         <>
                           <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                          {!collapsed && (
+                          {(!collapsed || isMobile) && (
                             <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
                               {item.title}
                             </span>
@@ -144,7 +144,7 @@ export function TradingSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4">
-        {userEmail && !collapsed && (
+        {userEmail && (!collapsed || isMobile) && (
           <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-sidebar-accent">
             <Avatar className="h-8 w-8">
               <AvatarImage src="" />
@@ -168,7 +168,7 @@ export function TradingSidebar() {
           className="w-full flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
         >
           <LogOut className="h-5 w-5 shrink-0 text-destructive" />
-          {!collapsed && <span>Logout</span>}
+          {(!collapsed || isMobile) && <span>Logout</span>}
         </SidebarMenuButton>
       </SidebarFooter>
       
