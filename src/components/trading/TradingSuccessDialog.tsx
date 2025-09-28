@@ -110,19 +110,19 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent className="sm:max-w-lg bg-background/95 backdrop-blur-lg border border-primary/20">
-        <ResponsiveDialogHeader className="text-center space-y-4">
+        <ResponsiveDialogHeader className="text-center space-y-6 sm:space-y-4 p-8 sm:p-6">
           <div 
-            className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
+            className="mx-auto w-20 h-20 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-6 sm:mb-4"
             style={{ 
               background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`
             }}
           >
-            <Trophy className="w-8 h-8 text-white" />
+            <Trophy className="w-10 h-10 sm:w-8 sm:h-8 text-white" />
           </div>
           
           
           <ResponsiveDialogTitle 
-            className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent text-center"
+            className="text-3xl sm:text-xl font-bold bg-clip-text text-transparent text-center"
             style={{ 
               background: `linear-gradient(to right, ${accentColor}, ${accentColor}dd)`,
               WebkitBackgroundClip: 'text',
@@ -132,93 +132,97 @@ export function TradingSuccessDialog({ open, onOpenChange, completedBot }: Tradi
             Glückwunsch!
           </ResponsiveDialogTitle>
           
-          <div className="text-center space-y-2">
-            <p className="text-lg text-muted-foreground">
+          <div className="text-center space-y-3 sm:space-y-2">
+            <p className="text-xl sm:text-lg text-muted-foreground">
               Dein <span className="font-semibold text-foreground">{completedBot.cryptocurrency}</span> Trading-Bot ist erfolgreich abgeschlossen!
             </p>
           </div>
         </ResponsiveDialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Profit Display */}
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <Activity className="w-6 h-6" style={{ color: accentColor }} />
-              <span className="text-sm text-muted-foreground">Gewinn/Verlust</span>
-            </div>
-            <div className="space-y-1">
-              <div className={`text-4xl font-bold drop-shadow-lg ${isProfit ? '' : 'text-red-500'}`}
-                   style={isProfit ? { color: accentColor } : {}}>
-                {isProfit ? '+' : ''}{profit.toFixed(2)} €
+        <div className="flex-1 px-8 sm:px-6 overflow-y-auto">
+          <div className="space-y-8 sm:space-y-6">
+            {/* Profit Display */}
+            <div className="text-center space-y-6 sm:space-y-3">
+              <div className="flex items-center justify-center gap-3 sm:gap-2">
+                <Activity className="w-8 h-8 sm:w-6 sm:h-6" style={{ color: accentColor }} />
+                <span className="text-lg sm:text-sm text-muted-foreground">Gewinn/Verlust</span>
               </div>
-              <div className={`text-lg ${isProfit ? '' : 'text-red-400'}`}
-                   style={isProfit ? { color: `${accentColor}cc` } : {}}>
-                ({isProfit ? '+' : ''}{profitPercentage}%)
-              </div>
-            </div>
-          </div>
-
-          {/* Trade Details */}
-          <div className="bg-card/50 backdrop-blur-sm rounded-lg p-4 space-y-4 border border-border/50">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <span className="font-semibold text-center">Trade Details</span>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div className="text-center">
-                <span className="text-muted-foreground block">Cryptocurrency</span>
-                <div className="font-semibold">{completedBot.cryptocurrency} ({completedBot.symbol})</div>
-              </div>
-              <div className="text-center">
-                <span className="text-muted-foreground block">Position</span>
-                <div className="font-semibold">{tradeDetails?.trade_type || completedBot.position_type || 'LONG'}</div>
-              </div>
-              <div className="text-center">
-                <span className="text-muted-foreground block">Hebel</span>
-                <div className="font-semibold">{tradeDetails?.leverage || completedBot.leverage || 1}x</div>
-              </div>
-              <div className="text-center">
-                <span className="text-muted-foreground block">Laufzeit</span>
-                <div className="font-semibold">
-                  {Math.ceil((Date.now() - new Date(completedBot.created_at).getTime()) / (1000 * 60))} Min
+              <div className="space-y-2 sm:space-y-1">
+                <div className={`text-6xl sm:text-4xl font-bold drop-shadow-lg ${isProfit ? '' : 'text-red-500'}`}
+                     style={isProfit ? { color: accentColor } : {}}>
+                  {isProfit ? '+' : ''}{profit.toFixed(2)} €
+                </div>
+                <div className={`text-2xl sm:text-lg ${isProfit ? '' : 'text-red-400'}`}
+                     style={isProfit ? { color: `${accentColor}cc` } : {}}>
+                  ({isProfit ? '+' : ''}{profitPercentage}%)
                 </div>
               </div>
-              <div className="text-center">
-                <span className="text-muted-foreground block">Einkaufspreis</span>
-                <div className="font-semibold">{tradeDetails?.buy_price?.toFixed(2) || completedBot.buy_price?.toFixed(2) || 'N/A'} $</div>
+            </div>
+
+            {/* Trade Details */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-8 sm:p-4 space-y-6 sm:space-y-4 border border-border/50">
+              <div className="flex items-center justify-center gap-3 sm:gap-2 mb-4 sm:mb-3">
+                <BarChart3 className="w-6 h-6 sm:w-5 sm:h-5 text-primary" />
+                <span className="font-semibold text-center text-lg sm:text-base">Trade Details</span>
               </div>
-              <div className="text-center">
-                <span className="text-muted-foreground block">Verkaufspreis</span>
-                <div className="font-semibold">{tradeDetails?.sell_price?.toFixed(2) || completedBot.sell_price?.toFixed(2) || 'N/A'} $</div>
-              </div>
-              <div className="text-center">
-                <span className="text-muted-foreground block">Startsumme</span>
-                <div className="font-semibold">{completedBot.start_amount.toFixed(2)} €</div>
-              </div>
-              <div className="text-center">
-                <span className="text-muted-foreground block">Endsumme</span>
-                <div className="font-semibold">{completedBot.current_balance.toFixed(2)} €</div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-4 text-base sm:text-sm">
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Cryptocurrency</span>
+                  <div className="font-semibold text-lg sm:text-base">{completedBot.cryptocurrency} ({completedBot.symbol})</div>
+                </div>
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Position</span>
+                  <div className="font-semibold text-lg sm:text-base">{tradeDetails?.trade_type || completedBot.position_type || 'LONG'}</div>
+                </div>
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Hebel</span>
+                  <div className="font-semibold text-lg sm:text-base">{tradeDetails?.leverage || completedBot.leverage || 1}x</div>
+                </div>
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Laufzeit</span>
+                  <div className="font-semibold text-lg sm:text-base">
+                    {Math.ceil((Date.now() - new Date(completedBot.created_at).getTime()) / (1000 * 60))} Min
+                  </div>
+                </div>
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Einkaufspreis</span>
+                  <div className="font-semibold text-lg sm:text-base">{tradeDetails?.buy_price?.toFixed(2) || completedBot.buy_price?.toFixed(2) || 'N/A'} $</div>
+                </div>
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Verkaufspreis</span>
+                  <div className="font-semibold text-lg sm:text-base">{tradeDetails?.sell_price?.toFixed(2) || completedBot.sell_price?.toFixed(2) || 'N/A'} $</div>
+                </div>
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Startsumme</span>
+                  <div className="font-semibold text-lg sm:text-base">{completedBot.start_amount.toFixed(2)} €</div>
+                </div>
+                <div className="text-center">
+                  <span className="text-muted-foreground block">Endsumme</span>
+                  <div className="font-semibold text-lg sm:text-base">{completedBot.current_balance.toFixed(2)} €</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Success Message */}
-          <div className="text-center space-y-2">
-            <p className="text-lg font-semibold text-primary">
-              {isProfit ? "Fantastischer Trade! 🚀" : "Trade abgeschlossen! 📊"}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {isProfit 
-                ? "Du hast erfolgreich Gewinn erzielt!" 
-                : "Nicht jeder Trade ist ein Gewinn - das gehört dazu!"
-              }
-            </p>
+            {/* Success Message */}
+            <div className="text-center space-y-4 sm:space-y-2">
+              <p className="text-2xl sm:text-lg font-semibold text-primary">
+                {isProfit ? "Fantastischer Trade! 🚀" : "Trade abgeschlossen! 📊"}
+              </p>
+              <p className="text-lg sm:text-sm text-muted-foreground">
+                {isProfit 
+                  ? "Du hast erfolgreich Gewinn erzielt!" 
+                  : "Nicht jeder Trade ist ein Gewinn - das gehört dazu!"
+                }
+              </p>
+            </div>
           </div>
+        </div>
 
+        <div className="p-8 sm:p-6">
           <Button 
             onClick={() => onOpenChange(false)}
-            className="w-full text-white font-semibold py-3"
+            className="w-full text-white font-semibold py-4 sm:py-3 text-lg sm:text-base"
             style={{ 
               background: `linear-gradient(to right, ${accentColor}, ${accentColor}dd)`,
             }}

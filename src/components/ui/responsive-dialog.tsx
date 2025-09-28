@@ -69,7 +69,7 @@ const ResponsiveDialogContent = ({ className, children }: ResponsiveDialogConten
     return (
       <SheetContent 
         side="bottom" 
-        className={cn("h-[95vh] rounded-t-xl", className)}
+        className={cn("h-screen w-full rounded-none flex flex-col", className)}
       >
         {children}
       </SheetContent>
