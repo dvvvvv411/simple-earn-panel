@@ -317,8 +317,7 @@ export default function Settings() {
         </Card>
 
         {/* Premium Security Card */}
-        <Card className="relative overflow-hidden bg-gradient-hero border-primary/20 shadow-glow">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+        <Card className="relative overflow-hidden">{/* Removed gradient background */}
           <CardHeader className="relative">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10 text-primary">
