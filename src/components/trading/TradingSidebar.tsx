@@ -90,11 +90,11 @@ export function TradingSidebar() {
             <img 
               src={logoUrl} 
               alt={branding?.name || "Logo"} 
-              className="h-10 w-full max-w-full object-contain"
+              className="h-16 max-w-full object-contain px-2"
             />
           ) : (
-            <div className="flex h-10 w-full items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
-              <span className="text-lg font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+            <div className="flex h-16 w-full items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
+              <span className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
                 {branding?.name?.charAt(0) || "T"}
               </span>
             </div>

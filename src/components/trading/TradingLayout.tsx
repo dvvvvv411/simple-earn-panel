@@ -98,32 +98,36 @@ function TradingContent() {
       <TradingSidebar />
       
       <div className="flex-1 flex flex-col">
-        <header className="h-20 flex items-center justify-between border-b border-border bg-background px-8">
-          <div className="flex items-center gap-6">
-            <SidebarTrigger className="h-8 w-8" />
-            {isMobile ? (
-              <div className="flex items-center">
+        <header className="h-20 flex items-center border-b border-border bg-background px-4">
+          {isMobile ? (
+            <>
+              <SidebarTrigger className="h-8 w-8 flex-shrink-0" />
+              <div className="flex-1 flex justify-center items-center">
                 {logoUrl ? (
                   <img 
                     src={logoUrl} 
                     alt={branding?.name || "Logo"} 
-                    className="h-8 w-auto max-w-[150px] object-contain"
+                    className="h-12 max-w-[200px] object-contain"
                   />
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
-                    <span className="text-sm font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg" style={{ backgroundColor: 'hsl(var(--brand-accent, var(--primary)) / 0.1)' }}>
+                    <span className="text-lg font-bold" style={{ color: 'hsl(var(--brand-accent, var(--primary)))' }}>
                       {branding?.name?.charAt(0) || "T"}
                     </span>
                   </div>
                 )}
               </div>
-            ) : (
+              <div className="w-8 flex-shrink-0" /> {/* Spacer for balance */}
+            </>
+          ) : (
+            <div className="flex items-center gap-6">
+              <SidebarTrigger className="h-8 w-8" />
               <div className="flex flex-col">
                 <h1 className="text-2xl font-bold text-foreground">Trading Dashboard</h1>
                 <p className="text-sm text-muted-foreground">Professionelles Krypto-Portfolio Management</p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </header>
 
         <main className="flex-1 p-8 bg-background">
