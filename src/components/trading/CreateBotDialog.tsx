@@ -155,7 +155,9 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
         </ResponsiveDialogTrigger>
       )}
       <ResponsiveDialogContent className="sm:max-w-3xl sm:max-h-[90vh] sm:overflow-y-auto">
-        <ResponsiveDialogHeader className="relative overflow-hidden p-6 sm:p-6">
+        {/* Mobile: Center content vertically */}
+        <div className="flex flex-col h-full lg:block">
+        <ResponsiveDialogHeader className="relative overflow-hidden p-6 sm:p-6 lg:relative">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
           <div className="relative">
             <ResponsiveDialogTitle className="flex items-center gap-3 text-xl sm:text-lg">
@@ -190,8 +192,10 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
           </div>
         </ResponsiveDialogHeader>
          
-        <div className="flex-1 px-6 sm:px-0 overflow-y-auto">
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-4 mt-6 sm:mt-4">
+        {/* Mobile: Centered content container */}
+        <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
+          <div className="w-full">
+            <div className="grid lg:grid-cols-2 gap-8 sm:gap-4 mt-6 sm:mt-4 lg:mt-6">
             {/* Left Column - Form */}
             <div className="space-y-8 sm:space-y-6">
               <div className="space-y-4 sm:space-y-3">
@@ -421,11 +425,12 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
               </CardContent>
             </Card>
           </div>
-        </div>
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-6 border-t">
+        <div className="flex gap-3 pt-6 border-t lg:mt-0">
 
           <Button
             variant="outline"
@@ -452,6 +457,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
               </div>
             )}
           </Button>
+        </div>
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
