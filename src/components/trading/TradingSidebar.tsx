@@ -46,7 +46,7 @@ const items = [
 ];
 
 export function TradingSidebar() {
-  const { state, setOpen } = useSidebar();
+  const { state, setOpen, setOpenMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
@@ -69,7 +69,7 @@ export function TradingSidebar() {
 
   const handleNavClick = () => {
     if (isMobile) {
-      setOpen(false);
+      setOpenMobile(false);
     }
   };
 
