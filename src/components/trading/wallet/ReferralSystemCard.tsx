@@ -117,11 +117,11 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Referral Code Section */}
-        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-3 sm:p-4 border border-primary/20">
-          <div className="text-center space-y-2">
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 sm:p-6 border border-primary/20">
+          <div className="text-center space-y-3">
             <div className="text-sm text-muted-foreground">Referral-Code</div>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <code className="bg-background px-3 py-2 rounded-md font-mono text-base sm:text-lg font-bold text-primary border border-primary/20 break-all">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+              <code className="bg-background px-4 py-3 rounded-md font-mono text-xl sm:text-2xl lg:text-3xl font-bold text-primary border border-primary/20 break-all min-w-0 tracking-wider">
                 {referralData.referralCode}
               </code>
               <Button
@@ -163,10 +163,13 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         </Button>
 
         {/* Reward Info */}
-        <div className="text-center p-3 rounded-lg bg-muted/30 border">
+        <div className="text-center p-4 rounded-lg bg-muted/30 border space-y-2">
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Gift className="h-4 w-4" />
-            <span className="text-sm font-medium">€25 pro erfolgreich geworbenen Freund</span>
+            <span className="text-sm font-medium">€50 pro erfolgreich geworbenen Freund</span>
+          </div>
+          <div className="text-xs text-muted-foreground/80">
+            Der geworbene Freund muss Rang "Starter" erreichen, um den Verdienst freizuschalten
           </div>
         </div>
       </CardContent>
