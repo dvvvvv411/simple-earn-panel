@@ -89,16 +89,16 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
       <CardContent className="space-y-6">
         {/* Main Balance */}
         <div className="text-center">
-          <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-headline mb-2">
+          <div className="text-4xl font-bold text-text-headline mb-2">
             {formatBalance(balance)}
           </div>
-          <div className="flex items-center justify-center gap-2 flex-wrap">
+          <div className="flex items-center justify-center gap-2">
             {todayPnL >= 0 ? (
               <TrendingUp className="h-4 w-4 text-green-500" />
             ) : (
               <TrendingDown className="h-4 w-4 text-destructive" />
             )}
-            <span className={`text-xs sm:text-sm font-medium ${
+            <span className={`text-sm font-medium ${
               todayPnL >= 0 ? 'text-green-500' : 'text-destructive'
             }`}>
               {todayPnL >= 0 ? '+' : ''}{formatBalance(todayPnL)} ({todayPnLPercentage.toFixed(2)}%) heute
@@ -107,35 +107,33 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
         </div>
 
         {/* Balance Breakdown */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <div className="text-center p-2 sm:p-3 rounded-lg bg-secondary/50">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
             <div className="text-xs text-muted-foreground mb-1">Verfügbar</div>
-            <div className="text-sm sm:text-lg font-semibold text-foreground">
+            <div className="text-lg font-semibold text-foreground">
               {formatBalance(availableBalance)}
             </div>
           </div>
-          <div className="text-center p-2 sm:p-3 rounded-lg bg-primary/10">
+          <div className="text-center p-3 rounded-lg bg-primary/10">
             <div className="text-xs text-muted-foreground mb-1 flex items-center justify-center gap-1">
               <Bot className="h-3 w-3" />
               Investiert
             </div>
-            <div className="text-sm sm:text-lg font-semibold text-primary">
+            <div className="text-lg font-semibold text-primary">
               {formatBalance(investedAmount)}
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex gap-2">
           <Button className="flex-1 bg-primary hover:bg-primary/90" size="sm">
             <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden xs:inline">Einzahlen</span>
-            <span className="xs:hidden">+</span>
+            Einzahlen
           </Button>
           <Button variant="outline" className="flex-1" size="sm">
             <Minus className="h-4 w-4 mr-2" />
-            <span className="hidden xs:inline">Auszahlen</span>
-            <span className="xs:hidden">-</span>
+            Auszahlen
           </Button>
         </div>
 
