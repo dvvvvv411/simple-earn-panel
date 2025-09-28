@@ -2,6 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -36,6 +37,7 @@ const formSchema = z.object({
 
 export const SupportTicketForm: React.FC = () => {
   const { createTicket } = useSupportTickets();
+  const isMobile = useIsMobile();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -92,14 +94,18 @@ export const SupportTicketForm: React.FC = () => {
               <FormItem>
                 <FormLabel>Betreff</FormLabel>
                 <FormControl>
-                  <Input placeholder="Beschreiben Sie Ihr Anliegen kurz" {...field} />
+                  <Input 
+                    placeholder="Beschreiben Sie Ihr Anliegen kurz" 
+                    className={isMobile ? 'h-12' : ''} 
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
             <FormField
               control={form.control}
               name="category"
@@ -108,7 +114,7 @@ export const SupportTicketForm: React.FC = () => {
                   <FormLabel>Kategorie</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={isMobile ? 'h-12' : ''}>
                         <SelectValue placeholder="Kategorie wählen" />
                       </SelectTrigger>
                     </FormControl>
@@ -133,7 +139,7 @@ export const SupportTicketForm: React.FC = () => {
                   <FormLabel>Priorität</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={isMobile ? 'h-12' : ''}>
                         <SelectValue placeholder="Priorität wählen" />
                       </SelectTrigger>
                     </FormControl>
@@ -160,7 +166,7 @@ export const SupportTicketForm: React.FC = () => {
                 <FormControl>
                   <Textarea 
                     placeholder="Beschreiben Sie Ihr Problem oder Ihre Frage detailliert..."
-                    className="min-h-[100px]"
+                    className={isMobile ? 'min-h-[120px]' : 'min-h-[100px]'}
                     {...field} 
                   />
                 </FormControl>
@@ -169,7 +175,11 @@ export const SupportTicketForm: React.FC = () => {
             )}
           />
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className={`w-full ${isMobile ? 'h-12' : ''}`}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

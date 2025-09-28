@@ -6,6 +6,7 @@ import { SupportTicket } from "@/hooks/useSupportTickets";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { MessageSquare, Clock, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SupportTicketCardProps {
   ticket: SupportTicket;
@@ -13,6 +14,7 @@ interface SupportTicketCardProps {
 
 export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const getStatusConfig = (status: SupportTicket['status']) => {
     const configs = {
@@ -69,32 +71,32 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({ ticket }) 
       className="hover:shadow-md transition-shadow cursor-pointer" 
       onClick={() => navigate(`/kryptotrading/support/ticket/${ticket.id}`)}
     >
-      <CardContent className="p-4">
+      <CardContent className={isMobile ? "p-4" : "p-4"}>
         <div className="space-y-3">
-          <div className="flex items-start justify-between">
+          <div className={isMobile ? "space-y-2" : "flex items-start justify-between"}>
             <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm truncate">{ticket.subject}</h4>
+              <h4 className={`font-medium truncate ${isMobile ? 'text-base' : 'text-sm'}`}>{ticket.subject}</h4>
             </div>
-            <div className="flex items-center space-x-2 ml-3">
-              <Badge className={statusConfig.color}>
+            <div className={`flex items-center space-x-2 ${isMobile ? '' : 'ml-3'}`}>
+              <Badge className={`${statusConfig.color} ${isMobile ? 'text-xs' : ''}`}>
                 <StatusIcon className="h-3 w-3 mr-1" />
                 {statusConfig.label}
               </Badge>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center space-x-3">
+          <div className={`text-xs text-muted-foreground ${isMobile ? 'space-y-2' : 'flex items-center justify-between'}`}>
+            <div className={`flex items-center ${isMobile ? 'flex-wrap gap-2' : 'space-x-3'}`}>
               {ticket.status !== 'closed' && (
-                <Badge variant="outline" className={priorityConfig.color}>
+                <Badge variant="outline" className={`${priorityConfig.color} ${isMobile ? 'text-xs' : ''}`}>
                   {priorityConfig.label}
                 </Badge>
               )}
-              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded">
+              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                 {getCategoryLabel(ticket.category)}
               </span>
             </div>
-            <span>
+            <span className={isMobile ? 'block text-right' : ''}>
               {formatDistanceToNow(new Date(ticket.created_at), {
                 addSuffix: true,
                 locale: de

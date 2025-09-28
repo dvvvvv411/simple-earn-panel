@@ -3,10 +3,13 @@ import { SupportTicketForm } from "@/components/trading/support/SupportTicketFor
 import { SupportTicketList } from "@/components/trading/support/SupportTicketList";
 import { PersonalConsultantCTA } from "@/components/trading/support/PersonalConsultantCTA";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Support: React.FC = () => {
+  const isMobile = useIsMobile();
+  
   return (
-    <div className="space-y-6 p-6">
+    <div className={`space-y-6 ${isMobile ? 'p-4' : 'p-6'}`}>
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Support & Beratung</h1>
         <p className="text-muted-foreground">
@@ -21,7 +24,7 @@ const Support: React.FC = () => {
         {/* Support Ticket Form */}
         <Card className="relative overflow-hidden rounded-2xl border-2 border-blue-200/50 bg-background/60 backdrop-blur-sm">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-indigo-50/20" />
-          <CardContent className="relative p-6">
+          <CardContent className={`relative ${isMobile ? 'p-4' : 'p-6'}`}>
             <SupportTicketForm />
           </CardContent>
         </Card>
@@ -29,7 +32,7 @@ const Support: React.FC = () => {
         {/* Support Ticket List */}
         <Card className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80">
           <div className="absolute inset-0 bg-gradient-to-br from-muted/20 via-transparent to-muted/10" />
-          <CardContent className="relative p-6">
+          <CardContent className={`relative ${isMobile ? 'p-4' : 'p-6'}`}>
             <SupportTicketList />
           </CardContent>
         </Card>
