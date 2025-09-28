@@ -89,7 +89,7 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
       <CardContent className="space-y-6">
         {/* Main Balance */}
         <div className="text-center">
-          <div className="text-4xl font-bold text-text-headline mb-2">
+          <div className="text-2xl sm:text-4xl font-bold text-text-headline mb-2">
             {formatBalance(balance)}
           </div>
           <div className="flex items-center justify-center gap-2">
@@ -107,10 +107,10 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
         </div>
 
         {/* Balance Breakdown */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div className="text-center p-3 rounded-lg bg-secondary/50">
             <div className="text-xs text-muted-foreground mb-1">Verfügbar</div>
-            <div className="text-lg font-semibold text-foreground">
+            <div className="text-base sm:text-lg font-semibold text-foreground">
               {formatBalance(availableBalance)}
             </div>
           </div>
@@ -119,14 +119,14 @@ export function AccountBalanceCard({ className }: AccountBalanceCardProps) {
               <Bot className="h-3 w-3" />
               Investiert
             </div>
-            <div className="text-lg font-semibold text-primary">
+            <div className="text-base sm:text-lg font-semibold text-primary">
               {formatBalance(investedAmount)}
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button className="flex-1 bg-primary hover:bg-primary/90" size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Einzahlen

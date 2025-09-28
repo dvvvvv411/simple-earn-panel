@@ -143,8 +143,10 @@ export function RankingSystemCard({ className }: RankingSystemCardProps) {
         <Button 
           onClick={() => setDialogOpen(true)}
           className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+          size="sm"
         >
-          Alle Ränge anzeigen
+          <span className="hidden sm:inline">Alle Ränge anzeigen</span>
+          <span className="sm:hidden">Ränge anzeigen</span>
         </Button>
       </CardContent>
 

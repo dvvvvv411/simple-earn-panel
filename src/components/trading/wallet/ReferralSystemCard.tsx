@@ -115,18 +115,18 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Referral Code Section */}
-        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-primary/20">
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-3 sm:p-4 border border-primary/20">
           <div className="text-center space-y-2">
             <div className="text-sm text-muted-foreground">Referral-Code</div>
-            <div className="flex items-center justify-center gap-3">
-              <code className="bg-background px-3 py-2 rounded-md font-mono text-lg font-bold text-primary border border-primary/20">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+              <code className="bg-background px-3 py-2 rounded-md font-mono text-base sm:text-lg font-bold text-primary border border-primary/20 break-all">
                 {referralData.referralCode}
               </code>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={copyReferralCode}
-                className="h-9 w-9 p-0 hover:bg-primary/10"
+                className="h-9 w-9 p-0 hover:bg-primary/10 shrink-0"
               >
                 {copied ? (
                   <CheckCircle className="h-4 w-4 text-primary" />
@@ -139,13 +139,13 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 rounded-lg bg-muted/50 border">
-            <div className="text-2xl font-bold text-foreground mb-1">{referralData.totalReferrals}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="text-center p-3 sm:p-4 rounded-lg bg-muted/50 border">
+            <div className="text-xl sm:text-2xl font-bold text-foreground mb-1">{referralData.totalReferrals}</div>
             <div className="text-sm text-muted-foreground">Geworbene Freunde</div>
           </div>
-          <div className="text-center p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <div className="text-2xl font-bold text-primary mb-1">{formatCurrency(referralData.bonusEarned)}</div>
+          <div className="text-center p-3 sm:p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="text-xl sm:text-2xl font-bold text-primary mb-1">{formatCurrency(referralData.bonusEarned)}</div>
             <div className="text-sm text-primary/70">Verdient</div>
           </div>
         </div>
