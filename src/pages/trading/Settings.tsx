@@ -320,13 +320,13 @@ export default function Settings() {
             
             {/* Login Activity Section */}
             <div className="pt-4 border-t border-border">
-              <Label className="text-sm font-medium">Login-Aktivität diese Woche</Label>
+              <Label className="text-sm font-medium">Login-Streak</Label>
               <div className="flex items-center gap-2 mt-1">
                 <div className="text-sm text-muted-foreground">
                   {loginLoading ? (
                     "Lade..."
                   ) : (
-                    `${loginStats.currentStreak} von ${loginStats.weeklyGoal} Tagen`
+                    `${loginStats.currentStreak} ${loginStats.currentStreak === 1 ? 'Tag' : 'Tage'} in Folge`
                   )}
                 </div>
                 {!loginLoading && loginStats.currentStreak > 0 && (

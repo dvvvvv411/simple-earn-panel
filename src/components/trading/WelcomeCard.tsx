@@ -11,7 +11,6 @@ export function WelcomeCard() {
   
   // Use real data from login stats, fallback to 0 if loading
   const currentStreak = loginLoading ? 0 : loginStats.currentStreak;
-  const weeklyGoal = loginStats.weeklyGoal;
 
   const animationStyles = {
     floating: {
@@ -151,19 +150,19 @@ export function WelcomeCard() {
               />
               <div className="text-right">
                 <div className="text-lg font-bold text-white drop-shadow-sm">
-                  {currentStreak}/{weeklyGoal}
+                  {currentStreak} {currentStreak === 1 ? 'Tag' : 'Tage'}
                 </div>
                 <div className="text-xs text-white/70 drop-shadow-sm">
-                  Tage diese Woche
+                  Login-Streak
                 </div>
               </div>
             </div>
           </div>
           
-          {currentStreak >= weeklyGoal && (
+          {currentStreak >= 7 && (
             <div className="mt-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg">
               <p className="text-sm text-white/90 text-center drop-shadow-sm">
-                🎉 Perfekte Woche! Du warst alle 7 Tage aktiv!
+                🔥 Unglaublich! {currentStreak} Tage in Folge!
               </p>
             </div>
           )}

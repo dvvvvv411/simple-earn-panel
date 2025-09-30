@@ -3,17 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface LoginStats {
   currentStreak: number;
-  weeklyGoal: number;
-  weekStart: string;
-  weekEnd: string;
 }
 
 export function useLoginStats() {
   const [loginStats, setLoginStats] = useState<LoginStats>({
-    currentStreak: 0,
-    weeklyGoal: 7,
-    weekStart: '',
-    weekEnd: ''
+    currentStreak: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +18,7 @@ export function useLoginStats() {
         setLoading(true);
         setError(null);
 
-        const { data, error } = await supabase.functions.invoke('get-weekly-login-stats');
+        const { data, error } = await supabase.functions.invoke('get-login-streak');
 
         if (error) throw error;
 
@@ -48,7 +42,7 @@ export function useLoginStats() {
       if (error) throw error;
       
       // Refresh stats after tracking login
-      const { data } = await supabase.functions.invoke('get-weekly-login-stats');
+      const { data } = await supabase.functions.invoke('get-login-streak');
       if (data) {
         setLoginStats(data);
       }
