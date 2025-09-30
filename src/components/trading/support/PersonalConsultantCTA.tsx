@@ -1,17 +1,36 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone, Clock, CheckCircle, Award } from "lucide-react";
-import { useBranding } from "@/contexts/BrandingContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUserConsultant } from "@/hooks/useUserConsultant";
+import { Skeleton } from "@/components/ui/skeleton";
 import consultantImage from "@/assets/consultant-profile.jpg";
 
 export const PersonalConsultantCTA: React.FC = () => {
-  const { branding } = useBranding();
   const isMobile = useIsMobile();
+  const { consultant, loading, getImageUrl } = useUserConsultant();
   
   const handleCallClick = () => {
-    window.open("tel:0800123123", "_self");
+    if (consultant?.phone) {
+      window.open(`tel:${consultant.phone.replace(/\s/g, "")}`, "_self");
+    }
   };
+
+  if (loading) {
+    return (
+      <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl">
+        <CardContent className={`relative ${isMobile ? 'p-4' : 'p-8'}`}>
+          <Skeleton className="h-32 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const consultantName = consultant?.name || "Fabian Schmidt";
+  const consultantPhone = consultant?.phone || "0800 123123";
+  const consultantImageUrl = consultant?.image_path 
+    ? getImageUrl(consultant.image_path) 
+    : consultantImage;
 
   return (
     <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl">
@@ -49,24 +68,27 @@ export const PersonalConsultantCTA: React.FC = () => {
             </div>
           </div>
           
-          <div className={`flex ${isMobile ? 'flex-row items-center justify-between' : 'flex-col items-center'} space-y-4`}>
+          <div className={`flex ${isMobile ? 'flex-row items-center justify-between' : 'flex-col items-center space-y-4'}`}>
             <div className="relative">
               <img 
-                src={consultantImage} 
+                src={consultantImageUrl || consultantImage} 
                 alt="Persönlicher Trading-Berater" 
                 className={`rounded-full object-cover border-4 border-primary/20 ${isMobile ? 'w-16 h-16' : 'w-24 h-24'}`}
               />
               <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-background" />
             </div>
             
-            <div className={`${isMobile ? 'text-left' : 'text-center'} space-y-2`}>
+            <div className={`${isMobile ? 'flex-1 ml-4' : 'text-center'} space-y-2`}>
+              <p className={`font-semibold text-foreground ${isMobile ? 'text-base' : 'text-lg'}`}>
+                {consultantName}
+              </p>
               <div 
                 onClick={handleCallClick}
                 className="cursor-pointer group"
               >
-                <div className={`flex items-center justify-center space-x-2 bg-primary/10 border-2 border-primary/30 rounded-2xl ${isMobile ? 'px-4 py-2' : 'px-6 py-3'}`}>
+                <div className={`flex items-center ${isMobile ? 'justify-start' : 'justify-center'} space-x-2 bg-primary/10 border-2 border-primary/30 rounded-2xl ${isMobile ? 'px-4 py-2' : 'px-6 py-3'} hover:bg-primary/20 transition-colors`}>
                   <Phone className="h-5 w-5 text-primary" />
-                  <span className={`text-primary font-bold ${isMobile ? 'text-base' : 'text-lg'}`}>0800 123123</span>
+                  <span className={`text-primary font-bold ${isMobile ? 'text-base' : 'text-lg'}`}>{consultantPhone}</span>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground font-medium">

@@ -18,6 +18,7 @@ const createUserSchema = z.object({
   email: z.string().email("Gültige E-Mail-Adresse eingeben"),
   phone: z.string().optional(),
   branding_id: z.string().optional(),
+  consultant_id: z.string().optional(),
   password: z.string().min(6, "Passwort muss mindestens 6 Zeichen haben"),
 });
 
@@ -30,10 +31,17 @@ interface Branding {
   name: string;
 }
 
+interface Consultant {
+  id: string;
+  name: string;
+}
+
 export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [brandings, setBrandings] = useState<Branding[]>([]);
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
+  const [defaultConsultantId, setDefaultConsultantId] = useState<string | null>(null);
 
   const form = useForm<CreateUserData>({
     resolver: zodResolver(createUserSchema),
@@ -43,6 +51,7 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
       email: "",
       phone: "",
       branding_id: "none",
+      consultant_id: "",
       password: "",
     },
   });
@@ -50,8 +59,15 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
   useEffect(() => {
     if (open) {
       fetchBrandings();
+      fetchConsultants();
     }
   }, [open]);
+
+  useEffect(() => {
+    if (defaultConsultantId && !form.getValues('consultant_id')) {
+      form.setValue('consultant_id', defaultConsultantId);
+    }
+  }, [defaultConsultantId, form]);
 
   const fetchBrandings = async () => {
     try {
@@ -67,6 +83,30 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
       toast({
         title: "Fehler",
         description: "Brandings konnten nicht geladen werden.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchConsultants = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('consultants')
+        .select('id, name, is_default')
+        .order('name');
+
+      if (error) throw error;
+      setConsultants(data || []);
+      
+      const defaultConsultant = data?.find(c => c.is_default);
+      if (defaultConsultant) {
+        setDefaultConsultantId(defaultConsultant.id);
+      }
+    } catch (error) {
+      console.error('Error fetching consultants:', error);
+      toast({
+        title: "Fehler",
+        description: "Berater konnten nicht geladen werden.",
         variant: "destructive",
       });
     }
@@ -92,11 +132,19 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Update profile with branding_id if provided
+        // Update profile with branding_id and consultant_id if provided
+        const updates: any = {};
         if (data.branding_id && data.branding_id !== "none") {
+          updates.branding_id = data.branding_id;
+        }
+        if (data.consultant_id && data.consultant_id !== "none") {
+          updates.consultant_id = data.consultant_id;
+        }
+        
+        if (Object.keys(updates).length > 0) {
           const { error: profileError } = await supabase
             .from('profiles')
-            .update({ branding_id: data.branding_id })
+            .update(updates)
             .eq('id', authData.user.id);
 
           if (profileError) throw profileError;
@@ -228,6 +276,34 @@ export function UserCreateDialog({ onUserCreated }: UserCreateDialogProps) {
                       {brandings.map((branding) => (
                         <SelectItem key={branding.id} value={branding.id}>
                           {branding.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="consultant_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground">Berater</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || defaultConsultantId || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-background border-input">
+                        <SelectValue placeholder="Berater auswählen" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background border-border">
+                      <SelectItem value="none">Kein Berater</SelectItem>
+                      {consultants.map((consultant) => (
+                        <SelectItem key={consultant.id} value={consultant.id}>
+                          {consultant.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

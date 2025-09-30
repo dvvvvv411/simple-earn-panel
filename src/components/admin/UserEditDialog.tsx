@@ -17,6 +17,7 @@ const updateUserSchema = z.object({
   last_name: z.string().min(1, "Nachname ist erforderlich"),
   phone: z.string().optional(),
   branding_id: z.string().optional(),
+  consultant_id: z.string().optional(),
 });
 
 interface UserEditDialogProps {
@@ -31,9 +32,15 @@ interface Branding {
   name: string;
 }
 
+interface Consultant {
+  id: string;
+  name: string;
+}
+
 export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: UserEditDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [brandings, setBrandings] = useState<Branding[]>([]);
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
 
   const form = useForm<UpdateUserData>({
     resolver: zodResolver(updateUserSchema),
@@ -42,12 +49,14 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
       last_name: "",
       phone: "",
       branding_id: "",
+      consultant_id: "",
     },
   });
 
   useEffect(() => {
     if (open) {
       fetchBrandings();
+      fetchConsultants();
     }
   }, [open]);
 
@@ -58,6 +67,7 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
         last_name: user.last_name || "",
         phone: user.phone || "",
         branding_id: user.branding_id || "none",
+        consultant_id: (user as any).consultant_id || "none",
       });
     }
   }, [user, form]);
@@ -81,6 +91,25 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
     }
   };
 
+  const fetchConsultants = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('consultants')
+        .select('id, name')
+        .order('name');
+
+      if (error) throw error;
+      setConsultants(data || []);
+    } catch (error) {
+      console.error('Error fetching consultants:', error);
+      toast({
+        title: "Fehler",
+        description: "Berater konnten nicht geladen werden.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const onSubmit = async (data: UpdateUserData) => {
     if (!user) return;
 
@@ -93,6 +122,7 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
           last_name: data.last_name,
           phone: data.phone || null,
           branding_id: data.branding_id === "none" ? null : data.branding_id || null,
+          consultant_id: data.consultant_id === "none" ? null : data.consultant_id || null,
         })
         .eq('id', user.id);
 
@@ -198,6 +228,31 @@ export function UserEditDialog({ user, open, onOpenChange, onUserUpdated }: User
                       {brandings.map((branding) => (
                         <SelectItem key={branding.id} value={branding.id}>
                           {branding.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="consultant_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground">Berater</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-background border-input">
+                        <SelectValue placeholder="Berater auswählen" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background border-border">
+                      <SelectItem value="none">Kein Berater</SelectItem>
+                      {consultants.map((consultant) => (
+                        <SelectItem key={consultant.id} value={consultant.id}>
+                          {consultant.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

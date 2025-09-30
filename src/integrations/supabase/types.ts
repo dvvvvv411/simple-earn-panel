@@ -153,6 +153,36 @@ export type Database = {
         }
         Relationships: []
       }
+      consultants: {
+        Row: {
+          created_at: string
+          id: string
+          image_path: string | null
+          is_default: boolean | null
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          is_default?: boolean | null
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          is_default?: boolean | null
+          name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       crypto_price_history: {
         Row: {
           change_24h: number | null
@@ -187,6 +217,7 @@ export type Database = {
         Row: {
           balance: number
           branding_id: string | null
+          consultant_id: string | null
           created_at: string
           current_ranking_id: string | null
           email: string | null
@@ -202,6 +233,7 @@ export type Database = {
         Insert: {
           balance?: number
           branding_id?: string | null
+          consultant_id?: string | null
           created_at?: string
           current_ranking_id?: string | null
           email?: string | null
@@ -217,6 +249,7 @@ export type Database = {
         Update: {
           balance?: number
           branding_id?: string | null
+          consultant_id?: string | null
           created_at?: string
           current_ranking_id?: string | null
           email?: string | null
@@ -235,6 +268,13 @@ export type Database = {
             columns: ["branding_id"]
             isOneToOne: false
             referencedRelation: "brandings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
             referencedColumns: ["id"]
           },
           {

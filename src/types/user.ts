@@ -5,6 +5,7 @@ export interface User {
   email: string | null;
   phone: string | null;
   branding_id: string | null;
+  consultant_id: string | null;
   balance: number;
   created_at: string;
   updated_at: string;
@@ -23,6 +24,7 @@ export interface CreateUserData {
   email: string;
   phone?: string;
   branding_id?: string;
+  consultant_id?: string;
   password: string;
 }
 
@@ -31,6 +33,7 @@ export interface UpdateUserData {
   last_name?: string;
   phone?: string;
   branding_id?: string;
+  consultant_id?: string;
   balance?: number;
 }
 
