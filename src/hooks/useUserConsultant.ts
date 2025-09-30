@@ -50,6 +50,12 @@ export function useUserConsultant() {
         
         if (defaultConsultant) {
           setConsultant(defaultConsultant);
+          
+          // Automatically assign default consultant to user
+          await supabase
+            .from('profiles')
+            .update({ consultant_id: defaultConsultant.id })
+            .eq('id', session.user.id);
         }
       }
     } catch (error) {
