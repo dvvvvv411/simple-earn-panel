@@ -669,6 +669,10 @@ export type Database = {
         Args: { bot_investments?: number; user_balance: number }
         Returns: string
       }
+      deduct_balance_for_bot: {
+        Args: { amount: number; description: string }
+        Returns: boolean
+      }
       generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
