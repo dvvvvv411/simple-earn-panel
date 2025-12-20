@@ -98,7 +98,11 @@ export function TradingSidebar() {
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar">
       <SidebarHeader className="border-b border-sidebar-border p-6">
-        <div className="flex items-center justify-center w-full">
+        <NavLink 
+          to="/kryptotrading" 
+          onClick={handleNavClick}
+          className="flex items-center justify-center w-full cursor-pointer hover:opacity-80 transition-opacity"
+        >
           {logoUrl ? (
             <img 
               src={logoUrl} 
@@ -112,7 +116,7 @@ export function TradingSidebar() {
               </span>
             </div>
           )}
-        </div>
+        </NavLink>
       </SidebarHeader>
 
       <SidebarContent className="bg-sidebar">
