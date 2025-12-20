@@ -460,12 +460,11 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
   const totalReturn = bot.start_amount + profitAmount;
   console.log(`💰 Returning ${totalReturn.toFixed(2)} EUR to user balance (${bot.start_amount} investment + ${profitAmount.toFixed(2)} profit)`);
   
-  const { error: balanceError } = await supabase.rpc('update_user_balance', {
+  // Use the new credit_balance_from_bot function that doesn't require admin privileges
+  const { error: balanceError } = await supabase.rpc('credit_balance_from_bot', {
     target_user_id: bot.user_id,
-    amount_change: totalReturn,
-    transaction_type: 'credit',
-    transaction_description: `Trading Bot Completed - ${bot.cryptocurrency} (${profitPercent.toFixed(2)}% profit)`,
-    admin_user_id: bot.user_id // Using user as admin for trading profits
+    amount: totalReturn,
+    description: `Trading Bot abgeschlossen - ${bot.cryptocurrency} (+${profitPercent.toFixed(2)}% Gewinn)`
   });
 
   if (balanceError) {
