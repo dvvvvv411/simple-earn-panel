@@ -634,28 +634,34 @@ const Auth = () => {
         {/* Security Cards Content */}
         <div className="relative z-10 w-full max-w-xl px-8 py-12">
           <div className="space-y-5">
-            {/* Card 1 - Data Protection */}
+            {/* Card 1 - KI Trading */}
             <div className="group relative rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 ring-1 ring-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:ring-white/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-fade-in hover-scale" style={{ animationDelay: "0.05s" }}>
               <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-b from-white/15 via-transparent to-transparent" />
-              <h3 className="text-white text-xl font-semibold tracking-tight">Deine Daten sind geschützt</h3>
+              <h3 className="text-white text-xl font-semibold tracking-tight">Intelligentes Krypto-Trading</h3>
               <div className="mt-3 space-y-1.5">
-                <p className="text-white/80 leading-relaxed">Unsere Server sind abgesichert und befinden sich in der Europäischen Union</p>
-                <p className="text-white/70 leading-relaxed">Wir befolgen die Europäische Datenschutz-Grundverordnung von 2016 (DSGVO)</p>
+                <p className="text-white/80 leading-relaxed">Unser KI-Trading-Bot analysiert Marktdaten in Echtzeit und trifft automatisierte Handelsentscheidungen basierend auf fortschrittlichen Algorithmen.</p>
+                <p className="text-white/70 leading-relaxed">24/7 aktiv – selbst wenn du schläfst, arbeitet die KI für dich.</p>
               </div>
             </div>
 
-            {/* Card 2 - TLS Protocol */}
+            {/* Card 2 - Datensicherheit */}
             <div className="group relative rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 ring-1 ring-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:ring-white/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-fade-in hover-scale" style={{ animationDelay: "0.15s" }}>
               <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-b from-white/15 via-transparent to-transparent" />
-              <h3 className="text-white text-xl font-semibold tracking-tight">TLS-Protokoll</h3>
-              <p className="mt-3 text-white/80 leading-relaxed">Alle Informationen und Registrierungsdaten werden verschlüsselt an unsere Server übertragen, damit niemand sie abfangen kann</p>
+              <h3 className="text-white text-xl font-semibold tracking-tight">Maximale Datensicherheit</h3>
+              <div className="mt-3 space-y-1.5">
+                <p className="text-white/80 leading-relaxed">Deine persönlichen Daten sind durch modernste Verschlüsselung (TLS 1.3) geschützt und werden auf EU-Servern nach DSGVO-Standards gespeichert.</p>
+                <p className="text-white/70 leading-relaxed">Wir geben deine Daten niemals an Dritte weiter.</p>
+              </div>
             </div>
 
-            {/* Card 3 - 3D Security */}
+            {/* Card 3 - Kontrolle */}
             <div className="group relative rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 ring-1 ring-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:ring-white/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-fade-in hover-scale" style={{ animationDelay: "0.25s" }}>
               <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-b from-white/15 via-transparent to-transparent" />
-              <h3 className="text-white text-xl font-semibold tracking-tight">3D Sicherheit</h3>
-              <p className="mt-3 text-white/80 leading-relaxed">Jede Online-Bezahlung per Karte wird mit einem eindeutigen Einmalkennwort bestätigt</p>
+              <h3 className="text-white text-xl font-semibold tracking-tight">Volle Kontrolle über dein Portfolio</h3>
+              <div className="mt-3 space-y-1.5">
+                <p className="text-white/80 leading-relaxed">Behalte jederzeit den Überblick über deine Trades, Performance und Statistiken in deinem persönlichen Dashboard.</p>
+                <p className="text-white/70 leading-relaxed">Du entscheidest – starte, pausiere oder stoppe Trading-Bots nach Belieben.</p>
+              </div>
             </div>
           </div>
         </div>
