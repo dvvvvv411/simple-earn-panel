@@ -155,6 +155,34 @@ const Auth = () => {
         }
       }
 
+      // Get branding based on current domain
+      const hostname = window.location.hostname;
+      const cleanedHostname = hostname.replace(/^(www\.|web\.)/, '');
+      
+      const { data: brandings } = await supabase
+        .from('brandings')
+        .select('id, domain');
+      
+      let brandingId: string | null = null;
+      if (brandings) {
+        for (const branding of brandings) {
+          if (branding.domain) {
+            const brandingDomain = branding.domain.replace(/^https?:\/\//, '').replace(/\/$/, '').replace(/^(www\.|web\.)/, '');
+            if (cleanedHostname.includes(brandingDomain) || brandingDomain.includes(cleanedHostname)) {
+              brandingId = branding.id;
+              break;
+            }
+          }
+        }
+      }
+
+      // Get default consultant
+      const { data: defaultConsultant } = await supabase
+        .from('consultants')
+        .select('id')
+        .eq('is_default', true)
+        .maybeSingle();
+
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -165,6 +193,8 @@ const Auth = () => {
             last_name: values.lastName,
             phone: values.phone,
             referral_code: values.referralCode || null,
+            branding_id: brandingId,
+            consultant_id: defaultConsultant?.id || null,
           },
         },
       });
