@@ -33,6 +33,8 @@ const Auth = () => {
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [brandingLoading, setBrandingLoading] = useState(true);
+  const [brandingLogoUrl, setBrandingLogoUrl] = useState<string | null>(null);
+  const [brandingName, setBrandingName] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -81,7 +83,7 @@ const Auth = () => {
         // Fetch all brandings (public read access via RLS)
         const { data: brandings } = await supabase
           .from('brandings')
-          .select('id, domain, accent_color');
+          .select('id, domain, accent_color, logo_path, name');
         
         if (brandings) {
           for (const branding of brandings) {
@@ -102,6 +104,20 @@ const Auth = () => {
                   document.documentElement.style.setProperty('--accent', hslValue);
                   document.documentElement.style.setProperty('--ring', hslValue);
                 }
+                
+                // Set branding logo
+                if (branding.logo_path) {
+                  const { data: logoData } = supabase.storage
+                    .from('branding-logos')
+                    .getPublicUrl(branding.logo_path);
+                  setBrandingLogoUrl(logoData.publicUrl);
+                }
+                
+                // Set branding name
+                if (branding.name) {
+                  setBrandingName(branding.name);
+                }
+                
                 break;
               }
             }
@@ -328,12 +344,20 @@ const Auth = () => {
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-primary mb-2">Panel</h1>
+              {brandingLogoUrl ? (
+                <img 
+                  src={brandingLogoUrl} 
+                  alt={brandingName || "Logo"} 
+                  className="h-10 object-contain mb-2" 
+                />
+              ) : (
+                <h1 className="text-2xl font-bold text-primary mb-2">Panel</h1>
+              )}
               <h2 className="text-3xl font-bold text-text-headline mb-2">
-                {isResetPassword ? "Passwort zurücksetzen" : isLogin ? "Anmeldung bei Panel" : "Registrierung bei Panel"}
+                {isResetPassword ? "Passwort zurücksetzen" : isLogin ? "Anmeldung im Dashboard" : "Registrierung im Dashboard"}
               </h2>
               <p className="text-text-hero">
-                {isResetPassword ? "Geben Sie Ihre E-Mail-Adresse ein" : isLogin ? "Melde dich an, um dein Panel zu nutzen" : "Erstelle einen Account für dein Panel"}
+                {isResetPassword ? "Geben Sie Ihre E-Mail-Adresse ein" : isLogin ? "Melde dich an, um auf dein Trading-Dashboard zuzugreifen" : "Erstelle einen Account für dein Trading-Dashboard"}
               </p>
             </div>
 
