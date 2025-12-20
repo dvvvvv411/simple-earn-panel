@@ -669,6 +669,10 @@ export type Database = {
         Args: { bot_investments?: number; user_balance: number }
         Returns: string
       }
+      credit_balance_from_bot: {
+        Args: { amount: number; description: string; target_user_id: string }
+        Returns: boolean
+      }
       deduct_balance_for_bot: {
         Args: { amount: number; description: string }
         Returns: boolean
