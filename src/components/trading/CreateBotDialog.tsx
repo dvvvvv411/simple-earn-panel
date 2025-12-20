@@ -95,13 +95,10 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
         return;
       }
 
-      // Deduct amount from user balance
-      const { error: balanceError } = await supabase.rpc('update_user_balance', {
-        target_user_id: user.id,
-        amount_change: -investmentAmount,
-        transaction_type: 'debit',
-        transaction_description: `Trading-Bot Erstellung: ${selectedCoin.name}`,
-        admin_user_id: user.id
+      // Deduct amount from user balance using the new user-safe function
+      const { error: balanceError } = await supabase.rpc('deduct_balance_for_bot', {
+        amount: investmentAmount,
+        description: `Trading-Bot Erstellung: ${selectedCoin.name}`
       });
 
       if (balanceError) {
