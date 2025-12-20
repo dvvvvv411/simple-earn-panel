@@ -18,7 +18,7 @@ export const PersonalConsultantCTA: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl">
+      <Card className="relative overflow-hidden rounded-3xl border border-border/50 bg-background/40 backdrop-blur-xl">
         <CardContent className={`relative ${isMobile ? 'p-4' : 'p-8'}`}>
           <Skeleton className="h-32 w-full" />
         </CardContent>
@@ -33,7 +33,7 @@ export const PersonalConsultantCTA: React.FC = () => {
     : consultantImage;
 
   return (
-    <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl">
+    <Card className="relative overflow-hidden rounded-3xl border-4 border-primary/30 bg-background/40 backdrop-blur-xl animate-fade-in">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
       <CardContent className={`relative ${isMobile ? 'p-4' : 'p-8'}`}>
         <div className={isMobile ? "space-y-6" : "flex items-center justify-between"}>
