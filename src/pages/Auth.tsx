@@ -3,13 +3,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Mail, Lock, User, Phone, Shield, Key, CreditCard, Gift } from "lucide-react";
+import { Mail, Lock, User, Phone, Shield, Key, CreditCard, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
+import { hexToHsl } from "@/lib/utils";
 const loginSchema = z.object({
   email: z.string().email("Ungültige E-Mail-Adresse"),
   password: z.string().min(8, "Passwort muss mindestens 8 Zeichen haben"),
@@ -32,6 +32,7 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [brandingLoading, setBrandingLoading] = useState(true);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -61,6 +62,60 @@ const Auth = () => {
       email: "",
     },
   });
+
+  // Load branding by domain before showing auth page
+  useEffect(() => {
+    const loadBrandingByDomain = async () => {
+      try {
+        const hostname = window.location.hostname;
+        
+        // Fallback for Lovable preview domains and localhost - use default pink
+        if (hostname.includes('lovable.app') || hostname.includes('localhost')) {
+          setBrandingLoading(false);
+          return;
+        }
+        
+        // Remove subdomain prefixes for main domain matching
+        const cleanedHostname = hostname.replace(/^(www\.|web\.)/, '');
+        
+        // Fetch all brandings (public read access via RLS)
+        const { data: brandings } = await supabase
+          .from('brandings')
+          .select('id, domain, accent_color');
+        
+        if (brandings) {
+          for (const branding of brandings) {
+            if (branding.domain) {
+              const brandingDomain = branding.domain
+                .replace(/^https?:\/\//, '')
+                .replace(/\/$/, '')
+                .replace(/^(www\.|web\.)/, '');
+              
+              // Check if domains match (including subdomains)
+              if (cleanedHostname.includes(brandingDomain) || 
+                  brandingDomain.includes(cleanedHostname)) {
+                
+                // Set branding color
+                if (branding.accent_color) {
+                  const hslValue = hexToHsl(branding.accent_color);
+                  document.documentElement.style.setProperty('--primary', hslValue);
+                  document.documentElement.style.setProperty('--accent', hslValue);
+                  document.documentElement.style.setProperty('--ring', hslValue);
+                }
+                break;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading branding:', error);
+      } finally {
+        setBrandingLoading(false);
+      }
+    };
+    
+    loadBrandingByDomain();
+  }, []);
 
   // Check if user is already logged in
   useEffect(() => {
@@ -256,6 +311,15 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // Show loading spinner while branding is being loaded
+  if (brandingLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
