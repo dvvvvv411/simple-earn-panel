@@ -669,10 +669,7 @@ export type Database = {
         Args: { bot_investments?: number; user_balance: number }
         Returns: string
       }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -680,10 +677,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      initialize_user_rankings: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      initialize_user_rankings: { Args: never; Returns: undefined }
       update_user_balance: {
         Args: {
           admin_user_id: string
