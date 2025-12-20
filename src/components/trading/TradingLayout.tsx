@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, NavLink } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TradingSidebar } from "./TradingSidebar";
 import { TradingGuard } from "./TradingGuard";
@@ -89,7 +89,10 @@ function TradingContent() {
           {isMobile ? (
             <>
               <SidebarTrigger className="h-8 w-8 flex-shrink-0" />
-              <div className="flex-1 flex justify-center items-center">
+              <NavLink 
+                to="/kryptotrading" 
+                className="flex-1 flex justify-center items-center cursor-pointer hover:opacity-80 transition-opacity"
+              >
                 {logoUrl ? (
                   <img 
                     src={logoUrl} 
@@ -103,7 +106,7 @@ function TradingContent() {
                     </span>
                   </div>
                 )}
-              </div>
+              </NavLink>
               <div className="w-8 flex-shrink-0" /> {/* Spacer for balance */}
             </>
           ) : (
