@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   preview: {
-    allowedHosts: ["zentrum-leipzig.de", "www.zentrum-leipzig.de"],
+    allowedHosts: ["zentrum-leipzig.de", "www.zentrum-leipzig.de", "ingenio-europe.de", "www.ingenio-europe.de"],
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
