@@ -227,7 +227,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                       </Badge>
                       <Badge variant="secondary" className="text-sm sm:text-xs">
                         <Bitcoin className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                        10+ Coins
+                        30+ Coins
                       </Badge>
                     </div>
                   )}
