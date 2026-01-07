@@ -876,50 +876,6 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                       </div>
                     )}
 
-                    {/* Pending Deposits - moved to left column */}
-                    {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).length > 0 && (
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-base">Offene Einzahlungen</h3>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={handleRefreshStatus}
-                              disabled={depositsLoading}
-                            >
-                              <RefreshCw className={`w-4 h-4 ${depositsLoading ? 'animate-spin' : ''}`} />
-                            </Button>
-                          </div>
-                          <div className="space-y-3">
-                            {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).slice(0, 3).map((deposit: CryptoDeposit) => (
-                              <div 
-                                key={deposit.id} 
-                                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors group"
-                                onClick={() => handleOpenDeposit(deposit)}
-                                title="Klicken um Zahlungsdetails anzuzeigen"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                                    <ExternalLink className="w-4 h-4 text-primary" />
-                                  </div>
-                                  <div>
-                                    <div className="font-medium">{formatBalance(deposit.price_amount)}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {deposit.pay_currency?.toUpperCase() || 'Krypto'} • {new Date(deposit.created_at).toLocaleDateString('de-DE')}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {getStatusBadge(deposit.status)}
-                                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
                   </div>
 
                   {/* Right Column - Info */}
@@ -961,6 +917,52 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Pending Deposits - Full Width (only show when not in payment state) */}
+              {!paymentData && deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).length > 0 && (
+                <Card className="mt-4">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-sm">Offene Einzahlungen</h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={handleRefreshStatus}
+                        disabled={depositsLoading}
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${depositsLoading ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).slice(0, 3).map((deposit: CryptoDeposit) => (
+                        <div 
+                          key={deposit.id} 
+                          className="flex items-center justify-between p-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors group"
+                          onClick={() => handleOpenDeposit(deposit)}
+                          title="Klicken um Zahlungsdetails anzuzeigen"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                              <ExternalLink className="w-3 h-3 text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm">{formatBalance(deposit.price_amount)}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {deposit.pay_currency?.toUpperCase() || 'Krypto'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {getStatusBadge(deposit.status)}
+                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Footer - only show when not in payment state */}
