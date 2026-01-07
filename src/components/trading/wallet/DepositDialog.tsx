@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,14 +14,16 @@ import {
   Zap, 
   Bitcoin, 
   ArrowRight,
-  ExternalLink,
   Loader2,
   CheckCircle,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Copy,
+  ArrowLeft
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useCryptoDeposits, CryptoDeposit } from "@/hooks/useCryptoDeposits";
+import { useCryptoDeposits, CryptoDeposit, CreateDepositResult } from "@/hooks/useCryptoDeposits";
+import { QRCodeSVG } from "qrcode.react";
 
 interface DepositDialogProps {
   userBalance: number;
@@ -31,17 +33,16 @@ interface DepositDialogProps {
 }
 
 const CRYPTO_OPTIONS = [
-  { value: 'auto', label: 'Automatisch wählen', icon: null, isAuto: true },
-  { value: 'btc', label: 'Bitcoin (BTC)', icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
-  { value: 'eth', label: 'Ethereum (ETH)', icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-  { value: 'usdt', label: 'Tether (USDT)', icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png' },
-  { value: 'usdc', label: 'USD Coin (USDC)', icon: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
-  { value: 'ltc', label: 'Litecoin (LTC)', icon: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png' },
-  { value: 'xrp', label: 'Ripple (XRP)', icon: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
-  { value: 'doge', label: 'Dogecoin (DOGE)', icon: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
-  { value: 'trx', label: 'Tron (TRX)', icon: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png' },
-  { value: 'bnb', label: 'BNB', icon: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
-  { value: 'sol', label: 'Solana (SOL)', icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+  { value: 'btc', label: 'Bitcoin (BTC)', icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', uriPrefix: 'bitcoin' },
+  { value: 'eth', label: 'Ethereum (ETH)', icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', uriPrefix: 'ethereum' },
+  { value: 'usdt', label: 'Tether (USDT)', icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png', uriPrefix: 'tether' },
+  { value: 'usdc', label: 'USD Coin (USDC)', icon: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png', uriPrefix: 'usdc' },
+  { value: 'ltc', label: 'Litecoin (LTC)', icon: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png', uriPrefix: 'litecoin' },
+  { value: 'xrp', label: 'Ripple (XRP)', icon: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', uriPrefix: 'ripple' },
+  { value: 'doge', label: 'Dogecoin (DOGE)', icon: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', uriPrefix: 'dogecoin' },
+  { value: 'trx', label: 'Tron (TRX)', icon: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png', uriPrefix: 'tron' },
+  { value: 'bnb', label: 'BNB', icon: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png', uriPrefix: 'bnb' },
+  { value: 'sol', label: 'Solana (SOL)', icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', uriPrefix: 'solana' },
 ];
 
 const QUICK_AMOUNTS = [50, 100, 250, 500, 1000];
@@ -68,10 +69,10 @@ const getStatusBadge = (status: string) => {
 
 export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreated }: DepositDialogProps) {
   const [amount, setAmount] = useState<string>("");
-  const [selectedCrypto, setSelectedCrypto] = useState<string>("");
+  const [selectedCrypto, setSelectedCrypto] = useState<string>("btc");
   const [isCreating, setIsCreating] = useState(false);
-  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [paymentData, setPaymentData] = useState<CreateDepositResult | null>(null);
+  const [countdown, setCountdown] = useState<string>("");
   
   const { toast } = useToast();
   const { createDeposit, getPendingDeposits, checkStatus, loading: depositsLoading } = useCryptoDeposits();
@@ -83,6 +84,32 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
       currency: 'EUR',
     }).format(value);
   };
+
+  // Countdown timer
+  useEffect(() => {
+    if (!paymentData?.expiration_estimate_date) return;
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const expiry = new Date(paymentData.expiration_estimate_date).getTime();
+      const diff = expiry - now;
+
+      if (diff <= 0) {
+        setCountdown("Abgelaufen");
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setCountdown(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [paymentData?.expiration_estimate_date]);
 
   const handleCreateDeposit = async () => {
     const depositAmount = parseFloat(amount);
@@ -108,16 +135,15 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     setIsCreating(true);
 
     try {
-      const result = await createDeposit(depositAmount, selectedCrypto === 'auto' ? undefined : selectedCrypto || undefined);
+      const result = await createDeposit(depositAmount, selectedCrypto);
       
-      if (result?.invoice_url) {
-        setInvoiceUrl(result.invoice_url);
-        setShowSuccess(true);
+      if (result?.pay_address) {
+        setPaymentData(result);
         onDepositCreated?.();
         
         toast({
           title: "Einzahlung erstellt",
-          description: "Sie werden zur Zahlungsseite weitergeleitet.",
+          description: "Senden Sie den Betrag an die angezeigte Adresse.",
         });
       }
     } catch (error) {
@@ -132,18 +158,25 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     }
   };
 
-  const handleOpenPaymentPage = () => {
-    if (invoiceUrl) {
-      window.open(invoiceUrl, '_blank');
+  const handleCopyAddress = () => {
+    if (paymentData?.pay_address) {
+      navigator.clipboard.writeText(paymentData.pay_address);
+      toast({
+        title: "Kopiert",
+        description: "Wallet-Adresse wurde in die Zwischenablage kopiert.",
+      });
     }
   };
 
   const handleClose = () => {
     setAmount("");
-    setSelectedCrypto("");
-    setInvoiceUrl(null);
-    setShowSuccess(false);
+    setSelectedCrypto("btc");
+    setPaymentData(null);
     onOpenChange(false);
+  };
+
+  const handleBackToForm = () => {
+    setPaymentData(null);
   };
 
   const handleRefreshStatus = async () => {
@@ -162,9 +195,12 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     }
   };
 
+  const selectedCryptoData = CRYPTO_OPTIONS.find(c => c.value === selectedCrypto);
+  const qrValue = paymentData ? `${selectedCryptoData?.uriPrefix || 'bitcoin'}:${paymentData.pay_address}?amount=${paymentData.pay_amount}` : '';
+
   return (
     <ResponsiveDialog open={open} onOpenChange={handleClose}>
-      <ResponsiveDialogContent className="sm:max-w-3xl sm:max-h-[90vh] sm:overflow-y-auto">
+      <ResponsiveDialogContent className="sm:max-w-2xl sm:max-h-[90vh] sm:overflow-y-auto">
         <div className="flex flex-col h-full lg:block">
           <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
             <div className="w-full">
@@ -180,63 +216,148 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                         Krypto Einzahlung
                       </span>
                       <p className="text-base sm:text-sm font-normal text-muted-foreground mt-1">
-                        Schnell und sicher mit über 100 Kryptowährungen
+                        Schnell und sicher mit Kryptowährungen
                       </p>
                     </div>
                   </ResponsiveDialogTitle>
                   
-                  <div className="flex gap-3 sm:gap-2 mt-6 sm:mt-4">
-                    <Badge variant="secondary" className="text-sm sm:text-xs">
-                      <Shield className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                      Sicher
-                    </Badge>
-                    <Badge variant="secondary" className="text-sm sm:text-xs">
-                      <Zap className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                      Sofort
-                    </Badge>
-                    <Badge variant="secondary" className="text-sm sm:text-xs">
-                      <Bitcoin className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                      100+ Coins
-                    </Badge>
-                  </div>
+                  {!paymentData && (
+                    <div className="flex gap-3 sm:gap-2 mt-6 sm:mt-4">
+                      <Badge variant="secondary" className="text-sm sm:text-xs">
+                        <Shield className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                        Sicher
+                      </Badge>
+                      <Badge variant="secondary" className="text-sm sm:text-xs">
+                        <Zap className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                        Sofort
+                      </Badge>
+                      <Badge variant="secondary" className="text-sm sm:text-xs">
+                        <Bitcoin className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                        10+ Coins
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </ResponsiveDialogHeader>
 
-              {showSuccess ? (
-                // Success State
-                <div className="space-y-6 text-center py-8">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
+              {paymentData ? (
+                // Payment Screen - Internal display
+                <div className="space-y-6">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleBackToForm}
+                    className="mb-2"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Zurück
+                  </Button>
+
+                  {/* QR Code */}
+                  <div className="flex justify-center">
+                    <div className="p-4 bg-white rounded-xl shadow-lg">
+                      <QRCodeSVG 
+                        value={qrValue}
+                        size={180}
+                        level="H"
+                        includeMargin
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Einzahlung erstellt!</h3>
-                    <p className="text-muted-foreground">
-                      Klicken Sie auf den Button unten, um zur Zahlungsseite zu gelangen.
-                    </p>
+
+                  {/* Amount Info */}
+                  <div className="text-center space-y-2">
+                    <div className="text-sm text-muted-foreground">Zu senden</div>
+                    <div className="text-3xl font-bold text-foreground flex items-center justify-center gap-2">
+                      {paymentData.pay_amount} {paymentData.pay_currency.toUpperCase()}
+                      {selectedCryptoData && (
+                        <img 
+                          src={selectedCryptoData.icon} 
+                          alt={selectedCryptoData.label} 
+                          className="w-8 h-8 rounded-full"
+                        />
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      ≈ {formatBalance(parseFloat(amount))}
+                    </div>
                   </div>
-                  <div className="p-4 rounded-lg bg-muted/50 border">
-                    <div className="text-sm text-muted-foreground mb-1">Einzahlungsbetrag</div>
-                    <div className="text-2xl font-bold text-foreground">{formatBalance(parseFloat(amount))}</div>
+
+                  {/* Wallet Address */}
+                  <Card>
+                    <CardContent className="p-4">
+                      <Label className="text-sm text-muted-foreground mb-2 block">
+                        Wallet-Adresse ({paymentData.pay_currency.toUpperCase()})
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-muted/50 rounded-lg font-mono text-sm break-all">
+                          {paymentData.pay_address}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleCopyAddress}
+                          className="flex-shrink-0"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Timer */}
+                  <div className="p-4 rounded-lg bg-muted/30 border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-sm">Gültig bis</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-lg font-mono">{countdown}</div>
+                        {paymentData.expiration_estimate_date && (
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(paymentData.expiration_estimate_date).toLocaleString('de-DE')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <Button 
-                      onClick={handleOpenPaymentPage}
-                      className="w-full h-12"
+
+                  {/* Status */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-yellow-600" />
+                      <span className="font-medium">Warte auf Zahlung...</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRefreshStatus}
+                      disabled={depositsLoading}
                     >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Zur Zahlungsseite
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={handleClose}
-                      className="w-full"
-                    >
-                      Schließen
+                      <RefreshCw className={`w-4 h-4 ${depositsLoading ? 'animate-spin' : ''}`} />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Nach Abschluss der Zahlung wird Ihr Guthaben automatisch gutgeschrieben.
-                  </p>
+
+                  {/* Instructions */}
+                  <div className="p-4 rounded-lg bg-muted/30 border">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>Scannen Sie den QR-Code oder kopieren Sie die Adresse in Ihre Wallet.</p>
+                        <p>Senden Sie <strong>genau {paymentData.pay_amount} {paymentData.pay_currency.toUpperCase()}</strong> an diese Adresse.</p>
+                        <p>Nach Bestätigung der Transaktion wird Ihr Guthaben automatisch gutgeschrieben.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={handleClose}
+                    className="w-full"
+                  >
+                    Schließen
+                  </Button>
                 </div>
               ) : (
                 // Form State
@@ -292,30 +413,23 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                     {/* Crypto Selection */}
                     <div className="space-y-4 sm:space-y-3">
                       <Label className="text-lg sm:text-base font-medium">
-                        Kryptowährung (optional)
+                        Kryptowährung
                       </Label>
                       <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
                         <SelectTrigger className="h-14 sm:h-12 text-lg sm:text-base">
-                          <SelectValue placeholder="Automatisch wählen" />
+                          <SelectValue placeholder="Bitcoin (BTC)" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {CRYPTO_OPTIONS.map((crypto) => (
                             <SelectItem key={crypto.value} value={crypto.value}>
                               <div className="flex items-center gap-3">
-                                {'isAuto' in crypto && crypto.isAuto ? (
-                                  <RefreshCw className="w-5 h-5 text-muted-foreground" />
-                                ) : (
-                                  <img src={crypto.icon!} alt={crypto.label} className="w-5 h-5 rounded-full" />
-                                )}
+                                <img src={crypto.icon} alt={crypto.label} className="w-5 h-5 rounded-full" />
                                 <span>{crypto.label}</span>
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Sie können auch auf der Zahlungsseite eine Kryptowährung auswählen.
-                      </p>
                     </div>
 
                     {/* Amount Summary */}
@@ -341,9 +455,10 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                         <h3 className="font-semibold text-lg sm:text-base mb-4">So funktioniert's</h3>
                         <div className="space-y-4">
                           {[
-                            { step: 1, text: "Betrag eingeben und zur Zahlung weiterleiten" },
-                            { step: 2, text: "Kryptowährung auswählen und Betrag senden" },
-                            { step: 3, text: "Nach Bestätigung wird Guthaben gutgeschrieben" },
+                            { step: 1, text: "Betrag und Kryptowährung wählen" },
+                            { step: 2, text: "QR-Code scannen oder Adresse kopieren" },
+                            { step: 3, text: "Betrag an Wallet senden" },
+                            { step: 4, text: "Guthaben wird automatisch gutgeschrieben" },
                           ].map((item) => (
                             <div key={item.step} className="flex items-start gap-3">
                               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -377,20 +492,11 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                                 <div>
                                   <div className="font-medium">{formatBalance(deposit.price_amount)}</div>
                                   <div className="text-xs text-muted-foreground">
-                                    {new Date(deposit.created_at).toLocaleDateString('de-DE')}
+                                    {deposit.pay_currency?.toUpperCase() || 'Krypto'} • {new Date(deposit.created_at).toLocaleDateString('de-DE')}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {getStatusBadge(deposit.status)}
-                                  {deposit.invoice_url && deposit.status !== 'finished' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => window.open(deposit.invoice_url!, '_blank')}
-                                    >
-                                      <ExternalLink className="w-4 h-4" />
-                                    </Button>
-                                  )}
                                 </div>
                               </div>
                             ))}
@@ -406,7 +512,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                         <div>
                           <h4 className="font-medium text-sm mb-1">Sichere Zahlungen</h4>
                           <p className="text-xs text-muted-foreground">
-                            Powered by NowPayments. Ihre Zahlungen werden sicher und verschlüsselt verarbeitet.
+                            Ihre Zahlungen werden sicher und verschlüsselt verarbeitet.
                           </p>
                         </div>
                       </div>
@@ -415,8 +521,8 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                 </div>
               )}
 
-              {/* Footer - only show when not in success state */}
-              {!showSuccess && (
+              {/* Footer - only show when not in payment state */}
+              {!paymentData && (
                 <div className="mt-8 pt-6 border-t">
                   <Button
                     onClick={handleCreateDeposit}
@@ -430,7 +536,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                       </>
                     ) : (
                       <>
-                        Zur Zahlung
+                        Einzahlung starten
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </>
                     )}

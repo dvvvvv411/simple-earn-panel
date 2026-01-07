@@ -188,10 +188,12 @@ export type Database = {
           actually_paid: number | null
           completed_at: string | null
           created_at: string
+          expiration_estimate_date: string | null
           id: string
           invoice_url: string | null
           nowpayments_invoice_id: string | null
           nowpayments_payment_id: string | null
+          pay_address: string | null
           pay_amount: number | null
           pay_currency: string | null
           price_amount: number
@@ -204,10 +206,12 @@ export type Database = {
           actually_paid?: number | null
           completed_at?: string | null
           created_at?: string
+          expiration_estimate_date?: string | null
           id?: string
           invoice_url?: string | null
           nowpayments_invoice_id?: string | null
           nowpayments_payment_id?: string | null
+          pay_address?: string | null
           pay_amount?: number | null
           pay_currency?: string | null
           price_amount: number
@@ -220,10 +224,12 @@ export type Database = {
           actually_paid?: number | null
           completed_at?: string | null
           created_at?: string
+          expiration_estimate_date?: string | null
           id?: string
           invoice_url?: string | null
           nowpayments_invoice_id?: string | null
           nowpayments_payment_id?: string | null
+          pay_address?: string | null
           pay_amount?: number | null
           pay_currency?: string | null
           price_amount?: number

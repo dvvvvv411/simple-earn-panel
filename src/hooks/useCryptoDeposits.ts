@@ -10,12 +10,25 @@ export interface CryptoDeposit {
   price_currency: string;
   pay_currency: string | null;
   pay_amount: number | null;
+  pay_address: string | null;
+  expiration_estimate_date: string | null;
   actually_paid: number | null;
   status: string;
   invoice_url: string | null;
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+}
+
+export interface CreateDepositResult {
+  success: boolean;
+  deposit_id: string;
+  payment_id: string;
+  pay_address: string;
+  pay_amount: number;
+  pay_currency: string;
+  expiration_estimate_date: string;
+  payment_status: string;
 }
 
 export function useCryptoDeposits() {
@@ -52,33 +65,28 @@ export function useCryptoDeposits() {
     }
   }, []);
 
-  const createDeposit = async (amount: number, payCurrency?: string) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Not authenticated');
-      }
-
-      const { data, error: invokeError } = await supabase.functions.invoke('nowpayments-create-invoice', {
-        body: { amount, pay_currency: payCurrency },
-      });
-
-      if (invokeError) {
-        throw invokeError;
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      // Refresh deposits list
-      await fetchDeposits();
-
-      return data;
-    } catch (err) {
-      console.error('Error creating deposit:', err);
-      throw err;
+  const createDeposit = async (amount: number, payCurrency: string): Promise<CreateDepositResult> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Not authenticated');
     }
+
+    const { data, error: invokeError } = await supabase.functions.invoke('nowpayments-create-invoice', {
+      body: { amount, pay_currency: payCurrency },
+    });
+
+    if (invokeError) {
+      throw invokeError;
+    }
+
+    if (data?.error) {
+      throw new Error(data.error);
+    }
+
+    // Refresh deposits list
+    await fetchDeposits();
+
+    return data as CreateDepositResult;
   };
 
   const checkStatus = async () => {

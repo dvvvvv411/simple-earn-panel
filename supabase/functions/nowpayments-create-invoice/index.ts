@@ -33,13 +33,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Creating invoice for user:', user.id);
+    console.log('Creating payment for user:', user.id);
 
     const { amount, pay_currency } = await req.json();
 
     if (!amount || amount <= 0) {
       return new Response(
         JSON.stringify({ error: 'Invalid amount' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // pay_currency is now REQUIRED
+    if (!pay_currency) {
+      return new Response(
+        JSON.stringify({ error: 'pay_currency is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -56,44 +64,39 @@ Deno.serve(async (req) => {
     // Generate unique order ID
     const orderId = `deposit_${user.id}_${Date.now()}`;
 
-    // Create invoice with NowPayments
-    const invoicePayload: Record<string, unknown> = {
+    // Create payment with NowPayments Payment API (NOT Invoice API)
+    // This returns pay_address directly for internal display
+    const paymentPayload = {
       price_amount: amount,
       price_currency: 'eur',
+      pay_currency: pay_currency.toLowerCase(),
       order_id: orderId,
       order_description: `Krypto-Einzahlung: ${amount} EUR`,
       ipn_callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/nowpayments-webhook`,
-      success_url: `${req.headers.get('origin') || 'https://lovable.dev'}/kryptotrading/wallet?deposit=success`,
-      cancel_url: `${req.headers.get('origin') || 'https://lovable.dev'}/kryptotrading/wallet?deposit=cancelled`,
     };
 
-    // Add pay_currency if specified
-    if (pay_currency) {
-      invoicePayload.pay_currency = pay_currency.toLowerCase();
-    }
+    console.log('Creating NowPayments payment:', paymentPayload);
 
-    console.log('Creating NowPayments invoice:', invoicePayload);
-
-    const invoiceResponse = await fetch('https://api.nowpayments.io/v1/invoice', {
+    const paymentResponse = await fetch('https://api.nowpayments.io/v1/payment', {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(invoicePayload),
+      body: JSON.stringify(paymentPayload),
     });
 
-    const invoiceData = await invoiceResponse.json();
+    const paymentData = await paymentResponse.json();
 
-    if (!invoiceResponse.ok) {
-      console.error('NowPayments API error:', invoiceData);
+    if (!paymentResponse.ok) {
+      console.error('NowPayments API error:', paymentData);
       return new Response(
-        JSON.stringify({ error: 'Failed to create payment invoice', details: invoiceData }),
+        JSON.stringify({ error: 'Failed to create payment', details: paymentData }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('NowPayments invoice created:', invoiceData);
+    console.log('NowPayments payment created:', paymentData);
 
     // Use service role to insert deposit record
     const supabaseAdmin = createClient(
@@ -101,17 +104,19 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Save deposit to database
+    // Save deposit to database with all payment details
     const { data: deposit, error: depositError } = await supabaseAdmin
       .from('crypto_deposits')
       .insert({
         user_id: user.id,
-        nowpayments_invoice_id: invoiceData.id,
+        nowpayments_payment_id: String(paymentData.payment_id),
         price_amount: amount,
         price_currency: 'eur',
-        pay_currency: pay_currency?.toLowerCase() || null,
-        status: 'pending',
-        invoice_url: invoiceData.invoice_url,
+        pay_currency: pay_currency.toLowerCase(),
+        pay_amount: paymentData.pay_amount,
+        pay_address: paymentData.pay_address,
+        expiration_estimate_date: paymentData.expiration_estimate_date,
+        status: paymentData.payment_status || 'waiting',
       })
       .select()
       .single();
@@ -126,12 +131,17 @@ Deno.serve(async (req) => {
 
     console.log('Deposit record created:', deposit.id);
 
+    // Return all payment details for internal display
     return new Response(
       JSON.stringify({
         success: true,
         deposit_id: deposit.id,
-        invoice_url: invoiceData.invoice_url,
-        invoice_id: invoiceData.id,
+        payment_id: paymentData.payment_id,
+        pay_address: paymentData.pay_address,
+        pay_amount: paymentData.pay_amount,
+        pay_currency: pay_currency.toLowerCase(),
+        expiration_estimate_date: paymentData.expiration_estimate_date,
+        payment_status: paymentData.payment_status,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
