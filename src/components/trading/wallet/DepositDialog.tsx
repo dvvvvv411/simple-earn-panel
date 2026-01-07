@@ -31,17 +31,17 @@ interface DepositDialogProps {
 }
 
 const CRYPTO_OPTIONS = [
-  { value: 'auto', label: 'Automatisch wählen', icon: '🔄' },
-  { value: 'btc', label: 'Bitcoin (BTC)', icon: '₿' },
-  { value: 'eth', label: 'Ethereum (ETH)', icon: 'Ξ' },
-  { value: 'usdt', label: 'Tether (USDT)', icon: '₮' },
-  { value: 'usdc', label: 'USD Coin (USDC)', icon: '$' },
-  { value: 'ltc', label: 'Litecoin (LTC)', icon: 'Ł' },
-  { value: 'xrp', label: 'Ripple (XRP)', icon: '✕' },
-  { value: 'doge', label: 'Dogecoin (DOGE)', icon: 'Ð' },
-  { value: 'trx', label: 'Tron (TRX)', icon: '◈' },
-  { value: 'bnb', label: 'BNB', icon: '◆' },
-  { value: 'sol', label: 'Solana (SOL)', icon: '◎' },
+  { value: 'auto', label: 'Automatisch wählen', icon: null, isAuto: true },
+  { value: 'btc', label: 'Bitcoin (BTC)', icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+  { value: 'eth', label: 'Ethereum (ETH)', icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+  { value: 'usdt', label: 'Tether (USDT)', icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png' },
+  { value: 'usdc', label: 'USD Coin (USDC)', icon: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
+  { value: 'ltc', label: 'Litecoin (LTC)', icon: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png' },
+  { value: 'xrp', label: 'Ripple (XRP)', icon: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+  { value: 'doge', label: 'Dogecoin (DOGE)', icon: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+  { value: 'trx', label: 'Tron (TRX)', icon: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png' },
+  { value: 'bnb', label: 'BNB', icon: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
+  { value: 'sol', label: 'Solana (SOL)', icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
 ];
 
 const QUICK_AMOUNTS = [50, 100, 250, 500, 1000];
@@ -302,7 +302,11 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                           {CRYPTO_OPTIONS.map((crypto) => (
                             <SelectItem key={crypto.value} value={crypto.value}>
                               <div className="flex items-center gap-3">
-                                <span className="text-lg">{crypto.icon}</span>
+                                {'isAuto' in crypto && crypto.isAuto ? (
+                                  <RefreshCw className="w-5 h-5 text-muted-foreground" />
+                                ) : (
+                                  <img src={crypto.icon!} alt={crypto.label} className="w-5 h-5 rounded-full" />
+                                )}
                                 <span>{crypto.label}</span>
                               </div>
                             </SelectItem>
