@@ -875,34 +875,8 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                         </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Right Column - Info & Pending */}
-                  <div className="space-y-6 sm:space-y-4">
-                    {/* How it works */}
-                    <Card className="relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
-                      <CardContent className="relative p-6 sm:p-4">
-                        <h3 className="font-semibold text-lg sm:text-base mb-4">So funktioniert's</h3>
-                        <div className="space-y-4">
-                          {[
-                            { step: 1, text: "Betrag und Kryptowährung wählen" },
-                            { step: 2, text: "QR-Code scannen oder Adresse kopieren" },
-                            { step: 3, text: "Betrag an Wallet senden" },
-                            { step: 4, text: "Guthaben wird automatisch gutgeschrieben" },
-                          ].map((item) => (
-                            <div key={item.step} className="flex items-start gap-3">
-                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <span className="text-xs font-semibold text-primary">{item.step}</span>
-                              </div>
-                              <span className="text-sm text-muted-foreground">{item.text}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Pending Deposits */}
+                    {/* Pending Deposits - moved to left column */}
                     {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).length > 0 && (
                       <Card>
                         <CardContent className="p-4">
@@ -946,6 +920,32 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                         </CardContent>
                       </Card>
                     )}
+                  </div>
+
+                  {/* Right Column - Info */}
+                  <div className="space-y-6 sm:space-y-4">
+                    {/* How it works */}
+                    <Card className="relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
+                      <CardContent className="relative p-6 sm:p-4">
+                        <h3 className="font-semibold text-lg sm:text-base mb-4">So funktioniert's</h3>
+                        <div className="space-y-4">
+                          {[
+                            { step: 1, text: "Betrag und Kryptowährung wählen" },
+                            { step: 2, text: "QR-Code scannen oder Adresse kopieren" },
+                            { step: 3, text: "Betrag an Wallet senden" },
+                            { step: 4, text: "Guthaben wird automatisch gutgeschrieben" },
+                          ].map((item) => (
+                            <div key={item.step} className="flex items-start gap-3">
+                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs font-semibold text-primary">{item.step}</span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">{item.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Security Note */}
                     <div className="p-4 rounded-lg bg-muted/30 border">
