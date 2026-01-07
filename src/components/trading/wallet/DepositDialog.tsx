@@ -31,7 +31,7 @@ interface DepositDialogProps {
 }
 
 const CRYPTO_OPTIONS = [
-  { value: '', label: 'Automatisch wählen', icon: '🔄' },
+  { value: 'auto', label: 'Automatisch wählen', icon: '🔄' },
   { value: 'btc', label: 'Bitcoin (BTC)', icon: '₿' },
   { value: 'eth', label: 'Ethereum (ETH)', icon: 'Ξ' },
   { value: 'usdt', label: 'Tether (USDT)', icon: '₮' },
@@ -108,7 +108,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     setIsCreating(true);
 
     try {
-      const result = await createDeposit(depositAmount, selectedCrypto || undefined);
+      const result = await createDeposit(depositAmount, selectedCrypto === 'auto' ? undefined : selectedCrypto || undefined);
       
       if (result?.invoice_url) {
         setInvoiceUrl(result.invoice_url);
