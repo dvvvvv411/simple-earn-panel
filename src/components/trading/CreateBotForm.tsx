@@ -309,9 +309,7 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                   <div className="flex justify-center mb-4">
                     <div className="relative">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center animate-pulse">
-                        <div className="animate-spin">
-                          <Bitcoin className="w-6 h-6 text-primary" />
-                        </div>
+                        <Bitcoin className="w-6 h-6 text-primary animate-pulse" />
                       </div>
                       <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary animate-bounce" />
                     </div>
