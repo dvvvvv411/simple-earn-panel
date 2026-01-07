@@ -69,6 +69,36 @@ const URI_PREFIXES: Record<string, string> = {
   trx: 'tron',
 };
 
+// Netzwerk-Icons (Chain-spezifische Logos)
+const NETWORK_ICONS: Record<string, string> = {
+  'eth': 'https://nowpayments.io/images/coins/eth.svg',
+  'erc20': 'https://nowpayments.io/images/coins/eth.svg',
+  'trx': 'https://nowpayments.io/images/coins/trx.svg',
+  'trc20': 'https://nowpayments.io/images/coins/trx.svg',
+  'bsc': 'https://nowpayments.io/images/coins/bnb.svg',
+  'bep20': 'https://nowpayments.io/images/coins/bnb.svg',
+  'matic': 'https://nowpayments.io/images/coins/matic.svg',
+  'polygon': 'https://nowpayments.io/images/coins/matic.svg',
+  'sol': 'https://nowpayments.io/images/coins/sol.svg',
+  'solana': 'https://nowpayments.io/images/coins/sol.svg',
+  'arb': 'https://cryptologos.cc/logos/arbitrum-arb-logo.svg',
+  'arbitrum': 'https://cryptologos.cc/logos/arbitrum-arb-logo.svg',
+  'op': 'https://cryptologos.cc/logos/optimism-ethereum-op-logo.svg',
+  'optimism': 'https://cryptologos.cc/logos/optimism-ethereum-op-logo.svg',
+  'avaxc': 'https://nowpayments.io/images/coins/avax.svg',
+  'avalanche': 'https://nowpayments.io/images/coins/avax.svg',
+  'ton': 'https://nowpayments.io/images/coins/ton.svg',
+  'algo': 'https://nowpayments.io/images/coins/algo.svg',
+  'algorand': 'https://nowpayments.io/images/coins/algo.svg',
+  'base': 'https://raw.githubusercontent.com/base-org/brand-kit/main/logo/symbol/Base_Symbol_Blue.svg',
+  'fantom': 'https://nowpayments.io/images/coins/ftm.svg',
+  'ftm': 'https://nowpayments.io/images/coins/ftm.svg',
+  'near': 'https://nowpayments.io/images/coins/near.svg',
+  'xlm': 'https://nowpayments.io/images/coins/xlm.svg',
+  'stellar': 'https://nowpayments.io/images/coins/xlm.svg',
+  'celo': 'https://nowpayments.io/images/coins/celo.svg',
+};
+
 export interface CryptoCurrency {
   code: string;          // Original code von NowPayments z.B. "usdttrc20"
   symbol: string;        // Basis-Symbol z.B. "usdt"
@@ -76,6 +106,7 @@ export interface CryptoCurrency {
   icon: string;          // Icon URL von NowPayments
   network?: string;      // Netzwerk z.B. "trx"
   networkLabel?: string; // Anzeige-Label z.B. "TRC20"
+  networkIcon?: string;  // Icon URL für das Netzwerk
   uriPrefix: string;
   isPopular: boolean;
   isStablecoin: boolean;
@@ -128,6 +159,22 @@ function getNetworkLabel(network: string | undefined, codeNetwork: string | unde
     
     // Fallback: Netzwerk-Code in Großbuchstaben
     return codeNetwork.toUpperCase();
+  }
+  
+  return undefined;
+}
+
+function getNetworkIcon(network: string | undefined, codeNetwork: string | undefined): string | undefined {
+  // Zuerst versuchen wir das Netzwerk aus der API
+  if (network) {
+    const icon = NETWORK_ICONS[network.toLowerCase()];
+    if (icon) return icon;
+  }
+  
+  // Dann aus dem Code extrahiertes Netzwerk
+  if (codeNetwork) {
+    const icon = NETWORK_ICONS[codeNetwork.toLowerCase()];
+    if (icon) return icon;
   }
   
   return undefined;
@@ -190,6 +237,7 @@ export function useNowPaymentsCurrencies() {
             const isStablecoin = STABLECOIN_PREFIXES.some(p => lowerCode.startsWith(p));
             const codeNetwork = extractNetworkFromCode(lowerCode, baseSymbol);
             const networkLabel = getNetworkLabel(currency.network, codeNetwork);
+            const networkIcon = getNetworkIcon(currency.network, codeNetwork);
             
             return {
               code: lowerCode,
@@ -200,6 +248,7 @@ export function useNowPaymentsCurrencies() {
                 : `https://nowpayments.io/images/coins/${lowerCode}.svg`,
               network: currency.network?.toLowerCase() || codeNetwork,
               networkLabel,
+              networkIcon,
               uriPrefix: URI_PREFIXES[baseSymbol] || baseSymbol,
               isPopular: POPULAR_ORDER.includes(baseSymbol) && !isStablecoin,
               isStablecoin,

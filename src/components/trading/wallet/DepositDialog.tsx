@@ -434,9 +434,19 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                                 />
                                 <span>{selectedCryptoData.name}</span>
                                 {selectedCryptoData.networkLabel && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {selectedCryptoData.networkLabel}
-                                  </Badge>
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    {selectedCryptoData.networkIcon && (
+                                      <img 
+                                        src={selectedCryptoData.networkIcon} 
+                                        alt={selectedCryptoData.networkLabel}
+                                        className="w-4 h-4"
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                      />
+                                    )}
+                                    <Badge variant="outline" className="text-xs">
+                                      {selectedCryptoData.networkLabel}
+                                    </Badge>
+                                  </div>
                                 )}
                               </div>
                             ) : (
@@ -477,7 +487,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                                       </div>
                                       <Check
                                         className={cn(
-                                          "ml-2 h-4 w-4 shrink-0",
+                                          "ml-2 h-4 w-4 shrink-0 text-primary/70",
                                           selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
                                         )}
                                       />
@@ -507,14 +517,24 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                                         />
                                         <span className="truncate">{crypto.name}</span>
                                         {crypto.networkLabel && (
-                                          <Badge variant="outline" className="text-xs shrink-0">
-                                            {crypto.networkLabel}
-                                          </Badge>
+                                          <div className="flex items-center gap-1.5 shrink-0">
+                                            {crypto.networkIcon && (
+                                              <img 
+                                                src={crypto.networkIcon} 
+                                                alt={crypto.networkLabel}
+                                                className="w-4 h-4"
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                              />
+                                            )}
+                                            <Badge variant="outline" className="text-xs">
+                                              {crypto.networkLabel}
+                                            </Badge>
+                                          </div>
                                         )}
                                       </div>
                                       <Check
                                         className={cn(
-                                          "ml-2 h-4 w-4 shrink-0",
+                                          "ml-2 h-4 w-4 shrink-0 text-primary/70",
                                           selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
                                         )}
                                       />
@@ -544,14 +564,24 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                                         />
                                         <span className="truncate">{crypto.name}</span>
                                         {crypto.networkLabel && (
-                                          <Badge variant="outline" className="text-xs shrink-0">
-                                            {crypto.networkLabel}
-                                          </Badge>
+                                          <div className="flex items-center gap-1.5 shrink-0">
+                                            {crypto.networkIcon && (
+                                              <img 
+                                                src={crypto.networkIcon} 
+                                                alt={crypto.networkLabel}
+                                                className="w-4 h-4"
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                              />
+                                            )}
+                                            <Badge variant="outline" className="text-xs">
+                                              {crypto.networkLabel}
+                                            </Badge>
+                                          </div>
                                         )}
                                       </div>
                                       <Check
                                         className={cn(
-                                          "ml-2 h-4 w-4 shrink-0",
+                                          "ml-2 h-4 w-4 shrink-0 text-primary/70",
                                           selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
                                         )}
                                       />
@@ -581,14 +611,24 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                                         />
                                         <span className="truncate">{crypto.name}</span>
                                         {crypto.networkLabel && (
-                                          <Badge variant="outline" className="text-xs shrink-0">
-                                            {crypto.networkLabel}
-                                          </Badge>
+                                          <div className="flex items-center gap-1.5 shrink-0">
+                                            {crypto.networkIcon && (
+                                              <img 
+                                                src={crypto.networkIcon} 
+                                                alt={crypto.networkLabel}
+                                                className="w-4 h-4"
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                              />
+                                            )}
+                                            <Badge variant="outline" className="text-xs">
+                                              {crypto.networkLabel}
+                                            </Badge>
+                                          </div>
                                         )}
                                       </div>
                                       <Check
                                         className={cn(
-                                          "ml-2 h-4 w-4 shrink-0",
+                                          "ml-2 h-4 w-4 shrink-0 text-primary/70",
                                           selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
                                         )}
                                       />
@@ -623,7 +663,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                                       </div>
                                       <Check
                                         className={cn(
-                                          "ml-2 h-4 w-4 shrink-0",
+                                          "ml-2 h-4 w-4 shrink-0 text-primary/70",
                                           selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
                                         )}
                                       />
