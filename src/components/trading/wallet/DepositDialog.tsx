@@ -3,9 +3,10 @@ import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, Resp
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { 
   Wallet, 
   Euro, 
@@ -19,11 +20,15 @@ import {
   AlertCircle,
   RefreshCw,
   Copy,
-  ArrowLeft
+  ArrowLeft,
+  ChevronsUpDown,
+  Check
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCryptoDeposits, CryptoDeposit, CreateDepositResult } from "@/hooks/useCryptoDeposits";
+import { useNowPaymentsCurrencies, CryptoCurrency } from "@/hooks/useNowPaymentsCurrencies";
 import { QRCodeSVG } from "qrcode.react";
+import { cn } from "@/lib/utils";
 
 interface DepositDialogProps {
   userBalance: number;
@@ -31,19 +36,6 @@ interface DepositDialogProps {
   onOpenChange: (open: boolean) => void;
   onDepositCreated?: () => void;
 }
-
-const CRYPTO_OPTIONS = [
-  { value: 'btc', label: 'Bitcoin (BTC)', icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', uriPrefix: 'bitcoin' },
-  { value: 'eth', label: 'Ethereum (ETH)', icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', uriPrefix: 'ethereum' },
-  { value: 'usdt', label: 'Tether (USDT)', icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png', uriPrefix: 'tether' },
-  { value: 'usdc', label: 'USD Coin (USDC)', icon: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png', uriPrefix: 'usdc' },
-  { value: 'ltc', label: 'Litecoin (LTC)', icon: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png', uriPrefix: 'litecoin' },
-  { value: 'xrp', label: 'Ripple (XRP)', icon: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', uriPrefix: 'ripple' },
-  { value: 'doge', label: 'Dogecoin (DOGE)', icon: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', uriPrefix: 'dogecoin' },
-  { value: 'trx', label: 'Tron (TRX)', icon: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png', uriPrefix: 'tron' },
-  { value: 'bnb', label: 'BNB', icon: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png', uriPrefix: 'bnb' },
-  { value: 'sol', label: 'Solana (SOL)', icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', uriPrefix: 'solana' },
-];
 
 const QUICK_AMOUNTS = [50, 100, 250, 500, 1000];
 
@@ -70,12 +62,14 @@ const getStatusBadge = (status: string) => {
 export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreated }: DepositDialogProps) {
   const [amount, setAmount] = useState<string>("");
   const [selectedCrypto, setSelectedCrypto] = useState<string>("btc");
+  const [cryptoDropdownOpen, setCryptoDropdownOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [paymentData, setPaymentData] = useState<CreateDepositResult | null>(null);
   const [countdown, setCountdown] = useState<string>("");
   
   const { toast } = useToast();
   const { createDeposit, getPendingDeposits, checkStatus, loading: depositsLoading } = useCryptoDeposits();
+  const { currencies, popularCurrencies, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
   const pendingDeposits = getPendingDeposits();
 
   const formatBalance = (value: number) => {
@@ -195,7 +189,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     }
   };
 
-  const selectedCryptoData = CRYPTO_OPTIONS.find(c => c.value === selectedCrypto);
+  const selectedCryptoData = currencies.find(c => c.symbol === selectedCrypto);
   const qrValue = paymentData ? `${selectedCryptoData?.uriPrefix || 'bitcoin'}:${paymentData.pay_address}?amount=${paymentData.pay_amount}` : '';
 
   return (
@@ -273,8 +267,9 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                       {selectedCryptoData && (
                         <img 
                           src={selectedCryptoData.icon} 
-                          alt={selectedCryptoData.label} 
+                          alt={selectedCryptoData.name} 
                           className="w-8 h-8 rounded-full"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         />
                       )}
                     </div>
@@ -410,26 +405,121 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                       </div>
                     </div>
 
-                    {/* Crypto Selection */}
+                    {/* Crypto Selection - Searchable Combobox */}
                     <div className="space-y-4 sm:space-y-3">
                       <Label className="text-lg sm:text-base font-medium">
                         Kryptowährung
                       </Label>
-                      <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
-                        <SelectTrigger className="h-14 sm:h-12 text-lg sm:text-base">
-                          <SelectValue placeholder="Bitcoin (BTC)" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                          {CRYPTO_OPTIONS.map((crypto) => (
-                            <SelectItem key={crypto.value} value={crypto.value}>
-                              <div className="flex items-center gap-3">
-                                <img src={crypto.icon} alt={crypto.label} className="w-5 h-5 rounded-full" />
-                                <span>{crypto.label}</span>
+                      <Popover open={cryptoDropdownOpen} onOpenChange={setCryptoDropdownOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={cryptoDropdownOpen}
+                            className="w-full h-14 sm:h-12 justify-between text-lg sm:text-base font-normal"
+                            disabled={currenciesLoading}
+                          >
+                            {currenciesLoading ? (
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span>Lade Währungen...</span>
                               </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                            ) : selectedCryptoData ? (
+                              <div className="flex items-center gap-3">
+                                <img 
+                                  src={selectedCryptoData.icon} 
+                                  alt={selectedCryptoData.name} 
+                                  className="w-6 h-6 rounded-full"
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                                <span>{selectedCryptoData.name}</span>
+                                <span className="text-muted-foreground">({selectedCryptoData.symbol.toUpperCase()})</span>
+                              </div>
+                            ) : (
+                              "Währung wählen..."
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[400px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Kryptowährung suchen..." />
+                            <CommandList className="max-h-[300px]">
+                              <CommandEmpty>Keine Währung gefunden.</CommandEmpty>
+                              
+                              {popularCurrencies.length > 0 && (
+                                <CommandGroup heading="Beliebt">
+                                  {popularCurrencies.map((crypto) => (
+                                    <CommandItem
+                                      key={crypto.symbol}
+                                      value={`${crypto.name} ${crypto.symbol}`}
+                                      onSelect={() => {
+                                        setSelectedCrypto(crypto.symbol);
+                                        setCryptoDropdownOpen(false);
+                                      }}
+                                      className="cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <img 
+                                          src={crypto.icon} 
+                                          alt={crypto.name} 
+                                          className="w-5 h-5 rounded-full"
+                                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        />
+                                        <span>{crypto.name}</span>
+                                        <span className="text-muted-foreground text-sm ml-auto">
+                                          {crypto.symbol.toUpperCase()}
+                                        </span>
+                                      </div>
+                                      <Check
+                                        className={cn(
+                                          "ml-2 h-4 w-4",
+                                          selectedCrypto === crypto.symbol ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                              
+                              {otherCurrencies.length > 0 && (
+                                <CommandGroup heading="Alle Währungen">
+                                  {otherCurrencies.map((crypto) => (
+                                    <CommandItem
+                                      key={crypto.symbol}
+                                      value={`${crypto.name} ${crypto.symbol}`}
+                                      onSelect={() => {
+                                        setSelectedCrypto(crypto.symbol);
+                                        setCryptoDropdownOpen(false);
+                                      }}
+                                      className="cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <img 
+                                          src={crypto.icon} 
+                                          alt={crypto.name} 
+                                          className="w-5 h-5 rounded-full"
+                                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        />
+                                        <span>{crypto.name}</span>
+                                        <span className="text-muted-foreground text-sm ml-auto">
+                                          {crypto.symbol.toUpperCase()}
+                                        </span>
+                                      </div>
+                                      <Check
+                                        className={cn(
+                                          "ml-2 h-4 w-4",
+                                          selectedCrypto === crypto.symbol ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
                     {/* Amount Summary */}

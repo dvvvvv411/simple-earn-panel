@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.nowpayments-check-status]
 verify_jwt = false
+
+[functions.nowpayments-currencies]
+verify_jwt = false
