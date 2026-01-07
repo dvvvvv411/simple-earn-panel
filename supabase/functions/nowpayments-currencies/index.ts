@@ -19,9 +19,9 @@ serve(async (req) => {
       throw new Error('Payment service not configured');
     }
 
-    console.log('Fetching available currencies from NowPayments...');
+    console.log('Fetching full currencies from NowPayments...');
 
-    const response = await fetch('https://api.nowpayments.io/v1/currencies', {
+    const response = await fetch('https://api.nowpayments.io/v1/full-currencies', {
       method: 'GET',
       headers: {
         'x-api-key': apiKey,
@@ -35,7 +35,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log(`Successfully fetched ${data.currencies?.length || 0} currencies`);
+    console.log(`Successfully fetched ${data.currencies?.length || 0} full currencies`);
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
