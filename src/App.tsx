@@ -14,6 +14,7 @@ import Withdrawals from "./pages/admin/Withdrawals";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
+import Bots from "./pages/trading/Bots";
 import Support from "./pages/trading/Support";
 import SupportTicketDetail from "./pages/trading/SupportTicketDetail";
 import Settings from "./pages/trading/Settings";
@@ -36,6 +37,7 @@ const App: React.FC = () => {
           </Route>
           <Route path="/kryptotrading" element={<TradingLayout />}>
             <Route index element={<TradingDashboard />} />
+            <Route path="bot" element={<Bots />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="historie" element={<TradingHistory />} />
             <Route path="support" element={<Support />} />
