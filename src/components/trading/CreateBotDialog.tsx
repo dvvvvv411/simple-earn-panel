@@ -67,66 +67,41 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
     setIsCreating(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Fehler",
-          description: "Sie müssen eingeloggt sein, um einen Bot zu erstellen.",
-          variant: "destructive"
-        });
-        return;
-      }
-
       // Calculate completion time (30-60 minutes from now)
       const now = new Date();
       const randomMinutes = Math.floor(Math.random() * 31) + 30; // 30-60 minutes
       const expectedCompletionTime = new Date(now.getTime() + randomMinutes * 60 * 1000);
 
-      // Create the bot
-      const { data: bot, error: botError } = await supabase
-        .from('trading_bots')
-        .insert({
-          user_id: user.id,
-          cryptocurrency: selectedCoin.name,
-          symbol: selectedCoin.symbol.toUpperCase(),
-          start_amount: investmentAmount,
-          current_balance: investmentAmount,
-          status: 'active',
-          expected_completion_time: expectedCompletionTime.toISOString()
-        })
-        .select()
-        .single();
-
-      if (botError) {
-        console.error('Bot creation error:', botError);
-        toast({
-          title: "Fehler",
-          description: "Bot konnte nicht erstellt werden.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Deduct amount from user balance using the new user-safe function
-      const { error: balanceError } = await supabase.rpc('deduct_balance_for_bot', {
-        amount: investmentAmount,
-        description: `Trading-Bot Erstellung: ${selectedCoin.name}`
+      // Use atomic function to prevent race conditions (double-trades)
+      // This locks the user row during the entire operation
+      const { data: botId, error } = await supabase.rpc('create_trading_bot_atomic', {
+        p_cryptocurrency: selectedCoin.name,
+        p_symbol: selectedCoin.symbol.toUpperCase(),
+        p_start_amount: investmentAmount,
+        p_expected_completion_time: expectedCompletionTime.toISOString()
       });
 
-      if (balanceError) {
-        console.error('Balance update error:', balanceError);
-        // If balance update fails, we should delete the bot
-        await supabase.from('trading_bots').delete().eq('id', bot.id);
+      if (error) {
+        console.error('Atomic bot creation error:', error);
+        
+        // Handle specific error messages
+        let errorMessage = "Bot konnte nicht erstellt werden.";
+        if (error.message.includes('Unzureichendes Guthaben')) {
+          errorMessage = "Unzureichendes Guthaben für diese Investition.";
+        } else if (error.message.includes('Nicht authentifiziert')) {
+          errorMessage = "Sie müssen eingeloggt sein, um einen Bot zu erstellen.";
+        }
+        
         toast({
           title: "Fehler",
-          description: "Guthaben konnte nicht aktualisiert werden.",
+          description: errorMessage,
           variant: "destructive"
         });
         return;
       }
 
       // Log bot creation success
-      console.log('🤖 Trading bot created successfully:', bot.id);
+      console.log('🤖 Trading bot created successfully (atomic):', botId);
       console.log('⏰ Expected completion time:', expectedCompletionTime.toISOString());
       console.log('📊 Current price:', selectedCoin.current_price);
 
