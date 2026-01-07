@@ -458,7 +458,11 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                         <PopoverContent className="w-[400px] p-0" align="start">
                           <Command>
                             <CommandInput placeholder="Kryptowährung suchen..." />
-                            <CommandList className="max-h-[300px]">
+                            <CommandList 
+                              className="max-h-[300px]"
+                              onWheelCapture={(e) => e.stopPropagation()}
+                              onTouchMove={(e) => e.stopPropagation()}
+                            >
                               <CommandEmpty>Keine Währung gefunden.</CommandEmpty>
                               
                               {popularCurrencies.length > 0 && (
