@@ -166,7 +166,9 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                       </div>
                     </SelectItem>
                   ) : (
-                    coins.map((coin) => (
+                    coins
+                      .filter(coin => !['usdt', 'usdc', 'dai', 'busd'].includes(coin.symbol.toLowerCase()))
+                      .map((coin) => (
                       <SelectItem key={coin.id} value={coin.id}>
                         <div className="flex items-center gap-3">
                           <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
