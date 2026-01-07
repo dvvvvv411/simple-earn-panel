@@ -788,6 +788,15 @@ export type Database = {
         Args: { bot_investments?: number; user_balance: number }
         Returns: string
       }
+      create_trading_bot_atomic: {
+        Args: {
+          p_cryptocurrency: string
+          p_expected_completion_time: string
+          p_start_amount: number
+          p_symbol: string
+        }
+        Returns: string
+      }
       credit_balance_from_bot: {
         Args: { amount: number; description: string; target_user_id: string }
         Returns: boolean
