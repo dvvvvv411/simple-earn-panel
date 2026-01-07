@@ -112,18 +112,81 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Find the deposit record
-    const { data: deposit, error: findError } = await supabaseAdmin
-      .from('crypto_deposits')
-      .select('*')
-      .eq('nowpayments_invoice_id', invoice_id.toString())
-      .single();
+    // Find the deposit record - try multiple identifiers
+    let deposit = null;
+    let findError = null;
 
-    if (findError || !deposit) {
-      console.error('Deposit not found:', findError, 'Invoice ID:', invoice_id);
+    // First try by payment_id (most reliable for direct payments)
+    if (payment_id) {
+      console.log('Searching by payment_id:', payment_id);
+      const result = await supabaseAdmin
+        .from('crypto_deposits')
+        .select('*')
+        .eq('nowpayments_payment_id', payment_id.toString())
+        .maybeSingle();
+      
+      deposit = result.data;
+      findError = result.error;
+    }
+
+    // If not found, try by invoice_id
+    if (!deposit && invoice_id) {
+      console.log('Searching by invoice_id:', invoice_id);
+      const result = await supabaseAdmin
+        .from('crypto_deposits')
+        .select('*')
+        .eq('nowpayments_invoice_id', invoice_id.toString())
+        .maybeSingle();
+      
+      deposit = result.data;
+      findError = result.error;
+    }
+
+    // If still not found, try by order_id (contains user_id and timestamp)
+    if (!deposit && order_id) {
+      // order_id format: "deposit_{user_id}_{timestamp}"
+      const orderParts = order_id.split('_');
+      if (orderParts.length >= 2) {
+        const userId = orderParts[1];
+        
+        console.log('Searching by order_id, user:', userId, 'amount:', price_amount);
+        
+        // Find deposit by user_id and amount that doesn't have payment_id yet
+        const result = await supabaseAdmin
+          .from('crypto_deposits')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('price_amount', price_amount)
+          .is('nowpayments_payment_id', null)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        deposit = result.data;
+        findError = result.error;
+        
+        // If found, update with payment_id for future lookups
+        if (deposit && payment_id) {
+          await supabaseAdmin
+            .from('crypto_deposits')
+            .update({ nowpayments_payment_id: payment_id.toString() })
+            .eq('id', deposit.id);
+          
+          console.log('Updated deposit with payment_id:', payment_id);
+        }
+      }
+    }
+
+    if (findError) {
+      console.error('Database error:', findError);
+    }
+
+    if (!deposit) {
+      console.error('Deposit not found for payment:', payment_id, 'invoice:', invoice_id, 'order:', order_id);
+      // Return 200 to prevent NowPayments from retrying
       return new Response(
-        JSON.stringify({ error: 'Deposit not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: true, message: 'Deposit not found, acknowledged' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
