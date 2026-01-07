@@ -567,7 +567,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                           onChange={(e) => setAmount(e.target.value)}
                           className="pl-14 sm:pl-12 h-14 sm:h-12 text-lg sm:text-base"
                           min="10"
-                          step="0.01"
+                          step="1"
                         />
                       </div>
 
