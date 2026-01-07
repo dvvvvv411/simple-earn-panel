@@ -218,7 +218,7 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Status</p>
             {localBot.status !== 'completed' ? (
-              <div className="flex items-center gap-0.5 font-semibold text-green-600">
+              <div className="flex items-center gap-0.5 font-semibold text-primary/80">
                 <span>Marktanalyse</span>
                 <span className="animate-pulse">.</span>
                 <span className="animate-pulse [animation-delay:0.2s]">.</span>
