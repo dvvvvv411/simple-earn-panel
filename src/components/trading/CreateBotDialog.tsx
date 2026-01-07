@@ -350,9 +350,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                       <div className="relative">
                         {/* Rotating Crypto Icons */}
                         <div className="w-12 h-12 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center animate-pulse">
-                          <div className="animate-spin">
-                            <Bitcoin className="w-6 h-6 sm:w-4 sm:h-4 text-primary" />
-                          </div>
+                          <Bitcoin className="w-6 h-6 sm:w-4 sm:h-4 text-primary animate-pulse" />
                         </div>
                         {/* Animated indicators around the icon */}
                         <div className="absolute -top-1 -right-1 sm:-top-0.5 sm:-right-0.5 w-3 h-3 sm:w-2 sm:h-2 rounded-full bg-primary animate-bounce" />
