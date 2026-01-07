@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Plus, Save, Euro } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, Plus, Save, Euro, Frown } from "lucide-react";
 import type { User, Transaction, BalanceUpdateData } from "@/types/user";
 
 interface UserDetailDialogProps {
@@ -26,12 +27,47 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const [balanceAmount, setBalanceAmount] = useState("");
   const [balanceDescription, setBalanceDescription] = useState("");
   const [balanceOperation, setBalanceOperation] = useState<'add' | 'set'>('add');
+  const [unluckyStreak, setUnluckyStreak] = useState(false);
+  const [unluckyLoading, setUnluckyLoading] = useState(false);
 
   useEffect(() => {
     if (user && open) {
       fetchTransactions();
+      setUnluckyStreak(user.unlucky_streak ?? false);
     }
   }, [user, open]);
+
+  const handleUnluckyStreakToggle = async (checked: boolean) => {
+    if (!user) return;
+    
+    setUnluckyLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ unlucky_streak: checked })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setUnluckyStreak(checked);
+      toast({
+        title: checked ? "Pechsträhne aktiviert" : "Pechsträhne deaktiviert",
+        description: checked 
+          ? "Trading Bots werden jetzt Verluste erzeugen." 
+          : "Trading Bots erzeugen wieder normale Gewinne.",
+      });
+      onUserUpdated();
+    } catch (error: any) {
+      console.error('Error updating unlucky streak:', error);
+      toast({
+        title: "Fehler",
+        description: "Pechsträhne konnte nicht aktualisiert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setUnluckyLoading(false);
+    }
+  };
 
   const fetchTransactions = async () => {
     if (!user) return;
@@ -212,6 +248,19 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Erstellt am</Label>
                 <p className="text-foreground">{formatDateTime(user.created_at)}</p>
+              </div>
+              
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <Frown className="h-4 w-4 text-destructive" />
+                  <Label className="text-sm font-medium text-foreground">Pechsträhne</Label>
+                </div>
+                <Switch 
+                  checked={unluckyStreak}
+                  onCheckedChange={handleUnluckyStreakToggle}
+                  disabled={unluckyLoading}
+                  className="data-[state=checked]:bg-destructive"
+                />
               </div>
             </CardContent>
           </Card>

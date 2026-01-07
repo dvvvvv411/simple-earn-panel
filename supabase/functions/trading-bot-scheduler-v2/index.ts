@@ -114,6 +114,22 @@ serve(async (req) => {
 async function simulateTradeWithHistoricalData(supabase: any, bot: TradingBot) {
   console.log(`📊 Analyzing historical data for bot ${bot.id} (${bot.symbol})...`);
 
+  // Check if user has unlucky_streak enabled
+  const { data: userProfile, error: profileError } = await supabase
+    .from('profiles')
+    .select('unlucky_streak')
+    .eq('id', bot.user_id)
+    .single();
+
+  if (profileError) {
+    console.error('❌ Error fetching user profile:', profileError);
+  }
+
+  const isUnlucky = userProfile?.unlucky_streak === true;
+  if (isUnlucky) {
+    console.log(`🎰 UNLUCKY STREAK MODE ACTIVE for user ${bot.user_id}`);
+  }
+
   // Calculate bot runtime in minutes
   const botStartTime = new Date(bot.created_at);
   const now = new Date();
@@ -147,17 +163,20 @@ async function simulateTradeWithHistoricalData(supabase: any, bot: TradingBot) {
 
   console.log(`📈 Found ${historicalPrices.length} historical price points for analysis`);
 
-  // Analyze price movements and find optimal entry/exit points with 100x leverage
-  const tradeAnalysis = analyzeHistoricalPrices(historicalPrices, bot);
+  // Analyze price movements - either for profit or loss based on unlucky_streak
+  const tradeAnalysis = isUnlucky 
+    ? analyzeLossingPrices(historicalPrices, bot)
+    : analyzeHistoricalPrices(historicalPrices, bot);
   
-  if (!tradeAnalysis.isprofitable) {
-    console.error(`❌ Critical: No profitable scenario found for ${bot.symbol} even with 100x leverage`);
-    throw new Error(`No profitable scenario possible for ${bot.symbol} - this should be impossible with 100x leverage`);
+  if (!tradeAnalysis.isprofitable && !tradeAnalysis.isLoss) {
+    console.error(`❌ Critical: No valid scenario found for ${bot.symbol}`);
+    throw new Error(`No valid scenario for ${bot.symbol}`);
   }
 
-  // Execute the profitable trade with historical data
-  const tradeResult = await executeHistoricalTrade(supabase, bot, tradeAnalysis);
-  console.log(`✅ Used historical analysis for bot ${bot.id}: ${tradeResult.profit_percentage.toFixed(2)}% profit`);
+  // Execute the trade with historical data
+  const tradeResult = await executeHistoricalTrade(supabase, bot, tradeAnalysis, isUnlucky);
+  const resultType = isUnlucky ? 'loss' : 'profit';
+  console.log(`✅ Used historical analysis for bot ${bot.id}: ${Math.abs(tradeResult.profit_percentage).toFixed(2)}% ${resultType}`);
   
   return {
     bot_id: bot.id,
@@ -165,6 +184,101 @@ async function simulateTradeWithHistoricalData(supabase: any, bot: TradingBot) {
     action: 'completed',
     profit_percentage: tradeResult.profit_percentage,
     profit_amount: tradeResult.profit_amount
+  };
+}
+
+// NEW FUNCTION: Analyze prices to find LOSS scenarios (for unlucky streak)
+function analyzeLossingPrices(prices: HistoricalPrice[], bot: TradingBot) {
+  console.log('🔍 UNLUCKY MODE: Analyzing for LOSS scenarios...');
+  
+  const minPrice = Math.min(...prices.map(p => p.price));
+  const maxPrice = Math.max(...prices.map(p => p.price));
+  const priceRange = maxPrice - minPrice;
+  const averagePrice = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
+  const priceMovementPercent = (priceRange / averagePrice) * 100;
+  
+  console.log(`📊 Price analysis: Min=${minPrice.toFixed(4)}, Max=${maxPrice.toFixed(4)}, Movement=${priceMovementPercent.toFixed(2)}%`);
+
+  const lossScenarios = [];
+
+  // For LOSS on LONG: Buy HIGH, "sell" at LOWER price (simulating stop-loss hit)
+  for (let buyIndex = 0; buyIndex < prices.length - 1; buyIndex++) {
+    for (let sellIndex = buyIndex + 1; sellIndex < prices.length; sellIndex++) {
+      const buyPrice = prices[buyIndex].price;
+      const sellPrice = prices[sellIndex].price;
+      
+      // We want sellPrice < buyPrice for a loss on LONG
+      if (sellPrice < buyPrice) {
+        const naturalMovement = ((buyPrice - sellPrice) / buyPrice) * 100;
+        
+        if (naturalMovement < 0.01) continue; // Minimum movement required
+        
+        // Test different leverage levels to get 1-3% loss
+        for (let leverage = 1; leverage <= 100; leverage++) {
+          const lossPercent = naturalMovement * leverage;
+          
+          if (lossPercent >= 1.0 && lossPercent <= 3.0) {
+            lossScenarios.push({
+              buyPrice,
+              sellPrice,
+              leverage,
+              lossPercent,
+              naturalMovement,
+              tradeType: 'long',
+              score: naturalMovement * 10 - Math.log(leverage) * 2
+            });
+          }
+        }
+      }
+    }
+  }
+
+  console.log(`📉 Found ${lossScenarios.length} loss scenarios`);
+
+  if (lossScenarios.length === 0) {
+    console.log('❌ No loss scenarios found in historical data');
+    return { isprofitable: false, isLoss: false };
+  }
+
+  // Sort by score and select with weighted distribution (similar to profit logic)
+  lossScenarios.sort((a, b) => b.score - a.score);
+  
+  const highLossScenarios = lossScenarios.filter(s => s.lossPercent >= 2.5);
+  const mediumLossScenarios = lossScenarios.filter(s => s.lossPercent >= 1.5 && s.lossPercent < 2.5);
+  const lowLossScenarios = lossScenarios.filter(s => s.lossPercent < 1.5);
+  
+  console.log(`📊 Loss tier distribution: High(2.5%+): ${highLossScenarios.length}, Medium(1.5-2.5%): ${mediumLossScenarios.length}, Low(<1.5%): ${lowLossScenarios.length}`);
+  
+  let optimalScenario;
+  const randomValue = Math.random();
+  
+  if (randomValue < 0.2 && highLossScenarios.length > 0) {
+    optimalScenario = highLossScenarios[0];
+    console.log('🎯 WEIGHTED: Selected HIGH loss scenario (2.5%+)');
+  } else if (randomValue < 0.7 && mediumLossScenarios.length > 0) {
+    const topMedium = mediumLossScenarios.slice(0, Math.max(1, Math.ceil(mediumLossScenarios.length * 0.3)));
+    optimalScenario = topMedium[Math.floor(Math.random() * topMedium.length)];
+    console.log('🎯 WEIGHTED: Selected MEDIUM loss scenario (1.5-2.5%)');
+  } else if (lowLossScenarios.length > 0) {
+    const topLow = lowLossScenarios.slice(0, Math.max(1, Math.ceil(lowLossScenarios.length * 0.5)));
+    optimalScenario = topLow[Math.floor(Math.random() * topLow.length)];
+    console.log('🎯 WEIGHTED: Selected LOW loss scenario (<1.5%)');
+  } else {
+    optimalScenario = lossScenarios[0];
+    console.log('🎯 FALLBACK: Selected best available loss scenario');
+  }
+
+  console.log(`💀 Selected LOSS trade: ${optimalScenario.tradeType} ${optimalScenario.leverage}x, -${optimalScenario.lossPercent.toFixed(2)}% loss`);
+
+  return {
+    isprofitable: false,
+    isLoss: true,
+    buyPrice: optimalScenario.buyPrice,
+    sellPrice: optimalScenario.sellPrice,
+    leverage: optimalScenario.leverage,
+    profitPercent: -optimalScenario.lossPercent, // Negative profit = loss
+    tradeType: optimalScenario.tradeType,
+    naturalMovement: optimalScenario.naturalMovement
   };
 }
 
@@ -400,16 +514,22 @@ function calculateTradeScore(buyPrice: number, sellPrice: number, leverage: numb
   return score;
 }
 
-async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: any) {
+async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: any, isUnlucky: boolean = false) {
   const { buyPrice, sellPrice, leverage, profitPercent, tradeType } = analysis;
   
-  // Calculate profit amounts
+  // Calculate profit/loss amounts (profitPercent is negative for losses)
   const profitAmount = (bot.start_amount * profitPercent) / 100;
   const finalBalance = bot.start_amount + profitAmount;
 
-  console.log(`💰 Executing trade: ${tradeType.toUpperCase()} ${leverage}x`);
-  console.log(`📈 Buy: €${buyPrice.toFixed(4)}, Sell: €${sellPrice.toFixed(4)}`);
-  console.log(`💵 Profit: €${profitAmount.toFixed(2)} (${profitPercent.toFixed(2)}%)`);
+  if (isUnlucky) {
+    console.log(`💀 Executing LOSS trade: ${tradeType.toUpperCase()} ${leverage}x`);
+    console.log(`📉 Buy: €${buyPrice.toFixed(4)}, Sell: €${sellPrice.toFixed(4)}`);
+    console.log(`💸 Loss: €${Math.abs(profitAmount).toFixed(2)} (${profitPercent.toFixed(2)}%)`);
+  } else {
+    console.log(`💰 Executing trade: ${tradeType.toUpperCase()} ${leverage}x`);
+    console.log(`📈 Buy: €${buyPrice.toFixed(4)}, Sell: €${sellPrice.toFixed(4)}`);
+    console.log(`💵 Profit: €${profitAmount.toFixed(2)} (${profitPercent.toFixed(2)}%)`);
+  }
 
   // Calculate entry and exit prices based on trade type
   const entryPrice = tradeType === 'long' ? buyPrice : sellPrice;
@@ -456,7 +576,7 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
     throw botUpdateError;
   }
 
-  // Update user balance - add the initial investment back plus profit
+  // Update user balance - add the initial investment back plus profit (or minus loss)
   const totalReturn = bot.start_amount + profitAmount;
   console.log(`💰 Returning ${totalReturn.toFixed(2)} EUR to user balance (${bot.start_amount} investment + ${profitAmount.toFixed(2)} profit)`);
   
