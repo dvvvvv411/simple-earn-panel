@@ -66,11 +66,12 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
   const [isCreating, setIsCreating] = useState(false);
   const [paymentData, setPaymentData] = useState<CreateDepositResult | null>(null);
   const [countdown, setCountdown] = useState<string>("");
+  const [currentPaymentStatus, setCurrentPaymentStatus] = useState<string>("waiting");
+  const [isPolling, setIsPolling] = useState(false);
   
   const { toast } = useToast();
-  const { createDeposit, getPendingDeposits, checkStatus, loading: depositsLoading } = useCryptoDeposits();
+  const { createDeposit, deposits, checkStatus, loading: depositsLoading } = useCryptoDeposits();
   const { currencies, popularCurrencies, usdtCurrencies, usdcCurrencies, otherStablecoins, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
-  const pendingDeposits = getPendingDeposits();
 
   const formatBalance = (value: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -104,6 +105,134 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, [paymentData?.expiration_estimate_date]);
+
+  // Automatic status polling
+  useEffect(() => {
+    if (!paymentData || !open) return;
+    
+    // Don't poll if already in a final state
+    if (['finished', 'failed', 'expired'].includes(currentPaymentStatus)) return;
+
+    const pollStatus = async () => {
+      setIsPolling(true);
+      try {
+        await checkStatus();
+      } finally {
+        setIsPolling(false);
+      }
+    };
+
+    // Initial check
+    pollStatus();
+    
+    // Poll every 10 seconds
+    const interval = setInterval(pollStatus, 10000);
+    
+    return () => clearInterval(interval);
+  }, [paymentData, open, currentPaymentStatus]);
+
+  // Update currentPaymentStatus when deposits change
+  useEffect(() => {
+    if (!paymentData) return;
+    
+    const deposit = deposits.find(
+      (d) => d.nowpayments_payment_id === paymentData.payment_id.toString()
+    );
+    
+    if (deposit && deposit.status !== currentPaymentStatus) {
+      setCurrentPaymentStatus(deposit.status);
+      
+      if (deposit.status === 'finished') {
+        toast({
+          title: "Zahlung erfolgreich!",
+          description: "Ihr Guthaben wurde gutgeschrieben.",
+        });
+        onDepositCreated?.();
+      } else if (deposit.status === 'confirming' || deposit.status === 'confirmed') {
+        toast({
+          title: "Zahlung empfangen!",
+          description: "Warte auf Blockchain-Bestätigungen...",
+        });
+      }
+    }
+  }, [deposits, paymentData, currentPaymentStatus, toast, onDepositCreated]);
+
+  const getPaymentStatusDisplay = () => {
+    switch (currentPaymentStatus) {
+      case 'waiting':
+        return {
+          icon: <Clock className="w-5 h-5 text-yellow-600" />,
+          text: "Warte auf Zahlung...",
+          description: "Senden Sie den Betrag an die angezeigte Adresse",
+          bgClass: "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800",
+          textClass: "text-yellow-700 dark:text-yellow-400"
+        };
+      case 'confirming':
+        return {
+          icon: <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />,
+          text: "Zahlung empfangen!",
+          description: "Warte auf Blockchain-Bestätigungen...",
+          bgClass: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
+          textClass: "text-blue-700 dark:text-blue-400"
+        };
+      case 'confirmed':
+        return {
+          icon: <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />,
+          text: "Bestätigt!",
+          description: "Transaktion wird verarbeitet...",
+          bgClass: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
+          textClass: "text-blue-700 dark:text-blue-400"
+        };
+      case 'sending':
+        return {
+          icon: <Zap className="w-5 h-5 text-blue-600 animate-pulse" />,
+          text: "Wird verarbeitet...",
+          description: "Guthaben wird gutgeschrieben",
+          bgClass: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
+          textClass: "text-blue-700 dark:text-blue-400"
+        };
+      case 'finished':
+        return {
+          icon: <CheckCircle className="w-5 h-5 text-green-600" />,
+          text: "Erfolgreich!",
+          description: "Guthaben wurde gutgeschrieben",
+          bgClass: "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800",
+          textClass: "text-green-700 dark:text-green-400"
+        };
+      case 'partially_paid':
+        return {
+          icon: <AlertCircle className="w-5 h-5 text-orange-600" />,
+          text: "Teilzahlung empfangen",
+          description: "Der gesendete Betrag war geringer als erwartet",
+          bgClass: "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800",
+          textClass: "text-orange-700 dark:text-orange-400"
+        };
+      case 'failed':
+        return {
+          icon: <AlertCircle className="w-5 h-5 text-red-600" />,
+          text: "Fehlgeschlagen",
+          description: "Die Zahlung konnte nicht verarbeitet werden",
+          bgClass: "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800",
+          textClass: "text-red-700 dark:text-red-400"
+        };
+      case 'expired':
+        return {
+          icon: <AlertCircle className="w-5 h-5 text-red-600" />,
+          text: "Abgelaufen",
+          description: "Die Zahlungsfrist ist abgelaufen",
+          bgClass: "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800",
+          textClass: "text-red-700 dark:text-red-400"
+        };
+      default:
+        return {
+          icon: <Clock className="w-5 h-5 text-muted-foreground" />,
+          text: currentPaymentStatus,
+          description: "",
+          bgClass: "bg-muted/30 border-muted",
+          textClass: "text-muted-foreground"
+        };
+    }
+  };
 
   const handleCreateDeposit = async () => {
     const depositAmount = parseFloat(amount);
@@ -176,6 +305,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     setAmount("");
     setSelectedCrypto("btc");
     setPaymentData(null);
+    setCurrentPaymentStatus("waiting");
     onOpenChange(false);
   };
 
@@ -337,20 +467,34 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                   </div>
 
                   {/* Status */}
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-yellow-600" />
-                      <span className="font-medium">Warte auf Zahlung...</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRefreshStatus}
-                      disabled={depositsLoading}
-                    >
-                      <RefreshCw className={`w-4 h-4 ${depositsLoading ? 'animate-spin' : ''}`} />
-                    </Button>
-                  </div>
+                  {(() => {
+                    const statusDisplay = getPaymentStatusDisplay();
+                    return (
+                      <div className={`flex items-center justify-between p-4 rounded-lg border ${statusDisplay.bgClass}`}>
+                        <div className="flex items-center gap-3">
+                          {statusDisplay.icon}
+                          <div>
+                            <span className={`font-medium ${statusDisplay.textClass}`}>
+                              {statusDisplay.text}
+                            </span>
+                            {statusDisplay.description && (
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {statusDisplay.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRefreshStatus}
+                          disabled={depositsLoading || isPolling || currentPaymentStatus === 'finished'}
+                        >
+                          <RefreshCw className={`w-4 h-4 ${depositsLoading || isPolling ? 'animate-spin' : ''}`} />
+                        </Button>
+                      </div>
+                    );
+                  })()}
 
                   {/* Instructions */}
                   <div className="p-4 rounded-lg bg-muted/30 border">
@@ -739,7 +883,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     </Card>
 
                     {/* Pending Deposits */}
-                    {pendingDeposits.length > 0 && (
+                    {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).length > 0 && (
                       <Card>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-4">
@@ -754,7 +898,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                             </Button>
                           </div>
                           <div className="space-y-3">
-                            {pendingDeposits.slice(0, 3).map((deposit: CryptoDeposit) => (
+                            {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).slice(0, 3).map((deposit: CryptoDeposit) => (
                               <div key={deposit.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                                 <div>
                                   <div className="font-medium">{formatBalance(deposit.price_amount)}</div>
