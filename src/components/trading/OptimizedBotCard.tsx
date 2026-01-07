@@ -216,10 +216,19 @@ export function OptimizedBotCard({ bot, trades, onBotCompleted }: OptimizedBotCa
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Aktueller Wert</p>
-            <p className="font-semibold">
-              {localBot.current_balance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
-            </p>
+            <p className="text-xs text-muted-foreground">Status</p>
+            {localBot.status !== 'completed' ? (
+              <div className="flex items-center gap-0.5 font-semibold text-green-600">
+                <span>Marktanalyse</span>
+                <span className="animate-pulse">.</span>
+                <span className="animate-pulse [animation-delay:0.2s]">.</span>
+                <span className="animate-pulse [animation-delay:0.4s]">.</span>
+              </div>
+            ) : (
+              <p className="font-semibold">
+                {localBot.current_balance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
+              </p>
+            )}
           </div>
         </div>
 
