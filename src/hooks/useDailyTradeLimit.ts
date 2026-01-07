@@ -30,10 +30,10 @@ export function useDailyTradeLimit(): DailyTradeLimitResult {
         return;
       }
 
-      // Get user profile with current ranking
+      // Get user balance
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('current_ranking_id')
+        .select('balance')
         .eq('id', session.user.id)
         .single();
 
@@ -43,34 +43,49 @@ export function useDailyTradeLimit(): DailyTradeLimitResult {
         return;
       }
 
-      // Get ranking tier details
+      // Get active trading bots to calculate invested amount
+      const { data: activeBots, error: botsError } = await supabase
+        .from('trading_bots')
+        .select('start_amount')
+        .eq('user_id', session.user.id)
+        .eq('status', 'active');
+
+      if (botsError) {
+        console.error('Error fetching bots:', botsError);
+      }
+
+      // Calculate total wealth (balance + invested in bots)
+      const balance = profile?.balance || 0;
+      const investedAmount = (activeBots || []).reduce((sum, bot) => sum + (bot.start_amount || 0), 0);
+      const totalWealth = balance + investedAmount;
+
+      // Get all ranking tiers to find the matching one
+      const { data: tiers, error: tiersError } = await supabase
+        .from('ranking_tiers')
+        .select('id, name, daily_trades, min_balance, max_balance')
+        .order('min_balance', { ascending: true });
+
+      if (tiersError) {
+        console.error('Error fetching tiers:', tiersError);
+        setError("Ränge konnten nicht geladen werden");
+        return;
+      }
+
+      // Find the matching tier based on total wealth
       let limit = 0;
       let name: string | null = null;
 
-      if (profile?.current_ranking_id) {
-        const { data: tier, error: tierError } = await supabase
-          .from('ranking_tiers')
-          .select('daily_trades, name')
-          .eq('id', profile.current_ranking_id)
-          .single();
+      const currentTier = tiers?.find(tier => 
+        totalWealth >= tier.min_balance && totalWealth <= tier.max_balance
+      );
 
-        if (!tierError && tier) {
-          limit = tier.daily_trades;
-          name = tier.name;
-        }
-      } else {
-        // If no ranking, get the lowest tier (New) as default
-        const { data: defaultTier } = await supabase
-          .from('ranking_tiers')
-          .select('daily_trades, name')
-          .order('min_balance', { ascending: true })
-          .limit(1)
-          .single();
-
-        if (defaultTier) {
-          limit = defaultTier.daily_trades;
-          name = defaultTier.name;
-        }
+      if (currentTier) {
+        limit = currentTier.daily_trades;
+        name = currentTier.name;
+      } else if (tiers && tiers.length > 0) {
+        // Fallback to lowest tier
+        limit = tiers[0].daily_trades;
+        name = tiers[0].name;
       }
 
       setDailyLimit(limit);
