@@ -69,7 +69,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
   
   const { toast } = useToast();
   const { createDeposit, getPendingDeposits, checkStatus, loading: depositsLoading } = useCryptoDeposits();
-  const { currencies, popularCurrencies, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
+  const { currencies, popularCurrencies, stablecoinCurrencies, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
   const pendingDeposits = getPendingDeposits();
 
   const formatBalance = (value: number) => {
@@ -189,7 +189,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     }
   };
 
-  const selectedCryptoData = currencies.find(c => c.symbol === selectedCrypto);
+const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
   const qrValue = paymentData ? `${selectedCryptoData?.uriPrefix || 'bitcoin'}:${paymentData.pay_address}?amount=${paymentData.pay_amount}` : '';
 
   return (
@@ -433,7 +433,11 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                 />
                                 <span>{selectedCryptoData.name}</span>
-                                <span className="text-muted-foreground">({selectedCryptoData.symbol.toUpperCase()})</span>
+                                {selectedCryptoData.networkLabel && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {selectedCryptoData.networkLabel}
+                                  </Badge>
+                                )}
                               </div>
                             ) : (
                               "Währung wählen..."
@@ -451,10 +455,10 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                                 <CommandGroup heading="Beliebt">
                                   {popularCurrencies.map((crypto) => (
                                     <CommandItem
-                                      key={crypto.symbol}
-                                      value={`${crypto.name} ${crypto.symbol}`}
+                                      key={crypto.code}
+                                      value={`${crypto.name} ${crypto.code} ${crypto.networkLabel || ''}`}
                                       onSelect={() => {
-                                        setSelectedCrypto(crypto.symbol);
+                                        setSelectedCrypto(crypto.code);
                                         setCryptoDropdownOpen(false);
                                       }}
                                       className="cursor-pointer"
@@ -466,15 +470,52 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                                           className="w-5 h-5 rounded-full"
                                           onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                         />
-                                        <span>{crypto.name}</span>
-                                        <span className="text-muted-foreground text-sm ml-auto">
+                                        <span className="truncate">{crypto.name}</span>
+                                        <span className="text-muted-foreground text-sm">
                                           {crypto.symbol.toUpperCase()}
                                         </span>
                                       </div>
                                       <Check
                                         className={cn(
-                                          "ml-2 h-4 w-4",
-                                          selectedCrypto === crypto.symbol ? "opacity-100" : "opacity-0"
+                                          "ml-2 h-4 w-4 shrink-0",
+                                          selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                              
+                              {stablecoinCurrencies.length > 0 && (
+                                <CommandGroup heading="Stablecoins">
+                                  {stablecoinCurrencies.map((crypto) => (
+                                    <CommandItem
+                                      key={crypto.code}
+                                      value={`${crypto.name} ${crypto.code} ${crypto.networkLabel || ''}`}
+                                      onSelect={() => {
+                                        setSelectedCrypto(crypto.code);
+                                        setCryptoDropdownOpen(false);
+                                      }}
+                                      className="cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <img 
+                                          src={crypto.icon} 
+                                          alt={crypto.name} 
+                                          className="w-5 h-5 rounded-full"
+                                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        />
+                                        <span className="truncate">{crypto.name}</span>
+                                        {crypto.networkLabel && (
+                                          <Badge variant="outline" className="text-xs shrink-0">
+                                            {crypto.networkLabel}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <Check
+                                        className={cn(
+                                          "ml-2 h-4 w-4 shrink-0",
+                                          selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
                                         )}
                                       />
                                     </CommandItem>
@@ -483,13 +524,13 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                               )}
                               
                               {otherCurrencies.length > 0 && (
-                                <CommandGroup heading="Alle Währungen">
+                                <CommandGroup heading="Weitere Kryptowährungen">
                                   {otherCurrencies.map((crypto) => (
                                     <CommandItem
-                                      key={crypto.symbol}
-                                      value={`${crypto.name} ${crypto.symbol}`}
+                                      key={crypto.code}
+                                      value={`${crypto.name} ${crypto.code} ${crypto.networkLabel || ''}`}
                                       onSelect={() => {
-                                        setSelectedCrypto(crypto.symbol);
+                                        setSelectedCrypto(crypto.code);
                                         setCryptoDropdownOpen(false);
                                       }}
                                       className="cursor-pointer"
@@ -501,15 +542,15 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
                                           className="w-5 h-5 rounded-full"
                                           onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                         />
-                                        <span>{crypto.name}</span>
-                                        <span className="text-muted-foreground text-sm ml-auto">
+                                        <span className="truncate">{crypto.name}</span>
+                                        <span className="text-muted-foreground text-sm">
                                           {crypto.symbol.toUpperCase()}
                                         </span>
                                       </div>
                                       <Check
                                         className={cn(
-                                          "ml-2 h-4 w-4",
-                                          selectedCrypto === crypto.symbol ? "opacity-100" : "opacity-0"
+                                          "ml-2 h-4 w-4 shrink-0",
+                                          selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
                                         )}
                                       />
                                     </CommandItem>
