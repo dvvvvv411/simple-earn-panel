@@ -10,6 +10,7 @@ import Brandings from "./pages/admin/Brandings";
 import UsersPage from "./pages/admin/Users";
 import Consultants from "./pages/admin/Consultants";
 import AdminSupportPage from "./pages/admin/Support";
+import Withdrawals from "./pages/admin/Withdrawals";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
@@ -30,6 +31,7 @@ const App: React.FC = () => {
             <Route path="brandings" element={<Brandings />} />
             <Route path="benutzer" element={<UsersPage />} />
             <Route path="berater" element={<Consultants />} />
+            <Route path="auszahlungen" element={<Withdrawals />} />
             <Route path="support" element={<AdminSupportPage />} />
           </Route>
           <Route path="/kryptotrading" element={<TradingLayout />}>
