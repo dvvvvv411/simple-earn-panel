@@ -151,14 +151,14 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
           <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
             <div className="w-full">
               <ResponsiveDialogHeader className="relative overflow-hidden p-0 sm:p-6 lg:p-6 mb-6 sm:mb-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-orange-500/10 to-orange-500/5 animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
                 <div className="relative">
                   <ResponsiveDialogTitle className="flex items-center gap-3 text-xl sm:text-lg">
-                    <div className="p-3 sm:p-2 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg">
+                    <div className="p-3 sm:p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
                       <Wallet className="w-8 h-8 sm:w-6 sm:h-6" />
                     </div>
                     <div>
-                      <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                         Auszahlung beantragen
                       </span>
                       <p className="text-base sm:text-sm font-normal text-muted-foreground mt-1">
@@ -285,7 +285,7 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
                   <div className="space-y-3">
                     <Label htmlFor="btcAddress" className="text-base font-medium">Bitcoin Wallet-Adresse</Label>
                     <div className="relative">
-                      <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-orange-500" />
+                      <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
                       <Input
                         id="btcAddress"
                         type="text"
@@ -310,11 +310,11 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
                   </div>
 
                   {/* Info Note */}
-                  <Card className="bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+                  <Card className="bg-primary/5 dark:bg-primary/10 border-primary/20 dark:border-primary/30">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Info className="w-5 h-5 text-orange-600 mt-0.5 shrink-0" />
-                        <div className="text-sm text-orange-700 dark:text-orange-400">
+                        <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                        <div className="text-sm text-primary/80 dark:text-primary">
                           <p className="font-medium">Wichtige Hinweise:</p>
                           <ul className="list-disc list-inside mt-1 space-y-1">
                             <li>Mindestbetrag: {formatBalance(MIN_WITHDRAWAL)}</li>
@@ -330,7 +330,7 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
                   <Button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !amount || !btcAddress || !isValidBtcAddress(btcAddress) || parseFloat(amount) > userBalance}
-                    className="w-full h-12 text-base bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                    className="w-full h-12 text-base"
                   >
                     {isSubmitting ? (
                       <>
