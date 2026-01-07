@@ -162,6 +162,16 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     }
   };
 
+  const handleCopyAmount = () => {
+    if (paymentData?.pay_amount) {
+      navigator.clipboard.writeText(paymentData.pay_amount.toString());
+      toast({
+        title: "Kopiert",
+        description: "Kryptobetrag wurde in die Zwischenablage kopiert.",
+      });
+    }
+  };
+
   const handleClose = () => {
     setAmount("");
     setSelectedCrypto("btc");
@@ -262,7 +272,11 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                   {/* Amount Info */}
                   <div className="text-center space-y-2">
                     <div className="text-sm text-muted-foreground">Zu senden</div>
-                    <div className="text-3xl font-bold text-foreground flex items-center justify-center gap-2">
+                    <div 
+                      className="text-3xl font-bold text-foreground flex items-center justify-center gap-2 cursor-copy hover:text-primary transition-colors"
+                      onClick={handleCopyAmount}
+                      title="Klicken zum Kopieren"
+                    >
                       {paymentData.pay_amount} {paymentData.pay_currency.toUpperCase()}
                       {selectedCryptoData && (
                         <img 
@@ -285,7 +299,11 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                         Wallet-Adresse ({paymentData.pay_currency.toUpperCase()})
                       </Label>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 p-3 bg-muted/50 rounded-lg font-mono text-sm break-all">
+                        <div 
+                          className="flex-1 p-3 bg-muted/50 rounded-lg font-mono text-sm break-all cursor-copy hover:bg-muted/70 transition-colors"
+                          onClick={handleCopyAddress}
+                          title="Klicken zum Kopieren"
+                        >
                           {paymentData.pay_address}
                         </div>
                         <Button
