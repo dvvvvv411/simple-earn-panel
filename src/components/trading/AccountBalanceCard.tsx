@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CreateBotDialog } from "./CreateBotDialog";
 import { useTradingBots } from "@/hooks/useTradingBots";
+import { DepositDialog } from "./wallet/DepositDialog";
 
 // Ranking tiers definition
 const rankingTiers = [
@@ -91,6 +92,7 @@ interface AccountBalanceCardProps {
 export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, todayStats, todayStartBalance }: AccountBalanceCardProps) {
   const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
+  const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const { bots } = useTradingBots();
 
   // Sync local state with prop balance immediately
@@ -167,6 +169,11 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
     ? ((totalWealth - currentRank.minBalance) / (nextRank.minBalance - currentRank.minBalance)) * 100
     : 100;
 
+  const handleDepositCreated = () => {
+    loadBalance();
+    onBalanceUpdate();
+  };
+
   if (loading) {
     return (
       <Card className="border-border bg-card">
@@ -189,94 +196,103 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
   }
 
   return (
-    <Card className="border-border bg-card">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Wallet className="h-5 w-5 text-primary" />
-          </div>
-          Kontostand
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="text-4xl font-bold text-foreground">
-              {balance !== null ? formatBalance(balance) : '€0.00'}
+    <>
+      <Card className="border-border bg-card">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Wallet className="h-5 w-5 text-primary" />
             </div>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              <span className="text-lg font-semibold text-foreground">{currentRank.name}</span>
+            Kontostand
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-4xl font-bold text-foreground">
+                {balance !== null ? formatBalance(balance) : '€0.00'}
+              </div>
+              <div className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" />
+                <span className="text-lg font-semibold text-foreground">{currentRank.name}</span>
+              </div>
+            </div>
+            {botInvestments > 0 && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Bot className="h-4 w-4" />
+                <span>{formatBalance(botInvestments)} in Bots aktiv</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-1">
+                {isPositive ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                     <span className="font-semibold text-green-500">
+                       +{trendPercentage.toFixed(1)}%
+                     </span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-4 w-4 text-red-500" />
+                     <span className="font-semibold text-red-500">
+                       {trendPercentage.toFixed(1)}%
+                     </span>
+                  </>
+                )}
+              </div>
+              <span className="text-muted-foreground">heute</span>
             </div>
           </div>
-          {botInvestments > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Bot className="h-4 w-4" />
-              <span>{formatBalance(botInvestments)} in Bots aktiv</span>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                {nextRank ? `Fortschritt zu ${nextRank.name}` : 'Höchster Rang erreicht!'}
+              </span>
+              <span className="font-medium text-foreground">{Math.round(progressPercentage)}%</span>
             </div>
-          )}
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex items-center gap-1">
-              {isPositive ? (
-                <>
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                   <span className="font-semibold text-green-500">
-                     +{trendPercentage.toFixed(1)}%
-                   </span>
-                </>
-              ) : (
-                <>
-                  <TrendingDown className="h-4 w-4 text-red-500" />
-                   <span className="font-semibold text-red-500">
-                     {trendPercentage.toFixed(1)}%
-                   </span>
-                </>
-              )}
+            <Progress value={progressPercentage} className="h-2" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{totalWealth.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}</span>
+              <span>
+                {nextRank 
+                  ? `${nextRank.minBalance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })} benötigt`
+                  : 'Maximum erreicht'
+                }
+              </span>
             </div>
-            <span className="text-muted-foreground">heute</span>
           </div>
-        </div>
-        
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">
-              {nextRank ? `Fortschritt zu ${nextRank.name}` : 'Höchster Rang erreicht!'}
-            </span>
-            <span className="font-medium text-foreground">{Math.round(progressPercentage)}%</span>
-          </div>
-          <Progress value={progressPercentage} className="h-2" />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{totalWealth.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}</span>
-            <span>
-              {nextRank 
-                ? `${nextRank.minBalance.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })} benötigt`
-                : 'Maximum erreicht'
-              }
-            </span>
-          </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
-          <Button 
-            size="default" 
-            onClick={() => console.log('Geld einzahlen')}
-            className="flex-1 h-12"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Geld einzahlen
-          </Button>
-          <Button 
-            variant="outline" 
-            size="default" 
-            onClick={() => console.log('Geld auszahlen')}
-            className="flex-1 h-12"
-          >
-            <Minus className="h-4 w-4 mr-2" />
-            Geld auszahlen
-          </Button>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
+            <Button 
+              size="default" 
+              onClick={() => setDepositDialogOpen(true)}
+              className="flex-1 h-12"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Geld einzahlen
+            </Button>
+            <Button 
+              variant="outline" 
+              size="default" 
+              onClick={() => console.log('Geld auszahlen')}
+              className="flex-1 h-12"
+            >
+              <Minus className="h-4 w-4 mr-2" />
+              Geld auszahlen
+            </Button>
+          </div>
 
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <DepositDialog
+        userBalance={balance || 0}
+        open={depositDialogOpen}
+        onOpenChange={setDepositDialogOpen}
+        onDepositCreated={handleDepositCreated}
+      />
+    </>
   );
 }

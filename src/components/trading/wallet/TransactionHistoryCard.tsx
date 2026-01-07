@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus, Bitcoin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -72,7 +72,15 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
     });
   };
 
-  const getTransactionIcon = (type: string) => {
+  const isCryptoDeposit = (description: string) => {
+    return description.toLowerCase().includes('krypto-einzahlung') || 
+           description.toLowerCase().includes('crypto');
+  };
+
+  const getTransactionIcon = (type: string, description: string) => {
+    if (isCryptoDeposit(description)) {
+      return <Bitcoin className="h-4 w-4 text-orange-500" />;
+    }
     switch (type) {
       case 'credit':
         return <ArrowUpRight className="h-4 w-4 text-green-500" />;
@@ -85,7 +93,10 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
     }
   };
 
-  const getTransactionBadge = (type: string) => {
+  const getTransactionBadge = (type: string, description: string) => {
+    if (isCryptoDeposit(description)) {
+      return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">Krypto-Einzahlung</Badge>;
+    }
     switch (type) {
       case 'credit':
         return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Einzahlung</Badge>;
@@ -217,8 +228,8 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
                     <TableRow key={transaction.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {getTransactionIcon(transaction.type)}
-                          {getTransactionBadge(transaction.type)}
+                          {getTransactionIcon(transaction.type, transaction.description)}
+                          {getTransactionBadge(transaction.type, transaction.description)}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -247,8 +258,8 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
                 <div key={transaction.id} className="border rounded-lg p-4 bg-card">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      {getTransactionIcon(transaction.type)}
-                      {getTransactionBadge(transaction.type)}
+                      {getTransactionIcon(transaction.type, transaction.description)}
+                      {getTransactionBadge(transaction.type, transaction.description)}
                     </div>
                     <div className={`text-right ${getAmountColor(transaction.type)}`}>
                       <div className="font-semibold">

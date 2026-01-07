@@ -183,6 +183,65 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_deposits: {
+        Row: {
+          actually_paid: number | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          invoice_url: string | null
+          nowpayments_invoice_id: string | null
+          nowpayments_payment_id: string | null
+          pay_amount: number | null
+          pay_currency: string | null
+          price_amount: number
+          price_currency: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actually_paid?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          invoice_url?: string | null
+          nowpayments_invoice_id?: string | null
+          nowpayments_payment_id?: string | null
+          pay_amount?: number | null
+          pay_currency?: string | null
+          price_amount: number
+          price_currency?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actually_paid?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          invoice_url?: string | null
+          nowpayments_invoice_id?: string | null
+          nowpayments_payment_id?: string | null
+          pay_amount?: number | null
+          pay_currency?: string | null
+          price_amount?: number
+          price_currency?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crypto_deposits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crypto_price_history: {
         Row: {
           change_24h: number | null

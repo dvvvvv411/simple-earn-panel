@@ -17,3 +17,12 @@ verify_jwt = false
 
 [functions.crypto-price-scheduler]
 verify_jwt = false
+
+[functions.nowpayments-create-invoice]
+verify_jwt = false
+
+[functions.nowpayments-webhook]
+verify_jwt = false
+
+[functions.nowpayments-check-status]
+verify_jwt = false
