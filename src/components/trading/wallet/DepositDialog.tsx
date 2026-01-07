@@ -22,7 +22,9 @@ import {
   Copy,
   ArrowLeft,
   ChevronsUpDown,
-  Check
+  Check,
+  ExternalLink,
+  ChevronRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCryptoDeposits, CryptoDeposit, CreateDepositResult } from "@/hooks/useCryptoDeposits";
@@ -327,6 +329,24 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
         variant: "destructive",
       });
     }
+  };
+
+  const handleOpenDeposit = (deposit: CryptoDeposit) => {
+    setPaymentData({
+      success: true,
+      deposit_id: deposit.id,
+      payment_id: deposit.nowpayments_payment_id || deposit.nowpayments_invoice_id || '',
+      pay_address: deposit.pay_address || '',
+      pay_amount: deposit.pay_amount || 0,
+      pay_currency: deposit.pay_currency || '',
+      expiration_estimate_date: deposit.expiration_estimate_date || '',
+      payment_status: deposit.status,
+    });
+    setCurrentPaymentStatus(deposit.status);
+    if (deposit.pay_currency) {
+      setSelectedCrypto(deposit.pay_currency);
+    }
+    setAmount(deposit.price_amount.toString());
   };
 
 const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
@@ -899,15 +919,26 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                           </div>
                           <div className="space-y-3">
                             {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).slice(0, 3).map((deposit: CryptoDeposit) => (
-                              <div key={deposit.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                <div>
-                                  <div className="font-medium">{formatBalance(deposit.price_amount)}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {deposit.pay_currency?.toUpperCase() || 'Krypto'} • {new Date(deposit.created_at).toLocaleDateString('de-DE')}
+                              <div 
+                                key={deposit.id} 
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors group"
+                                onClick={() => handleOpenDeposit(deposit)}
+                                title="Klicken um Zahlungsdetails anzuzeigen"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                    <ExternalLink className="w-4 h-4 text-primary" />
+                                  </div>
+                                  <div>
+                                    <div className="font-medium">{formatBalance(deposit.price_amount)}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {deposit.pay_currency?.toUpperCase() || 'Krypto'} • {new Date(deposit.created_at).toLocaleDateString('de-DE')}
+                                    </div>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {getStatusBadge(deposit.status)}
+                                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                 </div>
                               </div>
                             ))}
