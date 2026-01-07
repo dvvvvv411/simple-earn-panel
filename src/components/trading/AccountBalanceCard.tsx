@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { CreateBotDialog } from "./CreateBotDialog";
 import { useTradingBots } from "@/hooks/useTradingBots";
 import { DepositDialog } from "./wallet/DepositDialog";
+import { WithdrawalDialog } from "./wallet/WithdrawalDialog";
 
 // Ranking tiers definition
 const rankingTiers = [
@@ -93,6 +94,7 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
   const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
+  const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
   const { bots } = useTradingBots();
 
   // Sync local state with prop balance immediately
@@ -170,6 +172,11 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
     : 100;
 
   const handleDepositCreated = () => {
+    loadBalance();
+    onBalanceUpdate();
+  };
+
+  const handleWithdrawalCreated = () => {
     loadBalance();
     onBalanceUpdate();
   };
@@ -276,7 +283,7 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
             <Button 
               variant="outline" 
               size="default" 
-              onClick={() => console.log('Geld auszahlen')}
+              onClick={() => setWithdrawalDialogOpen(true)}
               className="flex-1 h-12"
             >
               <Minus className="h-4 w-4 mr-2" />
@@ -292,6 +299,13 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
         open={depositDialogOpen}
         onOpenChange={setDepositDialogOpen}
         onDepositCreated={handleDepositCreated}
+      />
+
+      <WithdrawalDialog
+        userBalance={balance || 0}
+        open={withdrawalDialogOpen}
+        onOpenChange={setWithdrawalDialogOpen}
+        onWithdrawalCreated={handleWithdrawalCreated}
       />
     </>
   );

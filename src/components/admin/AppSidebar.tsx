@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Package, Users, LogOut, Building, Headphones, UserCheck } from "lucide-react";
+import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -24,6 +24,7 @@ const items = [
   { title: "Brandings", url: "/admin/brandings", icon: Package },
   { title: "Benutzer", url: "/admin/benutzer", icon: Users },
   { title: "Berater", url: "/admin/berater", icon: UserCheck },
+  { title: "Auszahlungen", url: "/admin/auszahlungen", icon: Wallet },
   { title: "Support", url: "/admin/support", icon: Headphones },
 ];
 
