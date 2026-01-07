@@ -584,7 +584,7 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
   const { error: balanceError } = await supabase.rpc('credit_balance_from_bot', {
     target_user_id: bot.user_id,
     amount: totalReturn,
-    description: `Trading Bot abgeschlossen - ${bot.cryptocurrency} (+${profitPercent.toFixed(2)}% Gewinn)`
+    description: `Trading Bot abgeschlossen - ${bot.cryptocurrency} (${profitPercent >= 0 ? '+' : ''}${profitPercent.toFixed(2)}% ${profitPercent >= 0 ? 'Gewinn' : 'Verlust'})`
   });
 
   if (balanceError) {
