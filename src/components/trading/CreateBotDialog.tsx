@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight, AlertTriangle, Crown } from "lucide-react";
 import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { useToast } from "@/hooks/use-toast";
+import { useDailyTradeLimit } from "@/hooks/useDailyTradeLimit";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CreateBotDialogProps {
@@ -29,10 +31,20 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
   const [isCreating, setIsCreating] = useState(false);
   const { coins, loading } = useCoinMarketCap();
   const { toast } = useToast();
+  const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, loading: limitLoading } = useDailyTradeLimit();
 
   const selectedCoin = coins.find(coin => coin.id === selectedCrypto);
 
   const handleCreateBot = async () => {
+    if (!canCreateBot) {
+      toast({
+        title: "Tägliches Limit erreicht",
+        description: `Sie haben Ihr tägliches Trading-Limit von ${dailyLimit} Bots erreicht.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!selectedCrypto || !amount || !selectedCoin) {
       toast({
         title: "Fehler",
@@ -299,6 +311,54 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                     </div>
                   </div>
                 )}
+
+                {/* Daily Trade Limit Info */}
+                {!limitLoading && (
+                  <div className={`p-4 sm:p-3 rounded-lg border ${
+                    canCreateBot 
+                      ? 'bg-muted/50 border-border' 
+                      : 'bg-destructive/10 border-destructive/30'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span>Tägliches Trading-Limit</span>
+                      </div>
+                      {rankName && (
+                        <Badge variant="outline" className="text-xs">
+                          <Crown className="w-3 h-3 mr-1" />
+                          {rankName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Trades heute</span>
+                        <span className={canCreateBot ? 'text-foreground' : 'text-destructive font-semibold'}>
+                          {usedToday} / {dailyLimit}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={dailyLimit > 0 ? (usedToday / dailyLimit) * 100 : 100} 
+                        className="h-2"
+                      />
+                      {!canCreateBot && (
+                        <div className="flex items-start gap-2 mt-3 p-2 rounded bg-destructive/5">
+                          <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                          <div className="text-xs text-destructive">
+                            <p className="font-medium">Limit erreicht</p>
+                            <p className="text-destructive/80">Erhöhen Sie Ihren Rang für mehr tägliche Trades.</p>
+                          </div>
+                        </div>
+                      )}
+                      {canCreateBot && remainingTrades > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Noch {remainingTrades} {remainingTrades === 1 ? 'Trade' : 'Trades'} heute verfügbar
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -439,7 +499,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
           </Button>
           <Button
             onClick={handleCreateBot}
-            disabled={isCreating || !selectedCrypto || !amount}
+            disabled={isCreating || !selectedCrypto || !amount || !canCreateBot}
             className="flex-1 h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-glow transition-all duration-300"
           >
             {isCreating ? (

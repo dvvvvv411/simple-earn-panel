@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus, Bitcoin } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus, Bitcoin, Clock, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,8 +17,19 @@ interface TransactionHistoryCardProps {
 
 type FilterType = 'all' | 'credit' | 'debit' | 'adjustment';
 
+interface CombinedTransaction {
+  id: string;
+  type: 'credit' | 'debit' | 'adjustment' | 'pending_withdrawal' | 'rejected_withdrawal';
+  amount: number;
+  description: string;
+  created_at: string;
+  new_balance?: number;
+  status?: string;
+  btc_wallet_address?: string;
+}
+
 export function TransactionHistoryCard({ className }: TransactionHistoryCardProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [combinedTransactions, setCombinedTransactions] = useState<CombinedTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,20 +45,66 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      let query = supabase
+      // Load user transactions
+      let transactionQuery = supabase
         .from('user_transactions')
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (filter !== 'all') {
-        query = query.eq('type', filter);
+        transactionQuery = transactionQuery.eq('type', filter);
       }
 
-      const { data, error } = await query;
+      const { data: transactionsData, error: transactionsError } = await transactionQuery;
+      if (transactionsError) throw transactionsError;
 
-      if (error) throw error;
-      setTransactions((data || []) as Transaction[]);
+      // Load pending and rejected withdrawal requests
+      const { data: withdrawalsData, error: withdrawalsError } = await supabase
+        .from('withdrawal_requests')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .in('status', ['pending', 'rejected'])
+        .order('created_at', { ascending: false });
+
+      if (withdrawalsError) throw withdrawalsError;
+
+      // Convert transactions to combined format
+      const transactions: CombinedTransaction[] = (transactionsData || []).map(t => ({
+        id: t.id,
+        type: t.type as 'credit' | 'debit' | 'adjustment',
+        amount: t.amount,
+        description: t.description,
+        created_at: t.created_at,
+        new_balance: t.new_balance
+      }));
+
+      // Convert withdrawal requests to combined format
+      const withdrawals: CombinedTransaction[] = (withdrawalsData || []).map(w => ({
+        id: w.id,
+        type: w.status === 'pending' ? 'pending_withdrawal' as const : 'rejected_withdrawal' as const,
+        amount: w.amount,
+        description: `BTC Wallet: ${w.btc_wallet_address.slice(0, 8)}...${w.btc_wallet_address.slice(-6)}`,
+        created_at: w.created_at,
+        status: w.status,
+        btc_wallet_address: w.btc_wallet_address
+      }));
+
+      // Combine and sort by date
+      let combined = [...transactions, ...withdrawals];
+      
+      // Filter based on selected filter
+      if (filter === 'debit') {
+        combined = combined.filter(t => 
+          t.type === 'debit' || t.type === 'pending_withdrawal' || t.type === 'rejected_withdrawal'
+        );
+      } else if (filter !== 'all') {
+        combined = combined.filter(t => t.type === filter);
+      }
+
+      combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      setCombinedTransactions(combined);
     } catch (error) {
       console.error('Error loading transactions:', error);
     } finally {
@@ -88,6 +145,10 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
         return <ArrowDownLeft className="h-4 w-4 text-destructive" />;
       case 'adjustment':
         return <Bot className="h-4 w-4 text-primary" />;
+      case 'pending_withdrawal':
+        return <Clock className="h-4 w-4 text-amber-500" />;
+      case 'rejected_withdrawal':
+        return <XCircle className="h-4 w-4 text-destructive" />;
       default:
         return <ArrowUpRight className="h-4 w-4" />;
     }
@@ -95,15 +156,19 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
 
   const getTransactionBadge = (type: string, description: string) => {
     if (isCryptoDeposit(description)) {
-      return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">Krypto-Einzahlung</Badge>;
+      return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400">Krypto-Einzahlung</Badge>;
     }
     switch (type) {
       case 'credit':
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Einzahlung</Badge>;
+        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400">Einzahlung</Badge>;
       case 'debit':
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Auszahlung</Badge>;
+        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400">Auszahlung</Badge>;
       case 'adjustment':
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Anpassung</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400">Anpassung</Badge>;
+      case 'pending_withdrawal':
+        return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400">Auszahlung ausstehend</Badge>;
+      case 'rejected_withdrawal':
+        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400">Auszahlung abgelehnt</Badge>;
       default:
         return <Badge>Unbekannt</Badge>;
     }
@@ -115,19 +180,25 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
         return 'text-green-600 font-semibold';
       case 'debit':
         return 'text-destructive font-semibold';
+      case 'pending_withdrawal':
+        return 'text-amber-600 font-semibold';
+      case 'rejected_withdrawal':
+        return 'text-muted-foreground font-semibold line-through';
       default:
         return 'text-foreground';
     }
   };
 
   const formatAmount = (amount: number, type: string) => {
-    const prefix = type === 'credit' ? '+' : type === 'debit' ? '-' : '';
-    return `${prefix}${formatCurrency(Math.abs(amount))}`;
+    const prefix = type === 'credit' ? '+' : 
+                   (type === 'debit' || type === 'pending_withdrawal' || type === 'rejected_withdrawal') ? '-' : '';
+    const suffix = type === 'pending_withdrawal' ? ' (ausstehend)' : '';
+    return `${prefix}${formatCurrency(Math.abs(amount))}${suffix}`;
   };
 
-  const totalPages = Math.ceil(transactions.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(combinedTransactions.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedTransactions = transactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedTransactions = combinedTransactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const filterButtons = [
     { key: 'all' as FilterType, label: 'Alle', icon: Filter },
@@ -202,7 +273,7 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
         </div>
 
         {/* Transactions Table/Cards */}
-        {transactions.length === 0 ? (
+        {combinedTransactions.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-muted-foreground mb-2">Keine Transaktionen gefunden</div>
             <p className="text-sm text-muted-foreground">
@@ -244,7 +315,10 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
                         {formatAmount(transaction.amount, transaction.type)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(transaction.new_balance)}
+                        {transaction.new_balance !== undefined 
+                          ? formatCurrency(transaction.new_balance)
+                          : <span className="text-muted-foreground text-sm">—</span>
+                        }
                       </TableCell>
                     </TableRow>
                   ))}
@@ -265,9 +339,11 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
                       <div className="font-semibold">
                         {formatAmount(transaction.amount, transaction.type)}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Saldo: {formatCurrency(transaction.new_balance)}
-                      </div>
+                      {transaction.new_balance !== undefined && (
+                        <div className="text-xs text-muted-foreground">
+                          Saldo: {formatCurrency(transaction.new_balance)}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-1">
@@ -285,8 +361,8 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Zeige {startIndex + 1} bis {Math.min(startIndex + ITEMS_PER_PAGE, transactions.length)} von {transactions.length} Transaktionen
+              <p className="text-sm text-muted-foreground">
+                  Zeige {startIndex + 1} bis {Math.min(startIndex + ITEMS_PER_PAGE, combinedTransactions.length)} von {combinedTransactions.length} Transaktionen
                 </p>
                 <div className="flex gap-2">
                   <Button
