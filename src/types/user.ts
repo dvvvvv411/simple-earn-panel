@@ -9,6 +9,7 @@ export interface User {
   balance: number;
   created_at: string;
   updated_at: string;
+  unlucky_streak?: boolean;
   branding?: {
     id: string;
     name: string;

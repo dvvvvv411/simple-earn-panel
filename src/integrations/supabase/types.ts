@@ -292,6 +292,7 @@ export type Database = {
           last_name: string | null
           phone: string | null
           referral_code: string | null
+          unlucky_streak: boolean | null
           updated_at: string
           wallet_password_hash: string | null
         }
@@ -308,6 +309,7 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           referral_code?: string | null
+          unlucky_streak?: boolean | null
           updated_at?: string
           wallet_password_hash?: string | null
         }
@@ -324,6 +326,7 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           referral_code?: string | null
+          unlucky_streak?: boolean | null
           updated_at?: string
           wallet_password_hash?: string | null
         }
