@@ -1,36 +1,59 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Whitelist: Top 30 Kryptos + wichtige Stablecoins (alle Varianten)
-const ALLOWED_CURRENCIES = new Set([
-  // Top Kryptowährungen
+// Top 30 Kryptowährungen (Basis-Symbole, lowercase)
+const ALLOWED_BASE_SYMBOLS = new Set([
   'btc', 'eth', 'bnb', 'xrp', 'sol', 'ada', 'doge', 'trx', 'link', 'matic',
   'dot', 'ltc', 'bch', 'xlm', 'xmr', 'etc', 'atom', 'near', 'avax', 'shib',
   'uni', 'ton', 'apt', 'arb', 'op', 'ftm', 'algo', 'vet', 'fil', 'sand',
-  
-  // Stablecoins - alle Varianten werden dynamisch gefiltert
-  'usdt', 'usdterc20', 'usdttrc20', 'usdtbsc', 'usdtmatic', 'usdtsol', 'usdtarb', 'usdtop',
-  'usdc', 'usdcerc20', 'usdcsol', 'usdcmatic', 'usdcarb', 'usdcop', 'usdcbsc',
-  'dai', 'daierc20', 'busd', 'busdbsc', 'tusd', 'usdp', 'frax',
+  'aave', 'hbar', 'icp', 'inj', 'ape', 'grt', 'ldo', 'mkr', 'rune', 'snx'
 ]);
 
+// Stablecoin-Prefixe - alle Varianten automatisch erlauben
+const STABLECOIN_PREFIXES = ['usdt', 'usdc', 'dai', 'busd', 'tusd', 'usdp', 'frax'];
+
 // Beliebte Währungen die zuerst angezeigt werden (in dieser Reihenfolge)
-const POPULAR_ORDER = ['btc', 'eth', 'usdt', 'usdc', 'sol', 'bnb', 'xrp', 'doge', 'ltc', 'trx'];
+const POPULAR_ORDER = ['btc', 'eth', 'sol', 'bnb', 'xrp', 'doge', 'ltc', 'trx', 'ada', 'matic'];
 
-// Stablecoin Basis-Symbole
-const STABLECOIN_BASES = ['usdt', 'usdc', 'dai', 'busd', 'tusd', 'usdp', 'frax'];
-
-// Netzwerk Labels für Badge-Anzeige
+// Netzwerk-Code zu Label Mapping
 const NETWORK_LABELS: Record<string, string> = {
   'eth': 'ERC20',
+  'erc20': 'ERC20',
   'trx': 'TRC20',
+  'trc20': 'TRC20',
   'bsc': 'BEP20',
+  'bep20': 'BEP20',
   'matic': 'Polygon',
+  'polygon': 'Polygon',
   'sol': 'Solana',
+  'solana': 'Solana',
   'arb': 'Arbitrum',
+  'arbitrum': 'Arbitrum',
   'op': 'Optimism',
-  'avax': 'Avalanche',
+  'optimism': 'Optimism',
+  'avaxc': 'Avalanche',
+  'avalanche': 'Avalanche',
+  'ton': 'TON',
+  'algo': 'Algorand',
+  'algorand': 'Algorand',
+  'base': 'Base',
+  'celo': 'CELO',
+  'near': 'NEAR',
+  'xlm': 'Stellar',
+  'stellar': 'Stellar',
+  'cosmos': 'Cosmos',
+  'osmosis': 'Osmosis',
+  'fantom': 'Fantom',
   'ftm': 'Fantom',
+  'kcc': 'KCC',
+  'heco': 'HECO',
+  'zksync': 'zkSync',
+  'linea': 'Linea',
+  'scroll': 'Scroll',
+  'mantle': 'Mantle',
+  'moonbeam': 'Moonbeam',
+  'moonriver': 'Moonriver',
+  'cronos': 'Cronos',
 };
 
 // URI Prefixes für QR-Codes
@@ -64,30 +87,68 @@ interface NowPaymentsCurrency {
   logo_url: string;
   network?: string;
   enable?: boolean;
+  available_for_payment?: boolean;
 }
 
 function getBaseSymbol(code: string): string {
   const lowerCode = code.toLowerCase();
-  // Extrahiere Basis-Symbol aus Codes wie "usdttrc20" -> "usdt"
-  for (const base of STABLECOIN_BASES) {
-    if (lowerCode.startsWith(base)) {
-      return base;
+  
+  // Stablecoin-Prefixe extrahieren
+  for (const prefix of STABLECOIN_PREFIXES) {
+    if (lowerCode.startsWith(prefix)) {
+      return prefix;
     }
   }
+  
   return lowerCode;
 }
 
-function isAllowedCurrency(code: string): boolean {
+function extractNetworkFromCode(code: string, baseSymbol: string): string | undefined {
   const lowerCode = code.toLowerCase();
   
-  // Direkt in der Whitelist
-  if (ALLOWED_CURRENCIES.has(lowerCode)) {
+  // Wenn der Code länger als das Basis-Symbol ist, ist der Rest das Netzwerk
+  if (lowerCode.length > baseSymbol.length && lowerCode.startsWith(baseSymbol)) {
+    return lowerCode.slice(baseSymbol.length);
+  }
+  
+  return undefined;
+}
+
+function getNetworkLabel(network: string | undefined, codeNetwork: string | undefined): string | undefined {
+  // Zuerst versuchen wir das Netzwerk aus der API
+  if (network) {
+    const label = NETWORK_LABELS[network.toLowerCase()];
+    if (label) return label;
+  }
+  
+  // Dann aus dem Code extrahiertes Netzwerk
+  if (codeNetwork) {
+    const label = NETWORK_LABELS[codeNetwork.toLowerCase()];
+    if (label) return label;
+    
+    // Fallback: Netzwerk-Code in Großbuchstaben
+    return codeNetwork.toUpperCase();
+  }
+  
+  return undefined;
+}
+
+function isAllowedCurrency(currency: NowPaymentsCurrency): boolean {
+  const code = currency.code.toLowerCase();
+  
+  // Nur Währungen die für Zahlungen verfügbar sind
+  if (currency.available_for_payment !== true) {
+    return false;
+  }
+  
+  // Exakt in Top-30+ Liste (für normale Kryptos wie btc, eth, sol)
+  if (ALLOWED_BASE_SYMBOLS.has(code)) {
     return true;
   }
   
-  // Stablecoin-Varianten erlauben (z.B. usdttrc20, usdcsol)
-  for (const base of STABLECOIN_BASES) {
-    if (lowerCode.startsWith(base)) {
+  // Stablecoin-Variante (z.B. usdttrc20, usdcsol, usdterc20)
+  for (const prefix of STABLECOIN_PREFIXES) {
+    if (code.startsWith(prefix)) {
       return true;
     }
   }
@@ -118,14 +179,17 @@ export function useNowPaymentsCurrencies() {
 
         const currencyList: NowPaymentsCurrency[] = data?.currencies || [];
         
+        console.log('Raw currencies from API:', currencyList.length);
+        
         // Filtern auf erlaubte Währungen und anreichern
         const enrichedCurrencies: CryptoCurrency[] = currencyList
-          .filter((c) => c.enable !== false && isAllowedCurrency(c.code))
+          .filter(isAllowedCurrency)
           .map((currency) => {
             const lowerCode = currency.code.toLowerCase();
             const baseSymbol = getBaseSymbol(lowerCode);
-            const isStablecoin = STABLECOIN_BASES.includes(baseSymbol);
-            const networkLabel = currency.network ? NETWORK_LABELS[currency.network.toLowerCase()] : undefined;
+            const isStablecoin = STABLECOIN_PREFIXES.some(p => lowerCode.startsWith(p));
+            const codeNetwork = extractNetworkFromCode(lowerCode, baseSymbol);
+            const networkLabel = getNetworkLabel(currency.network, codeNetwork);
             
             return {
               code: lowerCode,
@@ -134,7 +198,7 @@ export function useNowPaymentsCurrencies() {
               icon: currency.logo_url 
                 ? `https://nowpayments.io${currency.logo_url}`
                 : `https://nowpayments.io/images/coins/${lowerCode}.svg`,
-              network: currency.network?.toLowerCase(),
+              network: currency.network?.toLowerCase() || codeNetwork,
               networkLabel,
               uriPrefix: URI_PREFIXES[baseSymbol] || baseSymbol,
               isPopular: POPULAR_ORDER.includes(baseSymbol) && !isStablecoin,
@@ -142,33 +206,36 @@ export function useNowPaymentsCurrencies() {
             };
           });
 
-        // Sortierung: 
-        // 1. Beliebte Kryptos (in definierter Reihenfolge)
-        // 2. Stablecoins (gruppiert nach Basis, dann nach Netzwerk)
-        // 3. Rest alphabetisch
+        console.log('Filtered currencies:', enrichedCurrencies.length);
+        console.log('Stablecoins:', enrichedCurrencies.filter(c => c.isStablecoin).map(c => `${c.code} (${c.networkLabel})`));
+
+        // Sortierung
         enrichedCurrencies.sort((a, b) => {
-          // Beliebte zuerst
-          if (a.isPopular && !b.isPopular && !b.isStablecoin) return -1;
-          if (!a.isPopular && b.isPopular && !a.isStablecoin) return 1;
+          // 1. Beliebte zuerst (nicht Stablecoins)
+          if (a.isPopular && !b.isPopular) return -1;
+          if (!a.isPopular && b.isPopular) return 1;
           
-          // Stablecoins nach Beliebt
-          if (a.isStablecoin && !b.isStablecoin && !b.isPopular) return -1;
-          if (!a.isStablecoin && b.isStablecoin && !a.isPopular) return 1;
-          
-          // Innerhalb Beliebte: nach definierter Reihenfolge
+          // 2. Innerhalb Beliebte: nach definierter Reihenfolge
           if (a.isPopular && b.isPopular) {
             return POPULAR_ORDER.indexOf(a.symbol) - POPULAR_ORDER.indexOf(b.symbol);
           }
           
-          // Innerhalb Stablecoins: nach Basis gruppieren, dann nach Netzwerk-Label
+          // 3. Stablecoins nach Beliebten
+          if (a.isStablecoin && !b.isStablecoin) return -1;
+          if (!a.isStablecoin && b.isStablecoin) return 1;
+          
+          // 4. Innerhalb Stablecoins: nach Basis gruppieren (usdt vor usdc vor dai)
           if (a.isStablecoin && b.isStablecoin) {
-            const baseCompare = a.symbol.localeCompare(b.symbol);
-            if (baseCompare !== 0) return baseCompare;
-            // Innerhalb gleicher Basis: nach Netzwerk sortieren
+            const stablecoinOrder = ['usdt', 'usdc', 'dai', 'busd', 'tusd', 'usdp', 'frax'];
+            const aIndex = stablecoinOrder.indexOf(a.symbol);
+            const bIndex = stablecoinOrder.indexOf(b.symbol);
+            if (aIndex !== bIndex) return aIndex - bIndex;
+            
+            // Gleiche Basis: nach Netzwerk-Label sortieren
             return (a.networkLabel || '').localeCompare(b.networkLabel || '');
           }
           
-          // Rest alphabetisch
+          // 5. Rest alphabetisch nach Name
           return a.name.localeCompare(b.name);
         });
 
@@ -185,7 +252,7 @@ export function useNowPaymentsCurrencies() {
           icon: `https://nowpayments.io/images/coins/${symbol}.svg`,
           uriPrefix: URI_PREFIXES[symbol] || symbol,
           isPopular: true,
-          isStablecoin: STABLECOIN_BASES.includes(symbol),
+          isStablecoin: false,
         }));
         setCurrencies(fallbackCurrencies);
       } finally {
@@ -199,11 +266,19 @@ export function useNowPaymentsCurrencies() {
   const popularCurrencies = currencies.filter(c => c.isPopular);
   const stablecoinCurrencies = currencies.filter(c => c.isStablecoin);
   const otherCurrencies = currencies.filter(c => !c.isPopular && !c.isStablecoin);
+  
+  // Stablecoins nach Typ gruppieren
+  const usdtCurrencies = stablecoinCurrencies.filter(c => c.symbol === 'usdt');
+  const usdcCurrencies = stablecoinCurrencies.filter(c => c.symbol === 'usdc');
+  const otherStablecoins = stablecoinCurrencies.filter(c => c.symbol !== 'usdt' && c.symbol !== 'usdc');
 
   return { 
     currencies, 
     popularCurrencies,
     stablecoinCurrencies,
+    usdtCurrencies,
+    usdcCurrencies,
+    otherStablecoins,
     otherCurrencies, 
     loading, 
     error 

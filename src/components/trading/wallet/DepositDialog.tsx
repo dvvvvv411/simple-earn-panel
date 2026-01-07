@@ -69,7 +69,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
   
   const { toast } = useToast();
   const { createDeposit, getPendingDeposits, checkStatus, loading: depositsLoading } = useCryptoDeposits();
-  const { currencies, popularCurrencies, stablecoinCurrencies, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
+  const { currencies, popularCurrencies, usdtCurrencies, usdcCurrencies, otherStablecoins, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
   const pendingDeposits = getPendingDeposits();
 
   const formatBalance = (value: number) => {
@@ -486,9 +486,83 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                                 </CommandGroup>
                               )}
                               
-                              {stablecoinCurrencies.length > 0 && (
-                                <CommandGroup heading="Stablecoins">
-                                  {stablecoinCurrencies.map((crypto) => (
+                              {usdtCurrencies.length > 0 && (
+                                <CommandGroup heading="USDT - Tether">
+                                  {usdtCurrencies.map((crypto) => (
+                                    <CommandItem
+                                      key={crypto.code}
+                                      value={`${crypto.name} ${crypto.code} ${crypto.networkLabel || ''}`}
+                                      onSelect={() => {
+                                        setSelectedCrypto(crypto.code);
+                                        setCryptoDropdownOpen(false);
+                                      }}
+                                      className="cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <img 
+                                          src={crypto.icon} 
+                                          alt={crypto.name} 
+                                          className="w-5 h-5 rounded-full"
+                                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        />
+                                        <span className="truncate">{crypto.name}</span>
+                                        {crypto.networkLabel && (
+                                          <Badge variant="outline" className="text-xs shrink-0">
+                                            {crypto.networkLabel}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <Check
+                                        className={cn(
+                                          "ml-2 h-4 w-4 shrink-0",
+                                          selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                              
+                              {usdcCurrencies.length > 0 && (
+                                <CommandGroup heading="USDC - USD Coin">
+                                  {usdcCurrencies.map((crypto) => (
+                                    <CommandItem
+                                      key={crypto.code}
+                                      value={`${crypto.name} ${crypto.code} ${crypto.networkLabel || ''}`}
+                                      onSelect={() => {
+                                        setSelectedCrypto(crypto.code);
+                                        setCryptoDropdownOpen(false);
+                                      }}
+                                      className="cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <img 
+                                          src={crypto.icon} 
+                                          alt={crypto.name} 
+                                          className="w-5 h-5 rounded-full"
+                                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        />
+                                        <span className="truncate">{crypto.name}</span>
+                                        {crypto.networkLabel && (
+                                          <Badge variant="outline" className="text-xs shrink-0">
+                                            {crypto.networkLabel}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <Check
+                                        className={cn(
+                                          "ml-2 h-4 w-4 shrink-0",
+                                          selectedCrypto === crypto.code ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                              
+                              {otherStablecoins.length > 0 && (
+                                <CommandGroup heading="Weitere Stablecoins">
+                                  {otherStablecoins.map((crypto) => (
                                     <CommandItem
                                       key={crypto.code}
                                       value={`${crypto.name} ${crypto.code} ${crypto.networkLabel || ''}`}
