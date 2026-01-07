@@ -267,7 +267,7 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
                             quickAmount > userBalance && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          {formatBalance(quickAmount)}
+                          {quickAmount.toLocaleString('de-DE')} €
                         </Button>
                       ))}
                       <Button
@@ -310,11 +310,11 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
                   </div>
 
                   {/* Info Note */}
-                  <Card className="bg-primary/5 dark:bg-primary/10 border-primary/20 dark:border-primary/30">
+                  <Card className="bg-muted/50 dark:bg-muted/30 border-border">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                        <div className="text-sm text-primary/80 dark:text-primary">
+                        <Info className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                        <div className="text-sm text-muted-foreground">
                           <p className="font-medium">Wichtige Hinweise:</p>
                           <ul className="list-disc list-inside mt-1 space-y-1">
                             <li>Mindestbetrag: {formatBalance(MIN_WITHDRAWAL)}</li>

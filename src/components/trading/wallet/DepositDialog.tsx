@@ -581,7 +581,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                             onClick={() => setAmount(quickAmount.toString())}
                             className="text-sm sm:text-xs h-10 sm:h-auto"
                           >
-                            {quickAmount}€
+                            {quickAmount.toLocaleString('de-DE')} €
                           </Button>
                         ))}
                       </div>
