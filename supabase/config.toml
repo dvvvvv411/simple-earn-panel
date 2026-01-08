@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.nowpayments-currencies]
 verify_jwt = false
+
+[functions.send-trade-notification]
+verify_jwt = false
