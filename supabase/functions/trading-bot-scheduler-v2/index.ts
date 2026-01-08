@@ -595,6 +595,34 @@ async function executeHistoricalTrade(supabase: any, bot: TradingBot, analysis: 
     console.log(`✅ Successfully updated user balance with ${totalReturn.toFixed(2)} EUR`);
   }
 
+  // Send email notification (non-blocking, errors are logged but don't fail trade)
+  try {
+    console.log('📧 Sending trade notification email...');
+    
+    await supabase.functions.invoke('send-trade-notification', {
+      body: {
+        user_id: bot.user_id,
+        bot_id: bot.id,
+        cryptocurrency: bot.cryptocurrency,
+        symbol: bot.symbol,
+        trade_type: tradeType,
+        buy_price: buyPrice,
+        sell_price: sellPrice,
+        leverage: leverage,
+        start_amount: bot.start_amount,
+        profit_amount: profitAmount,
+        profit_percent: profitPercent,
+        started_at: bot.created_at,
+        completed_at: new Date().toISOString()
+      }
+    });
+    
+    console.log('✅ Trade notification email sent successfully');
+  } catch (emailError) {
+    console.error('⚠️ Failed to send trade notification (non-critical):', emailError);
+    // Trade was successful - email failure should not affect the result
+  }
+
   return {
     profit_amount: profitAmount,
     profit_percentage: profitPercent,
