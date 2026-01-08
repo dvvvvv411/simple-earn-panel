@@ -1,15 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Branding {
+  id: string;
+  name: string;
+  accent_color: string | null;
+  domain: string | null;
+}
 
 export default function EmailTemplates() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewProfit, setPreviewProfit] = useState(true);
-  const [previewColor, setPreviewColor] = useState("#3B82F6");
+  const [brandings, setBrandings] = useState<Branding[]>([]);
+  const [selectedBranding, setSelectedBranding] = useState<Branding | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBrandings = async () => {
+      const { data, error } = await supabase
+        .from('brandings')
+        .select('id, name, accent_color, domain')
+        .order('name');
+      
+      if (data && data.length > 0) {
+        setBrandings(data);
+        setSelectedBranding(data[0]);
+      }
+      setLoading(false);
+    };
+
+    fetchBrandings();
+  }, []);
 
   const variables = [
     { name: "{cryptocurrency}", description: "Name der Kryptowährung (z.B. Bitcoin)" },
@@ -28,8 +56,11 @@ export default function EmailTemplates() {
     { name: "{first_name}", description: "Vorname des Nutzers" },
   ];
 
-  const generatePreviewHtml = (isProfit: boolean, accentColor: string) => {
-    const profitColor = isProfit ? '#10B981' : '#EF4444';
+  const generatePreviewHtml = (isProfit: boolean, branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const profitColor = isProfit ? '#10B981' : '#DC2626';
     const profitSign = isProfit ? '+' : '';
     const profitAmount = isProfit ? 2.36 : -1.13;
     const profitPercent = isProfit ? 2.36 : -1.13;
@@ -41,44 +72,59 @@ export default function EmailTemplates() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #0a0a0a;">
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
     <tr>
       <td style="padding: 40px 20px;">
-        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #111111; border-radius: 16px; overflow: hidden; border: 1px solid #222222;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);">
           
+          <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%); padding: 32px 40px; text-align: center;">
-              <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Demo Trading</h1>
+              <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">${brandingName}</h1>
+              <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Trading Benachrichtigung</p>
             </td>
           </tr>
 
+          <!-- Main Content -->
           <tr>
             <td style="padding: 40px;">
-              <p style="margin: 0 0 24px 0; color: #a1a1aa; font-size: 16px;">Hallo Max,</p>
               
+              <!-- Greeting -->
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 18px; font-weight: 600;">Hallo Max,</p>
+              
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                wir freuen uns, Ihnen mitteilen zu können, dass Ihr automatisierter Trade auf <strong>${brandingName}</strong> soeben erfolgreich abgeschlossen wurde.
+              </p>
+              
+              <!-- Success Banner -->
               <div style="text-align: center; margin-bottom: 32px;">
-                <div style="display: inline-block; background-color: ${profitColor}15; border: 1px solid ${profitColor}40; border-radius: 12px; padding: 16px 24px;">
+                <div style="display: inline-block; background-color: ${isProfit ? '#ecfdf5' : '#fef2f2'}; border: 1px solid ${isProfit ? '#a7f3d0' : '#fecaca'}; border-radius: 12px; padding: 16px 24px;">
                   <p style="margin: 0; color: ${profitColor}; font-size: 18px; font-weight: 600;">
                     ${isProfit ? '🎉 Ihr Trade wurde erfolgreich abgeschlossen!' : '📊 Ihr Trade wurde abgeschlossen'}
                   </p>
                 </div>
               </div>
 
-              <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #1a1a1a; border-radius: 12px; border: 1px solid #2a2a2a; margin-bottom: 24px;">
+              <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Hier sind die Details Ihres Trades:
+              </p>
+
+              <!-- Trade Details Card -->
+              <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
                 <tr>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid #2a2a2a;">
+                  <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0;">
                     <table cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td style="width: 48px;">
-                          <img src="https://nowpayments.io/images/coins/btc.svg" alt="BTC" width="40" height="40" style="border-radius: 50%; background-color: #2a2a2a;">
+                          <img src="https://nowpayments.io/images/coins/btc.svg" alt="BTC" width="40" height="40" style="border-radius: 50%; background-color: #e2e8f0;">
                         </td>
                         <td style="padding-left: 12px;">
-                          <p style="margin: 0; color: white; font-size: 18px; font-weight: 600;">Bitcoin</p>
-                          <p style="margin: 4px 0 0 0; color: #71717a; font-size: 14px;">BTC</p>
+                          <p style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">Bitcoin</p>
+                          <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">BTC</p>
                         </td>
                         <td style="text-align: right;">
-                          <span style="display: inline-block; background-color: #10B98120; color: #10B981; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">LONG 15x</span>
+                          <span style="display: inline-block; background-color: #dcfce7; color: #16a34a; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">LONG 15x</span>
                         </td>
                       </tr>
                     </table>
@@ -89,37 +135,37 @@ export default function EmailTemplates() {
                     <table cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td style="padding-bottom: 12px;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Einstiegspreis</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">94.150,00 €</p>
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Einstiegspreis</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">94.150,00 €</p>
                         </td>
                         <td style="padding-bottom: 12px; text-align: right;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Ausstiegspreis</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">94.298,15 €</p>
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Ausstiegspreis</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">94.298,15 €</p>
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding-top: 12px; border-top: 1px solid #2a2a2a;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Investiert</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">100,00 €</p>
+                        <td style="padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Investiert</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">100,00 €</p>
                         </td>
-                        <td style="padding-top: 12px; border-top: 1px solid #2a2a2a; text-align: right;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Trade-Dauer</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">8m 32s</p>
+                        <td style="padding-top: 12px; border-top: 1px solid #e2e8f0; text-align: right;">
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Trade-Dauer</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">8m 32s</p>
                         </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
                 <tr>
-                  <td style="background-color: ${profitColor}10; padding: 20px 24px; border-top: 1px solid ${profitColor}30;">
+                  <td style="background-color: ${isProfit ? '#ecfdf5' : '#fef2f2'}; padding: 20px 24px; border-top: 1px solid ${isProfit ? '#a7f3d0' : '#fecaca'};">
                     <table cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td>
-                          <p style="margin: 0; color: #a1a1aa; font-size: 13px;">Ergebnis</p>
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Ergebnis</p>
                           <p style="margin: 4px 0 0 0; color: ${profitColor}; font-size: 24px; font-weight: 700;">${profitSign}${profitAmount.toFixed(2)} €</p>
                         </td>
                         <td style="text-align: right;">
-                          <span style="display: inline-block; background-color: ${profitColor}20; color: ${profitColor}; padding: 8px 16px; border-radius: 8px; font-size: 18px; font-weight: 700;">${profitSign}${profitPercent.toFixed(2)}%</span>
+                          <span style="display: inline-block; background-color: ${isProfit ? '#dcfce7' : '#fee2e2'}; color: ${profitColor}; padding: 8px 16px; border-radius: 8px; font-size: 18px; font-weight: 700;">${profitSign}${profitPercent.toFixed(2)}%</span>
                         </td>
                       </tr>
                     </table>
@@ -127,6 +173,12 @@ export default function EmailTemplates() {
                 </tr>
               </table>
 
+              <!-- Additional Text -->
+              <p style="margin: 0 0 16px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Ihr Guthaben wurde automatisch aktualisiert und steht Ihnen sofort für weitere Trades zur Verfügung.
+              </p>
+
+              <!-- CTA Button -->
               <table cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 32px;">
                 <tr>
                   <td style="text-align: center;">
@@ -134,13 +186,30 @@ export default function EmailTemplates() {
                   </td>
                 </tr>
               </table>
+
+              <!-- Closing Text -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                  Vielen Dank, dass Sie <strong>${brandingName}</strong> für Ihr automatisiertes Trading nutzen. Bei Fragen zu Ihrem Trade oder zur Plattform steht Ihnen unser Support-Team jederzeit zur Verfügung.
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 15px; line-height: 1.6;">
+                  Mit freundlichen Grüßen,<br>
+                  <strong>Ihr ${brandingName} Trading-Team</strong>
+                </p>
+              </div>
             </td>
           </tr>
 
+          <!-- Footer -->
           <tr>
-            <td style="background-color: #0a0a0a; padding: 24px 40px; border-top: 1px solid #222222;">
-              <p style="margin: 0 0 8px 0; color: #52525b; font-size: 12px; text-align: center;">Sie erhalten diese E-Mail, weil Sie Trade-Benachrichtigungen aktiviert haben.</p>
-              <p style="margin: 0; color: #52525b; font-size: 12px; text-align: center;"><a href="#" style="color: ${accentColor}; text-decoration: none;">Benachrichtigungen verwalten</a></p>
+            <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© 2024 ${brandingName} · Automatisiertes Trading</p>
+              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px; text-align: center;">Sie erhalten diese E-Mail, weil Sie Trade-Benachrichtigungen aktiviert haben.</p>
+              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
+                <a href="#" style="color: ${accentColor}; text-decoration: none;">Benachrichtigungen verwalten</a>
+                <span style="margin: 0 8px;">·</span>
+                <a href="#" style="color: ${accentColor}; text-decoration: none;">Hilfe & Support</a>
+              </p>
             </td>
           </tr>
         </table>
@@ -257,7 +326,7 @@ export default function EmailTemplates() {
               
               <div className="space-y-4">
                 {/* Controls */}
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <Tabs defaultValue="profit" onValueChange={(v) => setPreviewProfit(v === "profit")}>
                     <TabsList>
                       <TabsTrigger value="profit" className="gap-2">
@@ -272,20 +341,42 @@ export default function EmailTemplates() {
                   </Tabs>
                   
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Akzentfarbe:</span>
-                    <input 
-                      type="color" 
-                      value={previewColor} 
-                      onChange={(e) => setPreviewColor(e.target.value)}
-                      className="h-8 w-12 cursor-pointer rounded border"
-                    />
+                    <span className="text-sm text-muted-foreground">Branding:</span>
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Select 
+                        value={selectedBranding?.id || ''} 
+                        onValueChange={(id) => {
+                          const branding = brandings.find(b => b.id === id);
+                          setSelectedBranding(branding || null);
+                        }}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Branding wählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {brandings.map((branding) => (
+                            <SelectItem key={branding.id} value={branding.id}>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-3 h-3 rounded-full shrink-0" 
+                                  style={{ backgroundColor: branding.accent_color || '#3B82F6' }} 
+                                />
+                                <span>{branding.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
                 
                 {/* Email Preview */}
-                <div className="rounded-lg border overflow-hidden bg-[#0a0a0a]" style={{ height: "60vh" }}>
+                <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
                   <iframe 
-                    srcDoc={generatePreviewHtml(previewProfit, previewColor)}
+                    srcDoc={generatePreviewHtml(previewProfit, selectedBranding)}
                     className="w-full h-full border-0"
                     title="Email Preview"
                   />

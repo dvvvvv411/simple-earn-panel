@@ -102,7 +102,7 @@ serve(async (req) => {
 
     // Step 5: Generate HTML email
     const isProfit = payload.profit_percent >= 0;
-    const profitColor = isProfit ? '#10B981' : '#EF4444';
+    const profitColor = isProfit ? '#10B981' : '#DC2626';
     const profitSign = isProfit ? '+' : '';
     
     // Calculate trade duration
@@ -142,11 +142,11 @@ serve(async (req) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trade abgeschlossen</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;">
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #0a0a0a;">
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
     <tr>
       <td style="padding: 40px 20px;">
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #111111; border-radius: 16px; overflow: hidden; border: 1px solid #222222;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);">
           
           <!-- Header -->
           <tr>
@@ -154,6 +154,9 @@ serve(async (req) => {
               <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
                 ${brandingName}
               </h1>
+              <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                Trading Benachrichtigung
+              </p>
             </td>
           </tr>
 
@@ -162,36 +165,44 @@ serve(async (req) => {
             <td style="padding: 40px;">
               
               <!-- Greeting -->
-              <p style="margin: 0 0 24px 0; color: #a1a1aa; font-size: 16px; line-height: 1.6;">
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 18px; font-weight: 600;">
                 Hallo ${firstName},
               </p>
               
-              <!-- Success Message -->
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                wir freuen uns, Ihnen mitteilen zu können, dass Ihr automatisierter Trade auf <strong>${brandingName}</strong> soeben erfolgreich abgeschlossen wurde.
+              </p>
+              
+              <!-- Success/Result Banner -->
               <div style="text-align: center; margin-bottom: 32px;">
-                <div style="display: inline-block; background-color: ${profitColor}15; border: 1px solid ${profitColor}40; border-radius: 12px; padding: 16px 24px;">
+                <div style="display: inline-block; background-color: ${isProfit ? '#ecfdf5' : '#fef2f2'}; border: 1px solid ${isProfit ? '#a7f3d0' : '#fecaca'}; border-radius: 12px; padding: 16px 24px;">
                   <p style="margin: 0; color: ${profitColor}; font-size: 18px; font-weight: 600;">
                     ${isProfit ? '🎉 Ihr Trade wurde erfolgreich abgeschlossen!' : '📊 Ihr Trade wurde abgeschlossen'}
                   </p>
                 </div>
               </div>
 
+              <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Hier sind die Details Ihres Trades:
+              </p>
+
               <!-- Trade Details Card -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #1a1a1a; border-radius: 12px; border: 1px solid #2a2a2a; margin-bottom: 24px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
                 
                 <!-- Crypto Header -->
                 <tr>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid #2a2a2a;">
+                  <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0;">
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td style="width: 48px;">
-                          <img src="${cryptoIconUrl}" alt="${payload.symbol}" width="40" height="40" style="border-radius: 50%; background-color: #2a2a2a;">
+                          <img src="${cryptoIconUrl}" alt="${payload.symbol}" width="40" height="40" style="border-radius: 50%; background-color: #e2e8f0;">
                         </td>
                         <td style="padding-left: 12px;">
-                          <p style="margin: 0; color: white; font-size: 18px; font-weight: 600;">${payload.cryptocurrency}</p>
-                          <p style="margin: 4px 0 0 0; color: #71717a; font-size: 14px;">${payload.symbol}</p>
+                          <p style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">${payload.cryptocurrency}</p>
+                          <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">${payload.symbol}</p>
                         </td>
                         <td style="text-align: right;">
-                          <span style="display: inline-block; background-color: ${payload.trade_type === 'long' ? '#10B98120' : '#EF444420'}; color: ${payload.trade_type === 'long' ? '#10B981' : '#EF4444'}; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
+                          <span style="display: inline-block; background-color: ${payload.trade_type === 'long' ? '#dcfce7' : '#fee2e2'}; color: ${payload.trade_type === 'long' ? '#16a34a' : '#dc2626'}; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
                             ${payload.trade_type.toUpperCase()} ${payload.leverage}x
                           </span>
                         </td>
@@ -206,22 +217,22 @@ serve(async (req) => {
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td style="padding-bottom: 12px;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Einstiegspreis</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">${formatPrice(payload.buy_price)}</p>
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Einstiegspreis</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">${formatPrice(payload.buy_price)}</p>
                         </td>
                         <td style="padding-bottom: 12px; text-align: right;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Ausstiegspreis</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">${formatPrice(payload.sell_price)}</p>
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Ausstiegspreis</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">${formatPrice(payload.sell_price)}</p>
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding-top: 12px; border-top: 1px solid #2a2a2a;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Investiert</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">${formatCurrency(payload.start_amount)}</p>
+                        <td style="padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Investiert</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">${formatCurrency(payload.start_amount)}</p>
                         </td>
-                        <td style="padding-top: 12px; border-top: 1px solid #2a2a2a; text-align: right;">
-                          <p style="margin: 0; color: #71717a; font-size: 13px;">Trade-Dauer</p>
-                          <p style="margin: 4px 0 0 0; color: white; font-size: 16px; font-weight: 500;">${durationString}</p>
+                        <td style="padding-top: 12px; border-top: 1px solid #e2e8f0; text-align: right;">
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Trade-Dauer</p>
+                          <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">${durationString}</p>
                         </td>
                       </tr>
                     </table>
@@ -230,17 +241,17 @@ serve(async (req) => {
 
                 <!-- Result -->
                 <tr>
-                  <td style="background-color: ${profitColor}10; padding: 20px 24px; border-top: 1px solid ${profitColor}30;">
+                  <td style="background-color: ${isProfit ? '#ecfdf5' : '#fef2f2'}; padding: 20px 24px; border-top: 1px solid ${isProfit ? '#a7f3d0' : '#fecaca'};">
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td>
-                          <p style="margin: 0; color: #a1a1aa; font-size: 13px;">Ergebnis</p>
+                          <p style="margin: 0; color: #6b7280; font-size: 13px;">Ergebnis</p>
                           <p style="margin: 4px 0 0 0; color: ${profitColor}; font-size: 24px; font-weight: 700;">
                             ${profitSign}${formatCurrency(payload.profit_amount)}
                           </p>
                         </td>
                         <td style="text-align: right;">
-                          <span style="display: inline-block; background-color: ${profitColor}20; color: ${profitColor}; padding: 8px 16px; border-radius: 8px; font-size: 18px; font-weight: 700;">
+                          <span style="display: inline-block; background-color: ${isProfit ? '#dcfce7' : '#fee2e2'}; color: ${profitColor}; padding: 8px 16px; border-radius: 8px; font-size: 18px; font-weight: 700;">
                             ${profitSign}${payload.profit_percent.toFixed(2)}%
                           </span>
                         </td>
@@ -250,6 +261,11 @@ serve(async (req) => {
                 </tr>
 
               </table>
+
+              <!-- Additional Text -->
+              <p style="margin: 0 0 16px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Ihr Guthaben wurde automatisch aktualisiert und steht Ihnen sofort für weitere Trades zur Verfügung.
+              </p>
 
               <!-- CTA Button -->
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 32px;">
@@ -262,17 +278,33 @@ serve(async (req) => {
                 </tr>
               </table>
 
+              <!-- Closing Text -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                  Vielen Dank, dass Sie <strong>${brandingName}</strong> für Ihr automatisiertes Trading nutzen. Bei Fragen zu Ihrem Trade oder zur Plattform steht Ihnen unser Support-Team jederzeit zur Verfügung.
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 15px; line-height: 1.6;">
+                  Mit freundlichen Grüßen,<br>
+                  <strong>Ihr ${brandingName} Trading-Team</strong>
+                </p>
+              </div>
+
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #0a0a0a; padding: 24px 40px; border-top: 1px solid #222222;">
-              <p style="margin: 0 0 8px 0; color: #52525b; font-size: 12px; text-align: center;">
+            <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">
+                © ${new Date().getFullYear()} ${brandingName} · Automatisiertes Trading
+              </p>
+              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px; text-align: center;">
                 Sie erhalten diese E-Mail, weil Sie Trade-Benachrichtigungen aktiviert haben.
               </p>
-              <p style="margin: 0; color: #52525b; font-size: 12px; text-align: center;">
+              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
                 <a href="https://${domain}/kryptotrading/einstellungen" style="color: ${accentColor}; text-decoration: none;">Benachrichtigungen verwalten</a>
+                <span style="margin: 0 8px;">·</span>
+                <a href="https://${domain}/kryptotrading/support" style="color: ${accentColor}; text-decoration: none;">Hilfe & Support</a>
               </p>
             </td>
           </tr>
