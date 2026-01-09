@@ -277,45 +277,6 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                 </div>
               )}
 
-              {/* Bot Bonus Section */}
-              {!limitLoading && hasFreeBots && (
-                <div className="p-4 rounded-lg border-2 border-dashed border-amber-400/50 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-orange-500/10">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Gift className="w-5 h-5 text-amber-500" />
-                    <span className="font-bold text-amber-600 dark:text-amber-400">
-                      Bot Bonus
-                    </span>
-                    <Sparkles className="w-4 h-4 text-yellow-500" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-1.5">
-                      {Array.from({ length: Math.min(freeBots, 5) }).map((_, i) => (
-                        <div 
-                          key={i} 
-                          className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 
-                                     flex items-center justify-center shadow-lg animate-pulse"
-                          style={{ animationDelay: `${i * 0.15}s` }}
-                        >
-                          <Bot className="w-4 h-4 text-white" />
-                        </div>
-                      ))}
-                      {freeBots > 5 && (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400/50 to-orange-500/50 
-                                       flex items-center justify-center text-xs font-bold text-amber-700 dark:text-amber-300">
-                          +{freeBots - 5}
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-sm text-amber-700 dark:text-amber-300">
-                      {freeBots} Bonus-{freeBots === 1 ? 'Bot' : 'Bots'} verfügbar
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Bonus-Bots sind unbegrenzt gültig und zählen nicht zum täglichen Limit.
-                  </p>
-                </div>
-              )}
-
               {!limitLoading && (
                 <div className={`p-3 rounded-lg border ${
                   remainingTrades > 0 
@@ -347,6 +308,33 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                       value={dailyLimit > 0 ? (usedToday / dailyLimit) * 100 : 100} 
                       className="h-2"
                     />
+                    {/* Bot Bonus im Limit-Element integriert */}
+                    {hasFreeBots && (
+                      <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Gift className="w-4 h-4 text-amber-500" />
+                          <span className="text-amber-600 dark:text-amber-400 font-medium">Bot Bonus</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex -space-x-1">
+                            {Array.from({ length: Math.min(freeBots, 3) }).map((_, i) => (
+                              <div 
+                                key={i}
+                                className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 
+                                           flex items-center justify-center border border-background"
+                              >
+                                <Bot className="w-3 h-3 text-white" />
+                              </div>
+                            ))}
+                          </div>
+                          <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                            {freeBots}×
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Warnung bei erreichtem Limit ohne Bonus */}
                     {remainingTrades === 0 && !hasFreeBots && (
                       <div className="flex items-start gap-2 mt-2 p-2 rounded bg-destructive/5">
                         <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
@@ -356,20 +344,14 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                         </div>
                       </div>
                     )}
-                    {remainingTrades === 0 && hasFreeBots && (
-                      <div className="flex items-start gap-2 mt-2 p-2 rounded bg-amber-500/10">
-                        <Gift className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          <p className="font-medium">Tägliches Limit erreicht</p>
-                          <p className="text-amber-600/80 dark:text-amber-400/80">Aber Sie haben noch {freeBots} Bonus-Bot{freeBots > 1 ? 's' : ''}!</p>
-                        </div>
-                      </div>
-                    )}
-                    {remainingTrades > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        Noch {remainingTrades} {remainingTrades === 1 ? 'Trade' : 'Trades'} heute verfügbar
-                      </p>
-                    )}
+                    
+                    {/* Verfügbare Trades Zusammenfassung */}
+                    <p className="text-xs text-muted-foreground">
+                      {remainingTrades + freeBots > 0 
+                        ? `Noch ${remainingTrades + freeBots} ${remainingTrades + freeBots === 1 ? 'Trade' : 'Trades'} verfügbar`
+                        : 'Keine Trades mehr verfügbar'
+                      }
+                    </p>
                   </div>
                 </div>
               )}
