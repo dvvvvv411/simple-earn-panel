@@ -1,16 +1,23 @@
-import React, { useContext } from "react";
+import React, { useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Trophy } from "lucide-react";
 import { useDashboardLoading } from "./TradingLayout";
-import { useLoginStats } from "@/hooks/useLoginStats";
+import { useWeeklyLoginStreak } from "@/hooks/useWeeklyLoginStreak";
+import { LoginStreakAnimation } from "./LoginStreakAnimation";
 
 export function WelcomeCard() {
-  // Use the hooks
   const { userName } = useDashboardLoading();
-  const { loginStats, loading: loginLoading } = useLoginStats();
+  const cardRef = useRef<HTMLDivElement>(null);
   
-  // Use real data from login stats, fallback to 0 if loading
-  const currentStreak = loginLoading ? 0 : loginStats.currentStreak;
+  const {
+    currentStreak,
+    streakDays,
+    currentDayInCycle,
+    newFreeBotEarned,
+    loading,
+    shouldShowAnimation,
+    markAnimationShown,
+  } = useWeeklyLoginStreak();
 
   const animationStyles = {
     floating: {
@@ -70,8 +77,23 @@ export function WelcomeCard() {
           50% { transform: translateY(-18px) translateX(8px); opacity: 0.6; }
         }
       `}</style>
+
+      {/* Login Streak Animation Overlay */}
+      {shouldShowAnimation && streakDays.length > 0 && (
+        <LoginStreakAnimation
+          streakDays={streakDays}
+          currentStreak={currentStreak}
+          currentDayInCycle={currentDayInCycle}
+          newFreeBotEarned={newFreeBotEarned}
+          userName={userName}
+          onComplete={markAnimationShown}
+        />
+      )}
       
-      <Card className="relative w-full overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-primary/95 to-primary/80">
+      <Card 
+        ref={cardRef}
+        className="relative w-full overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-primary/95 to-primary/80"
+      >
         {/* Animated Background Layers */}
         <div className="absolute inset-0">
           {/* Floating Bubbles */}
@@ -150,7 +172,7 @@ export function WelcomeCard() {
               />
               <div className="text-right">
                 <div className="text-lg font-bold text-white drop-shadow-sm">
-                  {currentStreak} {currentStreak === 1 ? 'Tag' : 'Tage'}
+                  {loading ? '...' : `${currentStreak} ${currentStreak === 1 ? 'Tag' : 'Tage'}`}
                 </div>
                 <div className="text-xs text-white/70 drop-shadow-sm">
                   Login-Streak
