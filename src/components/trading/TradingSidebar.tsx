@@ -35,14 +35,14 @@ const items = [
     icon: Bot,
   },
   {
-    title: "Wallet",
-    url: "/kryptotrading/wallet",
-    icon: Wallet,
-  },
-  {
     title: "Trading-Historie",
     url: "/kryptotrading/historie",
     icon: History,
+  },
+  {
+    title: "Wallet",
+    url: "/kryptotrading/wallet",
+    icon: Wallet,
   },
   {
     title: "Support",
