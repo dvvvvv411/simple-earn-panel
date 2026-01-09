@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Activity, Clock, Monitor, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Activity, Clock, Monitor, Calendar, ExternalLink } from "lucide-react";
+import { UserActivityDialog } from "./UserActivityDialog";
 
 interface ActivitySession {
   id: string;
@@ -22,6 +24,7 @@ interface UserActivitySectionProps {
 export function UserActivitySection({ userId }: UserActivitySectionProps) {
   const [sessions, setSessions] = useState<ActivitySession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllDialog, setShowAllDialog] = useState(false);
   const [stats, setStats] = useState({
     weekTotal: 0,
     monthTotal: 0,
@@ -161,7 +164,7 @@ export function UserActivitySection({ userId }: UserActivitySectionProps) {
   // Check if user is currently online
   const activeSession = sessions.find(s => s.is_active);
   const isOnline = activeSession && 
-    new Date(activeSession.last_active_at).getTime() > Date.now() - 3 * 60 * 1000;
+    new Date(activeSession.last_active_at).getTime() > Date.now() - 5 * 60 * 1000;
 
   if (loading) {
     return (
@@ -243,7 +246,7 @@ export function UserActivitySection({ userId }: UserActivitySectionProps) {
                       Datum
                     </div>
                   </TableHead>
-                  <TableHead className="text-foreground">Startzeit</TableHead>
+                  <TableHead className="text-foreground">Zeitraum</TableHead>
                   <TableHead className="text-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -259,13 +262,13 @@ export function UserActivitySection({ userId }: UserActivitySectionProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sessions.slice(0, 10).map((session) => (
+                {sessions.slice(0, 5).map((session) => (
                   <TableRow key={session.id}>
                     <TableCell className="text-muted-foreground">
                       {formatDate(session.started_at)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatTime(session.started_at)}
+                      {formatTime(session.started_at)} - {session.ended_at ? formatTime(session.ended_at) : 'Aktiv'}
                     </TableCell>
                     <TableCell>
                       {session.is_active ? (
@@ -283,12 +286,30 @@ export function UserActivitySection({ userId }: UserActivitySectionProps) {
                 ))}
               </TableBody>
             </Table>
+            {sessions.length > 5 && (
+              <div className="p-3 border-t border-border">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setShowAllDialog(true)}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Alle {sessions.length} Sessions anzeigen
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-6">
             <p className="text-muted-foreground">Noch keine Aktivitätsdaten vorhanden.</p>
           </div>
         )}
+
+        <UserActivityDialog 
+          userId={userId} 
+          open={showAllDialog} 
+          onOpenChange={setShowAllDialog} 
+        />
       </CardContent>
     </Card>
   );
