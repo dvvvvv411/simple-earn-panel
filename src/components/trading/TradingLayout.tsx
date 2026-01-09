@@ -8,7 +8,7 @@ import { CoinMarketCapProvider } from "@/contexts/CoinMarketCapContext";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-
+import { useActivityTracker } from "@/hooks/useActivityTracker";
 // Context for managing dashboard-level loading states
 interface DashboardLoadingContextType {
   isBalanceLoading: boolean;
@@ -48,6 +48,8 @@ function TradingContent() {
   const { isBalanceLoading, setIsBalanceLoading, setUserName } = useDashboardLoading();
   const isMobile = useIsMobile();
 
+  // Track user activity
+  useActivityTracker();
   // Fetch user balance and name in a single request
   useEffect(() => {
     const fetchUserData = async () => {

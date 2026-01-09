@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Plus, Save, Euro, Frown } from "lucide-react";
 import type { User, Transaction, BalanceUpdateData } from "@/types/user";
+import { UserActivitySection } from "./UserActivitySection";
 
 interface UserDetailDialogProps {
   user: User | null;
@@ -346,6 +347,8 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
           </Card>
         </div>
 
+        {/* Online Activity Section */}
+        <UserActivitySection userId={user.id} />
         {/* Transaction History */}
         <Card className="bg-card border-border mt-6">
           <CardHeader>

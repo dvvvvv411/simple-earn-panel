@@ -587,6 +587,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity_sessions: {
+        Row: {
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          is_active: boolean | null
+          last_active_at: string
+          started_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_active_at?: string
+          started_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_active_at?: string
+          started_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_login_tracking: {
         Row: {
           created_at: string
