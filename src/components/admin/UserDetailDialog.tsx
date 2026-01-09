@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, Save, Euro, Frown } from "lucide-react";
+import { Loader2, Plus, Save, Euro, Frown, Gift, Bot } from "lucide-react";
 import type { User, Transaction, BalanceUpdateData } from "@/types/user";
 import { UserActivitySection } from "./UserActivitySection";
 
@@ -30,6 +30,9 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const [balanceOperation, setBalanceOperation] = useState<'add' | 'set'>('add');
   const [unluckyStreak, setUnluckyStreak] = useState(false);
   const [unluckyLoading, setUnluckyLoading] = useState(false);
+  const [freeBotAmount, setFreeBotAmount] = useState("");
+  const [freeBotOperation, setFreeBotOperation] = useState<'add' | 'set'>('add');
+  const [freeBotLoading, setFreeBotLoading] = useState(false);
 
   useEffect(() => {
     if (user && open) {
@@ -67,6 +70,58 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
       });
     } finally {
       setUnluckyLoading(false);
+    }
+  };
+
+  const handleFreeBotUpdate = async () => {
+    if (!user || !freeBotAmount) {
+      toast({
+        title: "Fehler",
+        description: "Bitte geben Sie eine Anzahl ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const amount = parseInt(freeBotAmount);
+    if (isNaN(amount) || amount < 0) {
+      toast({
+        title: "Fehler",
+        description: "Bitte geben Sie eine gültige Anzahl ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFreeBotLoading(true);
+    try {
+      const { error } = await supabase.rpc('update_user_free_bots', {
+        target_user_id: user.id,
+        amount_change: amount,
+        operation_type: freeBotOperation
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Erfolg",
+        description: freeBotOperation === 'add' 
+          ? `${amount} Bonus-Bot(s) wurden hinzugefügt.`
+          : `Bonus-Bots wurden auf ${amount} gesetzt.`,
+      });
+      
+      setFreeBotAmount("");
+      setFreeBotOperation('add');
+      onUserUpdated();
+    } catch (error: any) {
+      console.error('Error updating free bots:', error);
+      toast({
+        title: "Fehler",
+        description: error.message || "Bonus-Bots konnten nicht aktualisiert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setFreeBotLoading(false);
     }
   };
 
@@ -341,6 +396,96 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : null}
                   Guthaben aktualisieren
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bot Bonus Management */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Gift className="h-5 w-5 text-amber-500" />
+                Bot Bonus Verwaltung
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center p-4 bg-gradient-to-r from-amber-100 via-yellow-50 to-orange-100 dark:from-amber-900/20 dark:via-yellow-900/10 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <Label className="text-sm font-medium text-muted-foreground">Aktuelle Bonus-Bots</Label>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  {(user.free_bots || 0) > 0 && (
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(user.free_bots || 0, 3) }).map((_, i) => (
+                        <div 
+                          key={i} 
+                          className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 
+                                     flex items-center justify-center shadow-sm"
+                        >
+                          <Bot className="w-3 h-3 text-white" />
+                        </div>
+                      ))}
+                      {(user.free_bots || 0) > 3 && (
+                        <span className="text-xs text-amber-600 dark:text-amber-400 self-center ml-1">
+                          +{(user.free_bots || 0) - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                    {user.free_bots || 0}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="freeBotAmount" className="text-sm font-medium text-foreground">
+                    Anzahl Bonus-Bots
+                  </Label>
+                  <Input
+                    id="freeBotAmount"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="5"
+                    value={freeBotAmount}
+                    onChange={(e) => setFreeBotAmount(e.target.value)}
+                    className="bg-background border-input text-foreground"
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    variant={freeBotOperation === 'add' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFreeBotOperation('add')}
+                    className="flex-1"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Hinzufügen
+                  </Button>
+                  <Button
+                    variant={freeBotOperation === 'set' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFreeBotOperation('set')}
+                    className="flex-1"
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    Setzen
+                  </Button>
+                </div>
+                
+                <Button
+                  onClick={handleFreeBotUpdate}
+                  disabled={freeBotLoading || !freeBotAmount}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                >
+                  {freeBotLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Gift className="h-4 w-4 mr-2" />
+                  )}
+                  Bonus-Bots aktualisieren
                 </Button>
               </div>
             </CardContent>
