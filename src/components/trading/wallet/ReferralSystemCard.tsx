@@ -36,6 +36,19 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
     }
   };
 
+  const copyReferralLink = async () => {
+    try {
+      const baseUrl = window.location.origin;
+      const referralUrl = `${baseUrl}/auth?ref=${referralData.code}`;
+      await navigator.clipboard.writeText(referralUrl);
+      setCopied(true);
+      toast.success('Referral-Link kopiert!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error('Fehler beim Kopieren');
+    }
+  };
+
   const shareReferral = (platform: 'whatsapp' | 'email' | 'link') => {
     const baseUrl = window.location.origin;
     const referralUrl = `${baseUrl}/auth?ref=${referralData.code}`;
@@ -49,7 +62,7 @@ export function ReferralSystemCard({ className }: ReferralSystemCardProps) {
         window.open(`mailto:?subject=Krypto-Trading Einladung&body=${encodeURIComponent(message + '\n\n' + referralUrl)}`);
         break;
       case 'link':
-        copyReferralCode();
+        copyReferralLink();
         break;
     }
   };
