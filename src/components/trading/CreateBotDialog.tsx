@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight, AlertTriangle, Crown } from "lucide-react";
+import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight, AlertTriangle, Crown, Gift } from "lucide-react";
 import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyTradeLimit } from "@/hooks/useDailyTradeLimit";
@@ -31,15 +31,15 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
   const [isCreating, setIsCreating] = useState(false);
   const { coins, loading } = useCoinMarketCap();
   const { toast } = useToast();
-  const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, loading: limitLoading } = useDailyTradeLimit();
+  const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, freeBots, hasFreeBots, loading: limitLoading, refetch: refetchLimit } = useDailyTradeLimit();
 
   const selectedCoin = coins.find(coin => coin.id === selectedCrypto);
 
   const handleCreateBot = async () => {
     if (!canCreateBot) {
       toast({
-        title: "Tägliches Limit erreicht",
-        description: `Sie haben Ihr tägliches Trading-Limit von ${dailyLimit} Bots erreicht.`,
+        title: "Kein Trading verfügbar",
+        description: "Sie haben weder tägliche Trades noch Bonus-Bots übrig.",
         variant: "destructive"
       });
       return;
@@ -67,6 +67,25 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
     setIsCreating(true);
 
     try {
+      // If daily limit reached but has free bots, use a free bot
+      const shouldUseFreeBots = usedToday >= dailyLimit && freeBots > 0;
+      
+      if (shouldUseFreeBots) {
+        const { data: freeUsed, error: freeError } = await supabase.rpc('use_free_bot', {
+          p_user_id: (await supabase.auth.getSession()).data.session?.user.id
+        });
+        
+        if (freeError || !freeUsed) {
+          toast({
+            title: "Fehler",
+            description: "Bonus-Bot konnte nicht verwendet werden.",
+            variant: "destructive"
+          });
+          setIsCreating(false);
+          return;
+        }
+      }
+
       // Calculate completion time (30-60 minutes from now)
       const now = new Date();
       const randomMinutes = Math.floor(Math.random() * 31) + 30; // 30-60 minutes
@@ -113,6 +132,10 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
       setDialogOpen(false);
       setSelectedCrypto("");
       setAmount("");
+      
+      // Refresh daily trade limit counter
+      await refetchLimit();
+      
       onBotCreated();
 
     } catch (error) {
@@ -292,9 +315,11 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                 {/* Daily Trade Limit Info */}
                 {!limitLoading && (
                   <div className={`p-4 sm:p-3 rounded-lg border ${
-                    canCreateBot 
+                    remainingTrades > 0 
                       ? 'bg-muted/50 border-border' 
-                      : 'bg-destructive/10 border-destructive/30'
+                      : hasFreeBots
+                        ? 'bg-amber-500/10 border-amber-500/30'
+                        : 'bg-destructive/10 border-destructive/30'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
@@ -311,7 +336,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Trades heute</span>
-                        <span className={canCreateBot ? 'text-foreground' : 'text-destructive font-semibold'}>
+                        <span className={remainingTrades > 0 ? 'text-foreground' : 'text-amber-600 dark:text-amber-400 font-semibold'}>
                           {usedToday} / {dailyLimit}
                         </span>
                       </div>
@@ -319,8 +344,36 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                         value={dailyLimit > 0 ? (usedToday / dailyLimit) * 100 : 100} 
                         className="h-2"
                       />
-                      {!canCreateBot && (
-                        <div className="flex items-start gap-2 mt-3 p-2 rounded bg-destructive/5">
+                      
+                      {/* Bot Bonus im Limit-Element integriert */}
+                      {hasFreeBots && (
+                        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Gift className="w-4 h-4 text-amber-500" />
+                            <span className="text-amber-600 dark:text-amber-400 font-medium">Bot Bonus</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex -space-x-1">
+                              {Array.from({ length: Math.min(freeBots, 3) }).map((_, i) => (
+                                <div 
+                                  key={i}
+                                  className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 
+                                             flex items-center justify-center border border-background"
+                                >
+                                  <Bot className="w-3 h-3 text-white" />
+                                </div>
+                              ))}
+                            </div>
+                            <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                              {freeBots}×
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Warnung bei erreichtem Limit ohne Bonus */}
+                      {remainingTrades === 0 && !hasFreeBots && (
+                        <div className="flex items-start gap-2 mt-2 p-2 rounded bg-destructive/5">
                           <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                           <div className="text-xs text-destructive">
                             <p className="font-medium">Limit erreicht</p>
@@ -328,11 +381,14 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                           </div>
                         </div>
                       )}
-                      {canCreateBot && remainingTrades > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          Noch {remainingTrades} {remainingTrades === 1 ? 'Trade' : 'Trades'} heute verfügbar
-                        </p>
-                      )}
+                      
+                      {/* Verfügbare Trades Zusammenfassung */}
+                      <p className="text-xs text-muted-foreground">
+                        {remainingTrades + freeBots > 0 
+                          ? `Noch ${remainingTrades + freeBots} ${remainingTrades + freeBots === 1 ? 'Trade' : 'Trades'} verfügbar`
+                          : 'Keine Trades mehr verfügbar'
+                        }
+                      </p>
                     </div>
                   </div>
                 )}
