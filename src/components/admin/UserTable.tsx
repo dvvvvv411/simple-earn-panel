@@ -22,10 +22,13 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
   const handleDeleteUser = async (userId: string) => {
     setDeletingUserId(userId);
     try {
-      // Delete user from Supabase Auth (this will cascade to profiles due to RLS)
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      
+      // Call Edge Function to delete user (requires service_role key)
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId },
+      });
+
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Erfolg",
