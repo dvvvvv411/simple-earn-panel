@@ -175,9 +175,9 @@ serve(async (req) => {
               
               <!-- Success/Result Banner -->
               <div style="text-align: center; margin-bottom: 32px;">
-                <div style="display: inline-block; background-color: ${isProfit ? '#ecfdf5' : '#fef2f2'}; border: 1px solid ${isProfit ? '#a7f3d0' : '#fecaca'}; border-radius: 12px; padding: 16px 24px;">
-                  <p style="margin: 0; color: ${profitColor}; font-size: 18px; font-weight: 600;">
-                    ${isProfit ? '🎉 Ihr Trade wurde erfolgreich abgeschlossen!' : '📊 Ihr Trade wurde abgeschlossen'}
+                <div style="display: inline-block; background-color: ${isProfit ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${isProfit ? '#bbf7d0' : '#fecaca'}; border-radius: 8px; padding: 12px 20px;">
+                  <p style="margin: 0; color: ${isProfit ? '#166534' : '#991b1b'}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ${isProfit ? '✓ Trade erfolgreich abgeschlossen' : 'Trade abgeschlossen'}
                   </p>
                 </div>
               </div>
