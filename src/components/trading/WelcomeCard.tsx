@@ -110,33 +110,45 @@ export function WelcomeCard() {
     },
   };
 
-  // Calculate styles based on animation phase
+  // Calculate styles based on animation phase - Scale animation from center
   const getCardStyle = (): React.CSSProperties => {
     if (!isAnimating || animationPhase === 'idle') {
       return {};
     }
 
-    if (animationPhase === 'returning' && originalRect) {
+    // Common styles for centered fixed positioning
+    const baseAnimatedStyle: React.CSSProperties = {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      zIndex: 100,
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    };
+
+    if (animationPhase === 'moving') {
       return {
-        position: 'fixed',
-        top: originalRect.top,
-        left: originalRect.left,
-        width: originalRect.width,
-        height: originalRect.height,
-        zIndex: 100,
-        transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+        ...baseAnimatedStyle,
+        transform: 'translate(-50%, -50%) scale(0.9)',
+        width: 'min(90vw, 550px)',
+        opacity: 0.8,
       };
     }
 
-    if (animationPhase === 'moving' || animationPhase === 'expanded') {
+    if (animationPhase === 'expanded') {
       return {
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
+        ...baseAnimatedStyle,
+        transform: 'translate(-50%, -50%) scale(1)',
         width: 'min(90vw, 550px)',
-        zIndex: 100,
-        transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: 1,
+      };
+    }
+
+    if (animationPhase === 'returning') {
+      return {
+        ...baseAnimatedStyle,
+        transform: 'translate(-50%, -50%) scale(0.8)',
+        width: 'min(90vw, 550px)',
+        opacity: 0,
       };
     }
 
@@ -178,10 +190,12 @@ export function WelcomeCard() {
         }
       `}</style>
 
-      {/* Dark Overlay - only during animation */}
-      {isAnimating && animationPhase !== 'idle' && animationPhase !== 'returning' && (
+      {/* Dark Overlay - only during animation with fade effect */}
+      {isAnimating && (animationPhase === 'moving' || animationPhase === 'expanded') && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] transition-opacity duration-500"
+          className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] transition-opacity duration-300 ${
+            animationPhase === 'expanded' ? 'opacity-100' : 'opacity-50'
+          }`}
           onClick={handleClose}
         />
       )}
@@ -302,9 +316,9 @@ export function WelcomeCard() {
             </div>
           </div>
           
-          {/* Expanded Streak View - only during animation */}
+          {/* Expanded Streak View - heller Hintergrund für unteren Bereich */}
           {animationPhase === 'expanded' && streakDays.length > 0 && (
-            <div className="mt-6 pt-6 border-t border-white/20 animate-fade-in">
+            <div className="-mx-6 -mb-6 mt-6 p-6 bg-background rounded-b-lg animate-fade-in border-t border-border">
               {/* Streak Days */}
               <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mb-6">
                 {streakDays.slice(0, 7).map((day, index) => (
@@ -319,18 +333,18 @@ export function WelcomeCard() {
 
               {/* Free Bot Info */}
               <div className="text-center mb-4">
-                <p className="text-white/70 text-sm">
+                <p className="text-muted-foreground text-sm">
                   🤖 Free Bot an Tag 3 und 6 jeder Streak-Woche
                 </p>
               </div>
               
               {/* Free Bot Celebration */}
               {showCelebration && (
-                <div className="p-4 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-xl border border-amber-500/40 text-center mb-4 animate-fade-in">
-                  <p className="text-lg font-bold text-white flex items-center justify-center gap-2">
+                <div className="p-4 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 rounded-xl border border-amber-300 dark:border-amber-500/40 text-center mb-4 animate-fade-in">
+                  <p className="text-lg font-bold text-amber-700 dark:text-amber-200 flex items-center justify-center gap-2">
                     🎉 +1 Free Bot freigeschaltet!
                   </p>
-                  <p className="text-amber-200/80 text-sm mt-1">
+                  <p className="text-amber-600 dark:text-amber-300/80 text-sm mt-1">
                     Du hast jetzt einen kostenlosen Bot zur Verfügung
                   </p>
                 </div>
@@ -339,8 +353,7 @@ export function WelcomeCard() {
               {/* Continue Button */}
               <Button
                 onClick={handleClose}
-                className="w-full py-3 bg-white/20 hover:bg-white/30 border border-white/30 text-white font-semibold transition-all"
-                variant="ghost"
+                className="w-full py-3"
               >
                 ✓ Weiter zum Dashboard
               </Button>
