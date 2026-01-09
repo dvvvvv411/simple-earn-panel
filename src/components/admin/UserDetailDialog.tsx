@@ -33,11 +33,13 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const [freeBotAmount, setFreeBotAmount] = useState("");
   const [freeBotOperation, setFreeBotOperation] = useState<'add' | 'set'>('add');
   const [freeBotLoading, setFreeBotLoading] = useState(false);
+  const [currentFreeBots, setCurrentFreeBots] = useState(0);
 
   useEffect(() => {
     if (user && open) {
       fetchTransactions();
       setUnluckyStreak(user.unlucky_streak ?? false);
+      setCurrentFreeBots(user.free_bots || 0);
     }
   }, [user, open]);
 
@@ -102,6 +104,12 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
       });
 
       if (error) throw error;
+
+      // Sofort lokalen State aktualisieren
+      const newFreeBots = freeBotOperation === 'add' 
+        ? currentFreeBots + amount 
+        : amount;
+      setCurrentFreeBots(newFreeBots);
 
       toast({
         title: "Erfolg",
@@ -413,9 +421,9 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
               <div className="text-center p-4 bg-gradient-to-r from-amber-100 via-yellow-50 to-orange-100 dark:from-amber-900/20 dark:via-yellow-900/10 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
                 <Label className="text-sm font-medium text-muted-foreground">Aktuelle Bonus-Bots</Label>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                  {(user.free_bots || 0) > 0 && (
+                  {currentFreeBots > 0 && (
                     <div className="flex gap-1">
-                      {Array.from({ length: Math.min(user.free_bots || 0, 3) }).map((_, i) => (
+                      {Array.from({ length: Math.min(currentFreeBots, 3) }).map((_, i) => (
                         <div 
                           key={i} 
                           className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 
@@ -424,15 +432,15 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
                           <Bot className="w-3 h-3 text-white" />
                         </div>
                       ))}
-                      {(user.free_bots || 0) > 3 && (
+                      {currentFreeBots > 3 && (
                         <span className="text-xs text-amber-600 dark:text-amber-400 self-center ml-1">
-                          +{(user.free_bots || 0) - 3}
+                          +{currentFreeBots - 3}
                         </span>
                       )}
                     </div>
                   )}
                   <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                    {user.free_bots || 0}
+                    {currentFreeBots}
                   </p>
                 </div>
               </div>
