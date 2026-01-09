@@ -32,28 +32,31 @@ function formatMessage(eventType: string, data: Record<string, unknown>): string
     minute: '2-digit'
   });
 
+  const branding = data.branding || '?';
+
   switch (eventType) {
     case 'test':
       return `🧪 *Test-Nachricht*\n━━━━━━━━━━━━━━━━\n✅ Telegram-Benachrichtigungen funktionieren!\n📅 ${now}`;
     
     case 'new_user':
-      return `🆕 *Neuer Benutzer*\n━━━━━━━━━━━━━━━━\n📧 Email: ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n📅 ${now}`;
+      const phone = data.phone || 'Nicht angegeben';
+      return `🆕 *Neuer Benutzer*\n━━━━━━━━━━━━━━━━\n📧 Email: ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n📞 Telefon: ${phone}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     case 'deposit_created':
-      return `💰 *Neue Einzahlung erstellt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n🔗 Währung: ${data.currency || 'BTC'}\n📅 ${now}`;
+      return `💰 *Neue Einzahlung erstellt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n🔗 Währung: ${data.currency || 'BTC'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     case 'deposit_paid':
-      return `✅ *Einzahlung bezahlt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n📅 ${now}`;
+      return `✅ *Einzahlung bezahlt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     case 'withdrawal_created':
       const wallet = String(data.wallet || '');
       const shortWallet = wallet.length > 15 ? `${wallet.slice(0, 8)}...${wallet.slice(-6)}` : wallet;
-      return `💸 *Auszahlungsantrag*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n📍 Wallet: ${shortWallet}\n📅 ${now}`;
+      return `💸 *Auszahlungsantrag*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n📍 Wallet: ${shortWallet}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     case 'support_ticket':
       const priorityEmoji = data.priority === 'high' ? '🔴' : data.priority === 'medium' ? '🟡' : '🟢';
       const action = data.is_reply ? 'Antwort auf' : 'Neues';
-      return `🎫 *${action} Support-Ticket*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📝 Betreff: ${data.subject || 'Kein Betreff'}\n${priorityEmoji} Priorität: ${data.priority || 'Normal'}\n📅 ${now}`;
+      return `🎫 *${action} Support-Ticket*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📝 Betreff: ${data.subject || 'Kein Betreff'}\n${priorityEmoji} Priorität: ${data.priority || 'Normal'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     default:
       return `📢 *Benachrichtigung*\n━━━━━━━━━━━━━━━━\n${JSON.stringify(data)}\n📅 ${now}`;
@@ -159,21 +162,55 @@ serve(async (req) => {
       }
     }
 
-    // If we have a user_id, fetch the user's email
+    // If we have a user_id, fetch the user's email and branding
     let enrichedData = { ...data };
-    if (data.user_id && !data.email) {
+    if (data.user_id) {
       const { data: profile } = await supabaseAdmin
         .from('profiles')
-        .select('email, first_name, last_name')
+        .select('email, first_name, last_name, phone, branding_id')
         .eq('id', data.user_id)
         .single();
       
       if (profile) {
-        enrichedData.email = profile.email;
+        if (!enrichedData.email) {
+          enrichedData.email = profile.email;
+        }
         if (!enrichedData.name && (profile.first_name || profile.last_name)) {
           enrichedData.name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
         }
+        if (!enrichedData.phone && profile.phone) {
+          enrichedData.phone = profile.phone;
+        }
+        
+        // Fetch branding name if branding_id exists
+        if (profile.branding_id && !enrichedData.branding) {
+          const { data: branding } = await supabaseAdmin
+            .from('brandings')
+            .select('name')
+            .eq('id', profile.branding_id)
+            .single();
+          
+          enrichedData.branding = branding?.name || '?';
+        } else if (!enrichedData.branding) {
+          enrichedData.branding = '?';
+        }
       }
+    }
+    
+    // Fallback: If branding_id was passed directly but not resolved yet
+    if (data.branding_id && !enrichedData.branding) {
+      const { data: branding } = await supabaseAdmin
+        .from('brandings')
+        .select('name')
+        .eq('id', data.branding_id)
+        .single();
+      
+      enrichedData.branding = branding?.name || '?';
+    }
+    
+    // Default branding if still not set
+    if (!enrichedData.branding) {
+      enrichedData.branding = '?';
     }
 
     // Format and send message
