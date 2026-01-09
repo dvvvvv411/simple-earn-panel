@@ -211,15 +211,6 @@ export function WelcomeCard() {
         </div>
 
         <CardContent className="relative z-10 p-6">
-          {/* Close button during animation */}
-          {isAnimating && animationPhase === 'expanded' && (
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors z-10"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
-          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
