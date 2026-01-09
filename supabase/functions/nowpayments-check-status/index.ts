@@ -70,6 +70,24 @@ Deno.serve(async (req) => {
     const updatedDeposits = [];
 
     for (const deposit of deposits || []) {
+      // Prüfe zuerst ob abgelaufen basierend auf expiration_estimate_date
+      if (deposit.expiration_estimate_date) {
+        const expirationDate = new Date(deposit.expiration_estimate_date);
+        if (expirationDate < new Date() && ['pending', 'waiting'].includes(deposit.status)) {
+          console.log('Marking deposit as expired:', deposit.id);
+          await supabaseAdmin
+            .from('crypto_deposits')
+            .update({ 
+              status: 'expired',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', deposit.id);
+          
+          updatedDeposits.push({ ...deposit, status: 'expired' });
+          continue;
+        }
+      }
+      
       if (!deposit.nowpayments_payment_id && !deposit.nowpayments_invoice_id) {
         continue;
       }
