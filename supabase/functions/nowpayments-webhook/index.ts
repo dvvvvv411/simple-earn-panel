@@ -252,6 +252,28 @@ Deno.serve(async (req) => {
         // Don't fail the webhook, log for manual review
       } else {
         console.log('Balance credited successfully');
+        
+        // Send Telegram notification for deposit paid
+        try {
+          await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-telegram-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+            },
+            body: JSON.stringify({
+              event_type: 'deposit_paid',
+              data: { 
+                user_id: deposit.user_id, 
+                amount: price_amount, 
+                currency: pay_currency 
+              }
+            })
+          });
+          console.log('Telegram notification sent for deposit paid');
+        } catch (telegramError) {
+          console.error('Telegram notification error:', telegramError);
+        }
       }
     }
 

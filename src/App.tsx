@@ -12,6 +12,7 @@ import AdminSupportPage from "./pages/admin/Support";
 import Withdrawals from "./pages/admin/Withdrawals";
 import Deposits from "./pages/admin/Deposits";
 import EmailTemplates from "./pages/admin/EmailTemplates";
+import TelegramSettings from "./pages/admin/Telegram";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
@@ -37,6 +38,7 @@ const App: React.FC = () => {
             <Route path="auszahlungen" element={<Withdrawals />} />
             <Route path="email-vorlagen" element={<EmailTemplates />} />
             <Route path="support" element={<AdminSupportPage />} />
+            <Route path="telegram" element={<TelegramSettings />} />
           </Route>
           <Route path="/kryptotrading" element={<TradingLayout />}>
             <Route index element={<TradingDashboard />} />

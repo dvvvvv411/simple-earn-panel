@@ -73,6 +73,19 @@ export function useSupportTickets() {
 
       if (error) throw error;
 
+      // Send Telegram notification (fire and forget)
+      supabase.functions.invoke('send-telegram-notification', {
+        body: {
+          event_type: 'support_ticket',
+          data: { 
+            user_id: user.id, 
+            subject: ticketData.subject, 
+            priority: ticketData.priority,
+            is_reply: false
+          }
+        }
+      }).catch(err => console.log('Telegram notification error:', err));
+
       toast({
         title: "Ticket erstellt",
         description: "Ihr Support-Ticket wurde erfolgreich erstellt.",

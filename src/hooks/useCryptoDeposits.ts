@@ -83,6 +83,18 @@ export function useCryptoDeposits() {
       throw new Error(data.error);
     }
 
+    // Send Telegram notification (fire and forget)
+    supabase.functions.invoke('send-telegram-notification', {
+      body: {
+        event_type: 'deposit_created',
+        data: { 
+          user_id: session.user.id, 
+          amount, 
+          currency: payCurrency 
+        }
+      }
+    }).catch(err => console.log('Telegram notification error:', err));
+
     // Refresh deposits list
     await fetchDeposits();
 

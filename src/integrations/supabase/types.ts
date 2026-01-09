@@ -539,6 +539,48 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_config: {
+        Row: {
+          bot_token: string | null
+          chat_id: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          notify_deposit_created: boolean
+          notify_deposit_paid: boolean
+          notify_new_user: boolean
+          notify_support_ticket: boolean
+          notify_withdrawal: boolean
+          updated_at: string
+        }
+        Insert: {
+          bot_token?: string | null
+          chat_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          notify_deposit_created?: boolean
+          notify_deposit_paid?: boolean
+          notify_new_user?: boolean
+          notify_support_ticket?: boolean
+          notify_withdrawal?: boolean
+          updated_at?: string
+        }
+        Update: {
+          bot_token?: string | null
+          chat_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          notify_deposit_created?: boolean
+          notify_deposit_paid?: boolean
+          notify_new_user?: boolean
+          notify_support_ticket?: boolean
+          notify_withdrawal?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trading_bots: {
         Row: {
           buy_price: number | null
