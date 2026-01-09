@@ -58,9 +58,9 @@ export function StreakDayItem({ day, isRevealed, animationDelay }: StreakDayItem
           <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse-ring" />
         )}
         
-        {/* Free bot glow effect - subtle pulse instead of ping */}
+        {/* Free bot glow effect - slow breathing animation */}
         {isActive && isFreeBotDay && (
-          <div className="absolute inset-0 rounded-full bg-amber-400/10 animate-pulse" />
+          <div className="absolute inset-0 rounded-full bg-amber-400/5 animate-breathe" />
         )}
       </div>
 
