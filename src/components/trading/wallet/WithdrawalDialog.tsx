@@ -150,7 +150,7 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
         <div className="flex flex-col h-full lg:block">
           <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
             <div className="w-full">
-              <ResponsiveDialogHeader className="relative overflow-hidden p-0 sm:p-6 lg:p-6 mb-6 sm:mb-4">
+              <ResponsiveDialogHeader className="relative p-0 sm:p-6 lg:p-6 mb-6 sm:mb-4">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
                 <div className="relative">
                   <ResponsiveDialogTitle className="flex items-center gap-3 text-xl sm:text-lg">
@@ -238,7 +238,7 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
                   {/* Amount Input */}
                   <div className="space-y-3">
                     <Label htmlFor="amount" className="text-base font-medium">Auszahlungsbetrag</Label>
-                    <div className="relative">
+                    <div className="relative py-0.5">
                       <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="amount"
@@ -284,7 +284,7 @@ export function WithdrawalDialog({ userBalance, open, onOpenChange, onWithdrawal
                   {/* BTC Address Input */}
                   <div className="space-y-3">
                     <Label htmlFor="btcAddress" className="text-base font-medium">Bitcoin Wallet-Adresse</Label>
-                    <div className="relative">
+                    <div className="relative py-0.5">
                       <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
                       <Input
                         id="btcAddress"
