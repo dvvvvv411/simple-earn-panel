@@ -54,8 +54,9 @@ const getStatusBadge = (status: string) => {
     case 'finished':
       return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Abgeschlossen</Badge>;
     case 'failed':
-    case 'expired':
       return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" />Fehlgeschlagen</Badge>;
+    case 'expired':
+      return <Badge variant="destructive"><Clock className="w-3 h-3 mr-1" />Abgelaufen</Badge>;
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }
@@ -72,7 +73,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
   const [isPolling, setIsPolling] = useState(false);
   
   const { toast } = useToast();
-  const { createDeposit, deposits, checkStatus, loading: depositsLoading } = useCryptoDeposits();
+  const { createDeposit, deposits, checkStatus, getPendingDeposits, loading: depositsLoading } = useCryptoDeposits();
   const { currencies, popularCurrencies, usdtCurrencies, usdcCurrencies, otherStablecoins, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
 
   const formatBalance = (value: number) => {
@@ -93,6 +94,10 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
 
       if (diff <= 0) {
         setCountdown("Abgelaufen");
+        // Set status to expired when countdown reaches 0
+        if (['waiting', 'pending'].includes(currentPaymentStatus)) {
+          setCurrentPaymentStatus('expired');
+        }
         return;
       }
 
@@ -920,7 +925,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
               )}
 
               {/* Pending Deposits - Full Width (only show when not in payment state) */}
-              {!paymentData && deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).length > 0 && (
+              {!paymentData && getPendingDeposits().length > 0 && (
                 <Card className="mt-4">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between mb-2">
@@ -945,7 +950,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
 
                     {/* Data Rows */}
                     <div className="divide-y divide-border/50">
-                      {deposits.filter(d => ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)).slice(0, 5).map((deposit: CryptoDeposit) => (
+                      {getPendingDeposits().slice(0, 5).map((deposit: CryptoDeposit) => (
                         <div 
                           key={deposit.id} 
                           className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 sm:gap-4 px-3 py-2.5 items-center hover:bg-muted/50 cursor-pointer transition-colors group"

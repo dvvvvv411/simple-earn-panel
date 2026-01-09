@@ -109,9 +109,22 @@ export function useCryptoDeposits() {
   };
 
   const getPendingDeposits = useCallback(() => {
-    return deposits.filter(d => 
-      ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status)
-    );
+    const now = new Date().getTime();
+    return deposits.filter(d => {
+      // Exclude finished, failed, expired, refunded
+      if (['finished', 'failed', 'expired', 'refunded'].includes(d.status)) {
+        return false;
+      }
+      // Client-side expiration check: if expiration date passed and still waiting/pending, exclude
+      if (d.expiration_estimate_date) {
+        const expiry = new Date(d.expiration_estimate_date).getTime();
+        if (expiry <= now && ['waiting', 'pending'].includes(d.status)) {
+          return false;
+        }
+      }
+      // Only show active statuses
+      return ['pending', 'waiting', 'confirming', 'confirmed', 'sending', 'partially_paid'].includes(d.status);
+    });
   }, [deposits]);
 
   useEffect(() => {
