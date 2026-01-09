@@ -1,76 +1,12 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus, Bot, User, Target, Award, Crown, Gem } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus, Bot } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { CreateBotDialog } from "./CreateBotDialog";
 import { DepositDialog } from "./wallet/DepositDialog";
 import { WithdrawalDialog } from "./wallet/WithdrawalDialog";
-
-// Ranking tiers definition
-const rankingTiers = [
-  {
-    name: "Starter",
-    minBalance: 0,
-    maxBalance: 999,
-    dailyTrades: 1,
-    icon: User,
-    color: "from-amber-500 to-amber-600",
-    bgColor: "bg-amber-100",
-    textColor: "text-amber-700"
-  },
-  {
-    name: "Trader",
-    minBalance: 1000,
-    maxBalance: 4999,
-    dailyTrades: 2,
-    icon: TrendingUp,
-    color: "from-gray-400 to-gray-500",
-    bgColor: "bg-gray-100",
-    textColor: "text-gray-700"
-  },
-  {
-    name: "Pro-Trader",
-    minBalance: 5000,
-    maxBalance: 9999,
-    dailyTrades: 4,
-    icon: Target,
-    color: "from-yellow-400 to-yellow-500",
-    bgColor: "bg-yellow-100",
-    textColor: "text-yellow-700"
-  },
-  {
-    name: "Expert",
-    minBalance: 10000,
-    maxBalance: 49999,
-    dailyTrades: 6,
-    icon: Award,
-    color: "from-blue-400 to-blue-500",
-    bgColor: "bg-blue-100",
-    textColor: "text-blue-700"
-  },
-  {
-    name: "Elite",
-    minBalance: 50000,
-    maxBalance: 99999,
-    dailyTrades: 8,
-    icon: Crown,
-    color: "from-purple-400 to-purple-500",
-    bgColor: "bg-purple-100",
-    textColor: "text-purple-700"
-  },
-  {
-    name: "VIP",
-    minBalance: 100000,
-    maxBalance: 999999,
-    dailyTrades: 10,
-    icon: Gem,
-    color: "from-emerald-400 to-emerald-500",
-    bgColor: "bg-emerald-100",
-    textColor: "text-emerald-700"
-  }
-];
+import { useRankingTiers } from "@/hooks/useRankingTiers";
 
 interface TradingStats {
   totalTrades: number;
@@ -99,6 +35,7 @@ interface AccountBalanceCardProps {
 export function AccountBalanceCard({ balance, onBalanceUpdate, todayStats, todayStartBalance, bots, loading = false }: AccountBalanceCardProps) {
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
+  const { tiers, loading: tiersLoading } = useRankingTiers();
 
   const formatBalance = (amount: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -119,17 +56,18 @@ export function AccountBalanceCard({ balance, onBalanceUpdate, todayStats, today
 
   const totalWealth = balance + botInvestments;
 
-  // Ranking system functions
+  // Ranking system functions using database tiers
   const getCurrentRank = () => {
-    return rankingTiers.find(tier => 
+    return tiers.find(tier => 
       totalWealth >= tier.minBalance && totalWealth <= tier.maxBalance
-    ) || rankingTiers[0];
+    ) || tiers[0] || null;
   };
 
   const getNextRank = () => {
     const currentRank = getCurrentRank();
-    const currentIndex = rankingTiers.findIndex(tier => tier.name === currentRank.name);
-    return currentIndex < rankingTiers.length - 1 ? rankingTiers[currentIndex + 1] : null;
+    if (!currentRank) return null;
+    const currentIndex = tiers.findIndex(tier => tier.name === currentRank.name);
+    return currentIndex < tiers.length - 1 ? tiers[currentIndex + 1] : null;
   };
 
   const currentRank = getCurrentRank();
@@ -148,7 +86,7 @@ export function AccountBalanceCard({ balance, onBalanceUpdate, todayStats, today
     onBalanceUpdate();
   };
 
-  if (loading) {
+  if (loading || tiersLoading || !currentRank) {
     return (
       <Card className="border-border bg-card">
         <CardHeader className="pb-4">
