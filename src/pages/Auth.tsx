@@ -312,6 +312,8 @@ const Auth = () => {
             data: {
               email: values.email,
               name: `${values.firstName} ${values.lastName}`,
+              phone: values.phone,
+              branding_id: brandingId,
             }
           }
         }).catch(err => console.log('Telegram notification error:', err));
