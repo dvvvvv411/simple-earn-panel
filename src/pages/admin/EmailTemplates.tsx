@@ -13,6 +13,7 @@ interface Branding {
   name: string;
   accent_color: string | null;
   domain: string | null;
+  logo_path: string | null;
 }
 
 export default function EmailTemplates() {
@@ -26,7 +27,7 @@ export default function EmailTemplates() {
     const fetchBrandings = async () => {
       const { data, error } = await supabase
         .from('brandings')
-        .select('id, name, accent_color, domain')
+        .select('id, name, accent_color, domain, logo_path')
         .order('name');
       
       if (data && data.length > 0) {
@@ -64,6 +65,11 @@ export default function EmailTemplates() {
     const profitSign = isProfit ? '+' : '';
     const profitAmount = isProfit ? 2.36 : -1.13;
     const profitPercent = isProfit ? 2.36 : -1.13;
+    
+    // Generate logo URL from Supabase storage
+    const logoUrl = branding?.logo_path 
+      ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl
+      : null;
 
     return `
 <!DOCTYPE html>
@@ -80,9 +86,12 @@ export default function EmailTemplates() {
           
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%); padding: 32px 40px; text-align: center;">
-              <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">${brandingName}</h1>
-              <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Transaktionsbestätigung</p>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl 
+                ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">`
+                : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`
+              }
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Transaktionsbestätigung</p>
             </td>
           </tr>
 
