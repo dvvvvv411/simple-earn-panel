@@ -6,7 +6,6 @@ import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus, Bot, User, Targe
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CreateBotDialog } from "./CreateBotDialog";
-import { useTradingBots } from "@/hooks/useTradingBots";
 import { DepositDialog } from "./wallet/DepositDialog";
 import { WithdrawalDialog } from "./wallet/WithdrawalDialog";
 
@@ -83,19 +82,25 @@ interface TradingStats {
   avgTradeDuration: string;
 }
 
+interface TradingBot {
+  id: string;
+  status: string;
+  start_amount: number;
+}
+
 interface AccountBalanceCardProps {
   balance: number;
   onBalanceUpdate: () => void;
   todayStats: TradingStats;
   todayStartBalance: number;
+  bots: TradingBot[];
 }
 
-export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, todayStats, todayStartBalance }: AccountBalanceCardProps) {
+export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, todayStats, todayStartBalance, bots }: AccountBalanceCardProps) {
   const [balance, setBalance] = useState<number | null>(propBalance);
   const [loading, setLoading] = useState(true);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
-  const { bots } = useTradingBots();
 
   // Sync local state with prop balance immediately
   useEffect(() => {
