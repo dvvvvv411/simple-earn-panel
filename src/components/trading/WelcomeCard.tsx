@@ -276,7 +276,7 @@ export function WelcomeCard() {
               {/* Free Bot Info */}
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg py-2.5 px-4 mb-4">
                 <Gift className="w-4 h-4 text-primary" />
-                <span>Jeden 3. Tag einen Free Bot erhalten</span>
+                <span>Erhalte jeden 3. Tag einen Bot als Belohnung</span>
               </div>
               
               {/* Free Bot Celebration */}

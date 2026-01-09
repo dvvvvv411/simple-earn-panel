@@ -119,11 +119,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Calculate position in 7-day cycle (1-7)
-    const cyclePosition = currentStreak > 0 ? ((currentStreak - 1) % 7) + 1 : 0;
-    
-    // Check if this is day 3 or 6 in the cycle = free bot day!
-    const isFreeBotDay = cyclePosition === 3 || cyclePosition === 6;
+    // Check if this is every 3rd consecutive day = free bot day!
+    // Day 3, 6, 9, 12, 15... get a free bot
+    const isFreeBotDay = currentStreak > 0 && currentStreak % 3 === 0;
     let newFreeBotEarned = false;
 
     if (isFreeBotDay) {

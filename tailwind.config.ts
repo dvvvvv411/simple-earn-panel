@@ -87,20 +87,25 @@ export default {
         },
         "free-bot-glow": {
           "0%, 100%": { boxShadow: "0 0 5px hsl(var(--primary)), 0 0 10px #fbbf24" },
-          "50%": { boxShadow: "0 0 20px hsl(var(--primary)), 0 0 40px #fbbf24, 0 0 60px #fbbf24" },
+          "50%": { boxShadow: "0 0 15px hsl(var(--primary)), 0 0 25px #fbbf24" },
         },
         "pulse-ring": {
           "0%": { transform: "scale(1)", opacity: "1" },
           "50%": { transform: "scale(1.15)", opacity: "0.5" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "breathe": {
+          "0%, 100%": { opacity: "0.05" },
+          "50%": { opacity: "0.15" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out forwards",
-        "free-bot-glow": "free-bot-glow 1.5s ease-in-out infinite",
+        "free-bot-glow": "free-bot-glow 4s ease-in-out infinite",
         "pulse-ring": "pulse-ring 2s ease-in-out infinite",
+        "breathe": "breathe 6s ease-in-out infinite",
       },
     },
   },
