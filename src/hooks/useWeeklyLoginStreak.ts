@@ -23,7 +23,13 @@ export interface WeeklyLoginData {
   shouldShowAnimation: boolean;
 }
 
-const SESSION_STORAGE_KEY = 'streak-animation-shown';
+const LOCAL_STORAGE_KEY = 'streak-animation-shown-date';
+
+const hasShownAnimationToday = (): boolean => {
+  const storedDate = localStorage.getItem(LOCAL_STORAGE_KEY);
+  const today = new Date().toISOString().split('T')[0];
+  return storedDate === today;
+};
 
 export function useWeeklyLoginStreak() {
   const [data, setData] = useState<Omit<WeeklyLoginData, 'shouldShowAnimation'>>({
@@ -68,8 +74,8 @@ export function useWeeklyLoginStreak() {
           error: null,
         });
 
-        // DEMO MODE: Animation bei jedem Dashboard-Besuch anzeigen
-        if (streakData.currentStreak > 0) {
+        // Nur beim ersten Besuch des Tages automatisch anzeigen
+        if (streakData.currentStreak > 0 && !hasShownAnimationToday()) {
           setShouldShowAnimation(true);
         }
       }
@@ -88,14 +94,22 @@ export function useWeeklyLoginStreak() {
   }, [trackAndFetchStreak]);
 
   const markAnimationShown = useCallback(() => {
-    sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem(LOCAL_STORAGE_KEY, today);
     setShouldShowAnimation(false);
   }, []);
+
+  const openAnimationManually = useCallback(() => {
+    if (data.currentStreak > 0 && data.streakDays.length > 0) {
+      setShouldShowAnimation(true);
+    }
+  }, [data.currentStreak, data.streakDays.length]);
 
   return {
     ...data,
     shouldShowAnimation,
     markAnimationShown,
+    openAnimationManually,
     refetch: trackAndFetchStreak,
   };
 }
