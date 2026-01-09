@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp, TrendingDown, Wallet, Trophy, Plus, Minus, Bot, User, Target, Award, Crown, Gem } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
@@ -94,46 +93,12 @@ interface AccountBalanceCardProps {
   todayStats: TradingStats;
   todayStartBalance: number;
   bots: TradingBot[];
+  loading?: boolean;
 }
 
-export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, todayStats, todayStartBalance, bots }: AccountBalanceCardProps) {
-  const [balance, setBalance] = useState<number | null>(propBalance);
-  const [loading, setLoading] = useState(true);
+export function AccountBalanceCard({ balance, onBalanceUpdate, todayStats, todayStartBalance, bots, loading = false }: AccountBalanceCardProps) {
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
-
-  // Sync local state with prop balance immediately
-  useEffect(() => {
-    setBalance(propBalance);
-    if (propBalance > 0) {
-      setLoading(false);
-    }
-  }, [propBalance]);
-
-  useEffect(() => {
-    loadBalance();
-  }, []);
-
-  const loadBalance = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profile) {
-        setBalance(profile.balance);
-      }
-    } catch (error) {
-      console.error('Error loading balance:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatBalance = (amount: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -152,8 +117,7 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
   const trendPercentage = todayStartBalance > 0 ? (todayStats.totalProfit / todayStartBalance) * 100 : 0;
   const isPositive = trendPercentage > 0;
 
-  // Calculate total wealth (available balance + invested amount)
-  const totalWealth = (balance || 0) + botInvestments;
+  const totalWealth = balance + botInvestments;
 
   // Ranking system functions
   const getCurrentRank = () => {
@@ -177,12 +141,10 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
     : 100;
 
   const handleDepositCreated = () => {
-    loadBalance();
     onBalanceUpdate();
   };
 
   const handleWithdrawalCreated = () => {
-    loadBalance();
     onBalanceUpdate();
   };
 
@@ -222,7 +184,7 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="text-4xl font-bold text-foreground">
-                {balance !== null ? formatBalance(balance) : '€0.00'}
+                {formatBalance(balance)}
               </div>
               <div className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-primary" />
@@ -300,14 +262,14 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
       </Card>
 
       <DepositDialog
-        userBalance={balance || 0}
+        userBalance={balance}
         open={depositDialogOpen}
         onOpenChange={setDepositDialogOpen}
         onDepositCreated={handleDepositCreated}
       />
 
       <WithdrawalDialog
-        userBalance={balance || 0}
+        userBalance={balance}
         open={withdrawalDialogOpen}
         onOpenChange={setWithdrawalDialogOpen}
         onWithdrawalCreated={handleWithdrawalCreated}
