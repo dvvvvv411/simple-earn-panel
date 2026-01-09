@@ -288,6 +288,7 @@ export type Database = {
           email: string | null
           email_notifications: boolean | null
           first_name: string | null
+          free_bots: number
           id: string
           last_name: string | null
           phone: string | null
@@ -305,6 +306,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           first_name?: string | null
+          free_bots?: number
           id: string
           last_name?: string | null
           phone?: string | null
@@ -322,6 +324,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           first_name?: string | null
+          free_bots?: number
           id?: string
           last_name?: string | null
           phone?: string | null
@@ -868,6 +871,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_user_free_bots: {
+        Args: {
+          amount_change: number
+          operation_type: string
+          target_user_id: string
+        }
+        Returns: boolean
+      }
+      use_free_bot: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"

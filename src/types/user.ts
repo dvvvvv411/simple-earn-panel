@@ -10,6 +10,7 @@ export interface User {
   created_at: string;
   updated_at: string;
   unlucky_streak?: boolean;
+  free_bots?: number;
   branding?: {
     id: string;
     name: string;

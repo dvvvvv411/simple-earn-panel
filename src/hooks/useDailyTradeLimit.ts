@@ -7,6 +7,9 @@ interface DailyTradeLimitResult {
   canCreateBot: boolean;
   remainingTrades: number;
   rankName: string | null;
+  freeBots: number;
+  hasFreeBots: boolean;
+  totalAvailable: number;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -16,6 +19,7 @@ export function useDailyTradeLimit(): DailyTradeLimitResult {
   const [dailyLimit, setDailyLimit] = useState<number>(0);
   const [usedToday, setUsedToday] = useState<number>(0);
   const [rankName, setRankName] = useState<string | null>(null);
+  const [freeBots, setFreeBots] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,10 +34,10 @@ export function useDailyTradeLimit(): DailyTradeLimitResult {
         return;
       }
 
-      // Get user balance
+      // Get user balance and free_bots
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('balance')
+        .select('balance, free_bots')
         .eq('id', session.user.id)
         .single();
 
@@ -56,8 +60,11 @@ export function useDailyTradeLimit(): DailyTradeLimitResult {
 
       // Calculate total wealth (balance + invested in bots)
       const balance = profile?.balance || 0;
+      const userFreeBots = profile?.free_bots || 0;
       const investedAmount = (activeBots || []).reduce((sum, bot) => sum + (bot.start_amount || 0), 0);
       const totalWealth = balance + investedAmount;
+      
+      setFreeBots(userFreeBots);
 
       // Get all ranking tiers to find the matching one
       const { data: tiers, error: tiersError } = await supabase
@@ -123,8 +130,10 @@ export function useDailyTradeLimit(): DailyTradeLimitResult {
     fetchLimitData();
   }, []);
 
-  const canCreateBot = usedToday < dailyLimit;
   const remainingTrades = Math.max(0, dailyLimit - usedToday);
+  const canCreateBot = usedToday < dailyLimit || freeBots > 0;
+  const hasFreeBots = freeBots > 0;
+  const totalAvailable = remainingTrades + freeBots;
 
   return {
     dailyLimit,
@@ -132,6 +141,9 @@ export function useDailyTradeLimit(): DailyTradeLimitResult {
     canCreateBot,
     remainingTrades,
     rankName,
+    freeBots,
+    hasFreeBots,
+    totalAvailable,
     loading,
     error,
     refetch: fetchLimitData

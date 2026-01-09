@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight, AlertTriangle, Crown } from "lucide-react";
+import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight, AlertTriangle, Crown, Gift } from "lucide-react";
 import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyTradeLimit } from "@/hooks/useDailyTradeLimit";
@@ -23,15 +23,18 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
   const [isCreating, setIsCreating] = useState(false);
   const { coins, loading } = useCoinMarketCap();
   const { toast } = useToast();
-  const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, loading: limitLoading, refetch: refetchLimit } = useDailyTradeLimit();
+  const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, freeBots, hasFreeBots, loading: limitLoading, refetch: refetchLimit } = useDailyTradeLimit();
 
   const selectedCoin = coins.find(coin => coin.id === selectedCrypto);
 
   const handleCreateBot = async () => {
+    // Check if user can create (either daily limit or free bots)
+    const dailyLimitReached = usedToday >= dailyLimit;
+    
     if (!canCreateBot) {
       toast({
-        title: "Tägliches Limit erreicht",
-        description: `Sie haben Ihr tägliches Trading-Limit von ${dailyLimit} Bots erreicht.`,
+        title: "Kein Trading verfügbar",
+        description: "Sie haben weder tägliche Trades noch Bonus-Bots übrig.",
         variant: "destructive"
       });
       return;
@@ -59,6 +62,25 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
     setIsCreating(true);
 
     try {
+      // If daily limit reached but has free bots, use a free bot
+      const shouldUseFreeBots = usedToday >= dailyLimit && freeBots > 0;
+      
+      if (shouldUseFreeBots) {
+        const { data: freeUsed, error: freeError } = await supabase.rpc('use_free_bot', {
+          p_user_id: (await supabase.auth.getSession()).data.session?.user.id
+        });
+        
+        if (freeError || !freeUsed) {
+          toast({
+            title: "Fehler",
+            description: "Bonus-Bot konnte nicht verwendet werden.",
+            variant: "destructive"
+          });
+          setIsCreating(false);
+          return;
+        }
+      }
+      
       const now = new Date();
       const randomMinutes = Math.floor(Math.random() * 31) + 30;
       const expectedCompletionTime = new Date(now.getTime() + randomMinutes * 60 * 1000);
@@ -255,11 +277,52 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                 </div>
               )}
 
+              {/* Bot Bonus Section */}
+              {!limitLoading && hasFreeBots && (
+                <div className="p-4 rounded-lg border-2 border-dashed border-amber-400/50 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-orange-500/10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Gift className="w-5 h-5 text-amber-500" />
+                    <span className="font-bold text-amber-600 dark:text-amber-400">
+                      Bot Bonus
+                    </span>
+                    <Sparkles className="w-4 h-4 text-yellow-500" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1.5">
+                      {Array.from({ length: Math.min(freeBots, 5) }).map((_, i) => (
+                        <div 
+                          key={i} 
+                          className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 
+                                     flex items-center justify-center shadow-lg animate-pulse"
+                          style={{ animationDelay: `${i * 0.15}s` }}
+                        >
+                          <Bot className="w-4 h-4 text-white" />
+                        </div>
+                      ))}
+                      {freeBots > 5 && (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400/50 to-orange-500/50 
+                                       flex items-center justify-center text-xs font-bold text-amber-700 dark:text-amber-300">
+                          +{freeBots - 5}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm text-amber-700 dark:text-amber-300">
+                      {freeBots} Bonus-{freeBots === 1 ? 'Bot' : 'Bots'} verfügbar
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Bonus-Bots sind unbegrenzt gültig und zählen nicht zum täglichen Limit.
+                  </p>
+                </div>
+              )}
+
               {!limitLoading && (
                 <div className={`p-3 rounded-lg border ${
-                  canCreateBot 
+                  remainingTrades > 0 
                     ? 'bg-muted/50 border-border' 
-                    : 'bg-destructive/10 border-destructive/30'
+                    : hasFreeBots
+                      ? 'bg-amber-500/10 border-amber-500/30'
+                      : 'bg-destructive/10 border-destructive/30'
                 }`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -276,7 +339,7 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Trades heute</span>
-                      <span className={canCreateBot ? 'text-foreground' : 'text-destructive font-semibold'}>
+                      <span className={remainingTrades > 0 ? 'text-foreground' : 'text-amber-600 dark:text-amber-400 font-semibold'}>
                         {usedToday} / {dailyLimit}
                       </span>
                     </div>
@@ -284,7 +347,7 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                       value={dailyLimit > 0 ? (usedToday / dailyLimit) * 100 : 100} 
                       className="h-2"
                     />
-                    {!canCreateBot && (
+                    {remainingTrades === 0 && !hasFreeBots && (
                       <div className="flex items-start gap-2 mt-2 p-2 rounded bg-destructive/5">
                         <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                         <div className="text-xs text-destructive">
@@ -293,7 +356,16 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
                         </div>
                       </div>
                     )}
-                    {canCreateBot && remainingTrades > 0 && (
+                    {remainingTrades === 0 && hasFreeBots && (
+                      <div className="flex items-start gap-2 mt-2 p-2 rounded bg-amber-500/10">
+                        <Gift className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <div className="text-xs text-amber-600 dark:text-amber-400">
+                          <p className="font-medium">Tägliches Limit erreicht</p>
+                          <p className="text-amber-600/80 dark:text-amber-400/80">Aber Sie haben noch {freeBots} Bonus-Bot{freeBots > 1 ? 's' : ''}!</p>
+                        </div>
+                      </div>
+                    )}
+                    {remainingTrades > 0 && (
                       <p className="text-xs text-muted-foreground">
                         Noch {remainingTrades} {remainingTrades === 1 ? 'Trade' : 'Trades'} heute verfügbar
                       </p>
