@@ -166,9 +166,9 @@ export function AccountBalanceCard({ balance: propBalance, onBalanceUpdate, toda
   const currentRank = getCurrentRank();
   const nextRank = getNextRank();
   
-  // Calculate progress to next rank
+  // Calculate progress to next rank (absolute progress towards next rank minimum)
   const progressPercentage = nextRank 
-    ? ((totalWealth - currentRank.minBalance) / (nextRank.minBalance - currentRank.minBalance)) * 100
+    ? (totalWealth / nextRank.minBalance) * 100
     : 100;
 
   const handleDepositCreated = () => {
