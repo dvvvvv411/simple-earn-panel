@@ -68,10 +68,8 @@ export function useWeeklyLoginStreak() {
           error: null,
         });
 
-        // Check if we should show animation (only once per session)
-        const hasShownAnimation = sessionStorage.getItem(SESSION_STORAGE_KEY) === 'true';
-        
-        if (!hasShownAnimation && streakData.currentStreak > 0) {
+        // DEMO MODE: Animation bei jedem Dashboard-Besuch anzeigen
+        if (streakData.currentStreak > 0) {
           setShouldShowAnimation(true);
         }
       }
