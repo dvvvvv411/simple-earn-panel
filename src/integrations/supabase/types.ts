@@ -278,6 +278,78 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_submissions: {
+        Row: {
+          birth_date: string
+          birth_place: string
+          city: string
+          created_at: string
+          employment_status: string
+          first_name: string
+          id: string
+          id_back_path: string
+          id_front_path: string
+          last_name: string
+          monthly_income: string
+          nationality: string
+          postal_code: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_of_funds: string[]
+          status: string
+          street: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birth_date: string
+          birth_place: string
+          city: string
+          created_at?: string
+          employment_status: string
+          first_name: string
+          id?: string
+          id_back_path: string
+          id_front_path: string
+          last_name: string
+          monthly_income: string
+          nationality: string
+          postal_code: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_of_funds: string[]
+          status?: string
+          street: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birth_date?: string
+          birth_place?: string
+          city?: string
+          created_at?: string
+          employment_status?: string
+          first_name?: string
+          id?: string
+          id_back_path?: string
+          id_front_path?: string
+          last_name?: string
+          monthly_income?: string
+          nationality?: string
+          postal_code?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_of_funds?: string[]
+          status?: string
+          street?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           balance: number
@@ -290,6 +362,7 @@ export type Database = {
           first_name: string | null
           free_bots: number
           id: string
+          kyc_required: boolean | null
           last_name: string | null
           phone: string | null
           referral_code: string | null
@@ -308,6 +381,7 @@ export type Database = {
           first_name?: string | null
           free_bots?: number
           id: string
+          kyc_required?: boolean | null
           last_name?: string | null
           phone?: string | null
           referral_code?: string | null
@@ -326,6 +400,7 @@ export type Database = {
           first_name?: string | null
           free_bots?: number
           id?: string
+          kyc_required?: boolean | null
           last_name?: string | null
           phone?: string | null
           referral_code?: string | null

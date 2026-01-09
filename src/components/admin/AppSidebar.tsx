@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail, MessageCircle } from "lucide-react";
+import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail, MessageCircle, ShieldCheck } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -23,6 +23,7 @@ import { toast } from "@/components/ui/sonner";
 const items = [
   { title: "Brandings", url: "/admin/brandings", icon: Package },
   { title: "Benutzer", url: "/admin/benutzer", icon: Users },
+  { title: "KYC", url: "/admin/kyc", icon: ShieldCheck },
   { title: "Berater", url: "/admin/berater", icon: UserCheck },
   { title: "Einzahlungen", url: "/admin/einzahlungen", icon: Download },
   { title: "Auszahlungen", url: "/admin/auszahlungen", icon: Wallet },

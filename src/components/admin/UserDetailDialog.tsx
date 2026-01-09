@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, Save, Euro, Frown, Gift, Bot } from "lucide-react";
+import { Loader2, Plus, Save, Euro, Frown, Gift, Bot, ShieldCheck } from "lucide-react";
 import type { User, Transaction, BalanceUpdateData } from "@/types/user";
 import { UserActivitySection } from "./UserActivitySection";
 
@@ -34,14 +34,60 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const [freeBotOperation, setFreeBotOperation] = useState<'add' | 'set'>('add');
   const [freeBotLoading, setFreeBotLoading] = useState(false);
   const [currentFreeBots, setCurrentFreeBots] = useState(0);
+  const [kycRequired, setKycRequired] = useState(false);
+  const [kycLoading, setKycLoading] = useState(false);
 
   useEffect(() => {
     if (user && open) {
       fetchTransactions();
       setUnluckyStreak(user.unlucky_streak ?? false);
       setCurrentFreeBots(user.free_bots || 0);
+      fetchKycRequired();
     }
   }, [user, open]);
+
+  const fetchKycRequired = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('kyc_required')
+        .eq('id', user.id)
+        .single();
+      setKycRequired(data?.kyc_required ?? false);
+    } catch (error) {
+      console.error('Error fetching KYC status:', error);
+    }
+  };
+
+  const handleKycRequiredToggle = async (checked: boolean) => {
+    if (!user) return;
+    setKycLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ kyc_required: checked })
+        .eq('id', user.id);
+      if (error) throw error;
+      setKycRequired(checked);
+      toast({
+        title: checked ? "KYC aktiviert" : "KYC deaktiviert",
+        description: checked 
+          ? "Nutzer muss jetzt KYC-Verifizierung durchführen." 
+          : "KYC-Anforderung wurde entfernt.",
+      });
+      onUserUpdated();
+    } catch (error: any) {
+      console.error('Error updating KYC required:', error);
+      toast({
+        title: "Fehler",
+        description: "KYC-Status konnte nicht aktualisiert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setKycLoading(false);
+    }
+  };
 
   const handleUnluckyStreakToggle = async (checked: boolean) => {
     if (!user) return;
@@ -314,6 +360,19 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
                 <p className="text-foreground">{formatDateTime(user.created_at)}</p>
               </div>
               
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-blue-500" />
+                  <Label className="text-sm font-medium text-foreground">KYC erforderlich</Label>
+                </div>
+                <Switch 
+                  checked={kycRequired}
+                  onCheckedChange={handleKycRequiredToggle}
+                  disabled={kycLoading}
+                  className="data-[state=checked]:bg-blue-500"
+                />
+              </div>
+
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <div className="flex items-center gap-2">
                   <Frown className="h-4 w-4 text-destructive" />
