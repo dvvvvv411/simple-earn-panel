@@ -100,6 +100,34 @@ serve(async (req) => {
     const brandingName = branding?.name || 'Trading Platform';
     const domain = branding?.domain || 'app.example.com';
 
+    // Load logo as Base64 for email embedding
+    let logoBase64 = '';
+    if (branding?.logo_path) {
+      try {
+        const { data: logoData, error: logoError } = await supabase.storage
+          .from('branding-logos')
+          .download(branding.logo_path);
+        
+        if (logoData && !logoError) {
+          const arrayBuffer = await logoData.arrayBuffer();
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = '';
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const base64 = btoa(binary);
+          const extension = branding.logo_path.split('.').pop()?.toLowerCase();
+          const mimeType = extension === 'png' ? 'image/png' : extension === 'svg' ? 'image/svg+xml' : 'image/jpeg';
+          logoBase64 = `data:${mimeType};base64,${base64}`;
+          console.log('✅ Logo loaded as Base64');
+        } else {
+          console.log('⚠️ Could not load logo:', logoError);
+        }
+      } catch (e) {
+        console.error('❌ Error loading logo:', e);
+      }
+    }
+
     // Step 5: Generate HTML email
     const isProfit = payload.profit_percent >= 0;
     const profitColor = isProfit ? '#10B981' : '#DC2626';
@@ -150,11 +178,12 @@ serve(async (req) => {
           
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%); padding: 32px 40px; text-align: center;">
-              <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-                ${brandingName}
-              </h1>
-              <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoBase64 
+                ? `<img src="${logoBase64}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">`
+                : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`
+              }
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">
                 Transaktionsbestätigung
               </p>
             </td>
