@@ -165,7 +165,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
         {/* Mobile: Center content vertically */}
         <div className="flex flex-col h-full lg:block">
           {/* Mobile: Centered content container */}
-          <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
+          <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block py-1">
             <div className="w-full">
               <ResponsiveDialogHeader className="relative p-0 sm:p-6 lg:p-6 mb-6 sm:mb-4">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
@@ -209,7 +209,6 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                 <Label htmlFor="cryptocurrency" className="text-lg sm:text-base font-medium">
                   Kryptowährung auswählen
                 </Label>
-                <div className="py-0.5">
                 <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
                   <SelectTrigger className="h-14 sm:h-12 text-lg sm:text-base">
                     <SelectValue placeholder="Wählen Sie eine Kryptowährung..." />
@@ -246,7 +245,6 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                     )}
                   </SelectContent>
                 </Select>
-                </div>
               </div>
 
               <div className="space-y-6 sm:space-y-4">
@@ -271,7 +269,7 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                 </div>
 
                 {/* Amount Input */}
-                <div className="relative py-0.5">
+                <div className="relative">
                   <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
                     id="amount"
