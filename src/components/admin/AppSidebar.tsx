@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail } from "lucide-react";
+import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail, MessageCircle } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -28,6 +28,7 @@ const items = [
   { title: "Auszahlungen", url: "/admin/auszahlungen", icon: Wallet },
   { title: "Email-Vorlagen", url: "/admin/email-vorlagen", icon: Mail },
   { title: "Support", url: "/admin/support", icon: Headphones },
+  { title: "Telegram", url: "/admin/telegram", icon: MessageCircle },
 ];
 
 export function AppSidebar() {

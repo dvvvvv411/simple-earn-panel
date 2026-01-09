@@ -304,6 +304,18 @@ const Auth = () => {
           title: "Registrierung erfolgreich",
           description: "Willkommen! Du wirst jetzt weitergeleitet.",
         });
+        
+        // Send Telegram notification for new user (fire and forget)
+        supabase.functions.invoke('send-telegram-notification', {
+          body: {
+            event_type: 'new_user',
+            data: {
+              email: values.email,
+              name: `${values.firstName} ${values.lastName}`,
+            }
+          }
+        }).catch(err => console.log('Telegram notification error:', err));
+        
         await redirectBasedOnRole(data.user!.id);
       } else if (data.user) {
         // Keine Session = E-Mail-Bestätigung erforderlich

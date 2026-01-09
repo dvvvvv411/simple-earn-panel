@@ -100,6 +100,18 @@ export function useWithdrawalRequests() {
 
       if (error) throw error;
 
+      // Send Telegram notification (fire and forget)
+      supabase.functions.invoke('send-telegram-notification', {
+        body: {
+          event_type: 'withdrawal_created',
+          data: { 
+            user_id: session.user.id, 
+            amount, 
+            wallet: btcWalletAddress 
+          }
+        }
+      }).catch(err => console.log('Telegram notification error:', err));
+
       toast({ title: "Auszahlungsanfrage erstellt", description: "Ihre Anfrage wird geprüft." });
       await fetchUserRequests();
       return true;
