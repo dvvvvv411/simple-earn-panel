@@ -1,13 +1,12 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Flame, Trophy, X } from "lucide-react";
+import { Flame, Trophy, X, Gift } from "lucide-react";
 import { useDashboardLoading } from "./TradingLayout";
 import { useWeeklyLoginStreak } from "@/hooks/useWeeklyLoginStreak";
 import { StreakDayItem } from "./StreakDayItem";
-import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 
-type AnimationPhase = 'idle' | 'moving' | 'expanded' | 'returning';
+type AnimationPhase = 'idle' | 'expanded';
 
 export function WelcomeCard() {
   const { userName } = useDashboardLoading();
@@ -30,22 +29,11 @@ export function WelcomeCard() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [originalRect, setOriginalRect] = useState<DOMRect | null>(null);
 
-  // Start animation when shouldShowAnimation becomes true
+  // Start animation when shouldShowAnimation becomes true - instant popup
   useEffect(() => {
-    if (shouldShowAnimation && !isAnimating && cardRef.current && streakDays.length > 0) {
-      const rect = cardRef.current.getBoundingClientRect();
-      setOriginalRect(rect);
+    if (shouldShowAnimation && !isAnimating && streakDays.length > 0) {
       setIsAnimating(true);
-      
-      // Small delay then start moving
-      setTimeout(() => {
-        setAnimationPhase('moving');
-      }, 100);
-      
-      // After moving, expand
-      setTimeout(() => {
-        setAnimationPhase('expanded');
-      }, 800);
+      setAnimationPhase('expanded');
     }
   }, [shouldShowAnimation, isAnimating, streakDays.length]);
 
@@ -75,15 +63,11 @@ export function WelcomeCard() {
   }, [animationPhase, revealedDays, currentDayInCycle, streakDays, newFreeBotEarned]);
 
   const handleClose = useCallback(() => {
-    setAnimationPhase('returning');
-    
-    setTimeout(() => {
-      setIsAnimating(false);
-      setAnimationPhase('idle');
-      setRevealedDays(0);
-      setShowCelebration(false);
-      markAnimationShown();
-    }, 600);
+    setIsAnimating(false);
+    setAnimationPhase('idle');
+    setRevealedDays(0);
+    setShowCelebration(false);
+    markAnimationShown();
   }, [markAnimationShown]);
 
   const animationStyles = {
@@ -110,49 +94,20 @@ export function WelcomeCard() {
     },
   };
 
-  // Calculate styles based on animation phase - Scale animation from center
+  // Simple centered popup style - no animation
   const getCardStyle = (): React.CSSProperties => {
-    if (!isAnimating || animationPhase === 'idle') {
+    if (!isAnimating) {
       return {};
     }
 
-    // Common styles for centered fixed positioning
-    const baseAnimatedStyle: React.CSSProperties = {
+    return {
       position: 'fixed',
       top: '50%',
       left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 'min(90vw, 550px)',
       zIndex: 100,
-      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     };
-
-    if (animationPhase === 'moving') {
-      return {
-        ...baseAnimatedStyle,
-        transform: 'translate(-50%, -50%) scale(0.9)',
-        width: 'min(90vw, 550px)',
-        opacity: 0.8,
-      };
-    }
-
-    if (animationPhase === 'expanded') {
-      return {
-        ...baseAnimatedStyle,
-        transform: 'translate(-50%, -50%) scale(1)',
-        width: 'min(90vw, 550px)',
-        opacity: 1,
-      };
-    }
-
-    if (animationPhase === 'returning') {
-      return {
-        ...baseAnimatedStyle,
-        transform: 'translate(-50%, -50%) scale(0.8)',
-        width: 'min(90vw, 550px)',
-        opacity: 0,
-      };
-    }
-
-    return {};
   };
 
   return (
@@ -190,24 +145,11 @@ export function WelcomeCard() {
         }
       `}</style>
 
-      {/* Dark Overlay - only during animation with fade effect */}
-      {isAnimating && (animationPhase === 'moving' || animationPhase === 'expanded') && (
+      {/* Dark Overlay */}
+      {isAnimating && (
         <div 
-          className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] transition-opacity duration-300 ${
-            animationPhase === 'expanded' ? 'opacity-100' : 'opacity-50'
-          }`}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99]"
           onClick={handleClose}
-        />
-      )}
-
-      {/* Placeholder to maintain layout when card is fixed positioned */}
-      {isAnimating && originalRect && (
-        <div 
-          ref={placeholderRef}
-          style={{ 
-            width: originalRect.width, 
-            height: originalRect.height,
-          }} 
         />
       )}
       
@@ -332,17 +274,16 @@ export function WelcomeCard() {
               </div>
 
               {/* Free Bot Info */}
-              <div className="text-center mb-4">
-                <p className="text-muted-foreground text-sm">
-                  🤖 Free Bot an Tag 3 und 6 jeder Streak-Woche
-                </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg py-2.5 px-4 mb-4">
+                <Gift className="w-4 h-4 text-primary" />
+                <span>Jeden 3. Tag einen Free Bot erhalten</span>
               </div>
               
               {/* Free Bot Celebration */}
               {showCelebration && (
                 <div className="p-4 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 rounded-xl border border-amber-300 dark:border-amber-500/40 text-center mb-4 animate-fade-in">
                   <p className="text-lg font-bold text-amber-700 dark:text-amber-200 flex items-center justify-center gap-2">
-                    🎉 +1 Free Bot freigeschaltet!
+                    +1 Free Bot freigeschaltet!
                   </p>
                   <p className="text-amber-600 dark:text-amber-300/80 text-sm mt-1">
                     Du hast jetzt einen kostenlosen Bot zur Verfügung
@@ -350,13 +291,13 @@ export function WelcomeCard() {
                 </div>
               )}
               
-              {/* Continue Button */}
-              <Button
+              {/* Continue Button - same gradient as header */}
+              <button
                 onClick={handleClose}
-                className="w-full py-3"
+                className="w-full py-3 rounded-lg bg-gradient-to-br from-primary via-primary/95 to-primary/80 text-primary-foreground font-semibold shadow-lg hover:opacity-90 transition-opacity"
               >
-                ✓ Weiter zum Dashboard
-              </Button>
+                Weiter zum Dashboard
+              </button>
             </div>
           )}
           
