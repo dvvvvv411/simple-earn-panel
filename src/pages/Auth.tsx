@@ -144,6 +144,14 @@ const Auth = () => {
     checkAuth();
   }, []);
 
+  // Auto-switch to registration mode when ref parameter is present
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setIsLogin(false);
+    }
+  }, [searchParams]);
+
   const redirectBasedOnRole = async (userId: string) => {
     try {
       const { data: userRoles, error } = await supabase
