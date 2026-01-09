@@ -155,7 +155,7 @@ serve(async (req) => {
                 ${brandingName}
               </h1>
               <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
-                Trading Benachrichtigung
+                Transaktionsbestätigung
               </p>
             </td>
           </tr>
@@ -165,25 +165,16 @@ serve(async (req) => {
             <td style="padding: 40px;">
               
               <!-- Greeting -->
-              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 18px; font-weight: 600;">
-                Hallo ${firstName},
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">
+                Sehr geehrte/r ${firstName},
               </p>
               
               <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                wir freuen uns, Ihnen mitteilen zu können, dass Ihr automatisierter Trade auf <strong>${brandingName}</strong> soeben erfolgreich abgeschlossen wurde.
+                nachfolgend erhalten Sie die Bestätigung Ihres abgeschlossenen Trades.
               </p>
-              
-              <!-- Success/Result Banner -->
-              <div style="text-align: center; margin-bottom: 32px;">
-                <div style="display: inline-block; background-color: ${isProfit ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${isProfit ? '#bbf7d0' : '#fecaca'}; border-radius: 8px; padding: 12px 20px;">
-                  <p style="margin: 0; color: ${isProfit ? '#166534' : '#991b1b'}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                    ${isProfit ? '✓ Trade erfolgreich abgeschlossen' : 'Trade abgeschlossen'}
-                  </p>
-                </div>
-              </div>
 
-              <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                Hier sind die Details Ihres Trades:
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                Transaktionsdetails
               </p>
 
               <!-- Trade Details Card -->
@@ -263,16 +254,16 @@ serve(async (req) => {
               </table>
 
               <!-- Additional Text -->
-              <p style="margin: 0 0 16px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                Ihr Guthaben wurde automatisch aktualisiert und steht Ihnen sofort für weitere Trades zur Verfügung.
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Der Betrag wurde Ihrem Handelskonto gutgeschrieben.
               </p>
 
               <!-- CTA Button -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 32px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 24px;">
                 <tr>
                   <td style="text-align: center;">
-                    <a href="https://${domain}/kryptotrading/historie" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 600;">
-                      Trading-Historie ansehen
+                    <a href="https://${domain}/kryptotrading/historie" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                      Transaktionsverlauf anzeigen
                     </a>
                   </td>
                 </tr>
@@ -280,12 +271,12 @@ serve(async (req) => {
 
               <!-- Closing Text -->
               <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                <p style="margin: 0 0 16px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                  Vielen Dank, dass Sie <strong>${brandingName}</strong> für Ihr automatisiertes Trading nutzen. Bei Fragen zu Ihrem Trade oder zur Plattform steht Ihnen unser Support-Team jederzeit zur Verfügung.
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                  Bei Fragen zu dieser Transaktion wenden Sie sich bitte an unseren Kundenservice.
                 </p>
-                <p style="margin: 0; color: #1f2937; font-size: 15px; line-height: 1.6;">
-                  Mit freundlichen Grüßen,<br>
-                  <strong>Ihr ${brandingName} Trading-Team</strong>
+                <p style="margin: 0; color: #1f2937; font-size: 14px; line-height: 1.6;">
+                  Mit freundlichen Grüßen<br>
+                  ${brandingName}
                 </p>
               </div>
 
@@ -296,15 +287,15 @@ serve(async (req) => {
           <tr>
             <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} ${brandingName} · Automatisiertes Trading
+                © ${new Date().getFullYear()} ${brandingName}
               </p>
-              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px; text-align: center;">
-                Sie erhalten diese E-Mail, weil Sie Trade-Benachrichtigungen aktiviert haben.
+              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 11px; text-align: center;">
+                Diese E-Mail wurde automatisch erstellt.
               </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
-                <a href="https://${domain}/kryptotrading/einstellungen" style="color: ${accentColor}; text-decoration: none;">Benachrichtigungen verwalten</a>
-                <span style="margin: 0 8px;">·</span>
-                <a href="https://${domain}/kryptotrading/support" style="color: ${accentColor}; text-decoration: none;">Hilfe & Support</a>
+              <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
+                <a href="https://${domain}/kryptotrading/einstellungen" style="color: #6b7280; text-decoration: none;">Einstellungen</a>
+                <span style="margin: 0 8px; color: #d1d5db;">|</span>
+                <a href="https://${domain}/kryptotrading/support" style="color: #6b7280; text-decoration: none;">Kundenservice</a>
               </p>
             </td>
           </tr>
