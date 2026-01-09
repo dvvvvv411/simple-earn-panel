@@ -99,9 +99,9 @@ export default function EmailTemplates() {
               
               <!-- Success Banner -->
               <div style="text-align: center; margin-bottom: 32px;">
-                <div style="display: inline-block; background-color: ${isProfit ? '#ecfdf5' : '#fef2f2'}; border: 1px solid ${isProfit ? '#a7f3d0' : '#fecaca'}; border-radius: 12px; padding: 16px 24px;">
-                  <p style="margin: 0; color: ${profitColor}; font-size: 18px; font-weight: 600;">
-                    ${isProfit ? '🎉 Ihr Trade wurde erfolgreich abgeschlossen!' : '📊 Ihr Trade wurde abgeschlossen'}
+                <div style="display: inline-block; background-color: ${isProfit ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${isProfit ? '#bbf7d0' : '#fecaca'}; border-radius: 8px; padding: 12px 20px;">
+                  <p style="margin: 0; color: ${isProfit ? '#166534' : '#991b1b'}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ${isProfit ? '✓ Trade erfolgreich abgeschlossen' : 'Trade abgeschlossen'}
                   </p>
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function EmailTemplates() {
           <!-- Footer -->
           <tr>
             <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© 2024 ${brandingName} · Automatisiertes Trading</p>
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName} · Automatisiertes Trading</p>
               <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px; text-align: center;">Sie erhalten diese E-Mail, weil Sie Trade-Benachrichtigungen aktiviert haben.</p>
               <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
                 <a href="#" style="color: ${accentColor}; text-decoration: none;">Benachrichtigungen verwalten</a>
