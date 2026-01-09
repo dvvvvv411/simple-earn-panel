@@ -23,7 +23,7 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
   const [isCreating, setIsCreating] = useState(false);
   const { coins, loading } = useCoinMarketCap();
   const { toast } = useToast();
-  const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, loading: limitLoading } = useDailyTradeLimit();
+  const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, loading: limitLoading, refetch: refetchLimit } = useDailyTradeLimit();
 
   const selectedCoin = coins.find(coin => coin.id === selectedCrypto);
 
@@ -97,6 +97,10 @@ export function CreateBotForm({ userBalance, onBotCreated }: CreateBotFormProps)
 
       setSelectedCrypto("");
       setAmount("");
+      
+      // Refresh daily trade limit counter
+      await refetchLimit();
+      
       onBotCreated();
 
     } catch (error) {
