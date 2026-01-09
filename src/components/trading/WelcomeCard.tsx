@@ -21,6 +21,7 @@ export function WelcomeCard() {
     loading,
     shouldShowAnimation,
     markAnimationShown,
+    openAnimationManually,
   } = useWeeklyLoginStreak();
 
   const [isAnimating, setIsAnimating] = useState(false);
@@ -155,8 +156,9 @@ export function WelcomeCard() {
       
       <Card 
         ref={cardRef}
-        className="relative w-full overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-primary/95 to-primary/80"
+        className={`relative w-full overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 ${!isAnimating ? 'cursor-pointer hover:shadow-3xl transition-shadow' : ''}`}
         style={getCardStyle()}
+        onClick={!isAnimating ? openAnimationManually : undefined}
       >
         {/* Animated Background Layers */}
         <div className="absolute inset-0">
