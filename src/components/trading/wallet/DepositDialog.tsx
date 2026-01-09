@@ -361,7 +361,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
     <ResponsiveDialog open={open} onOpenChange={handleClose}>
       <ResponsiveDialogContent className="sm:max-w-2xl sm:max-h-[90vh] sm:overflow-y-auto">
         <div className="flex flex-col h-full lg:block">
-          <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block">
+          <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block py-1">
             <div className="w-full">
               <ResponsiveDialogHeader className="relative p-0 sm:p-6 lg:p-6 mb-6 sm:mb-4">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
@@ -562,7 +562,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                       </div>
 
                       {/* Amount Input */}
-                      <div className="relative py-0.5">
+                      <div className="relative">
                         <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 sm:w-5 sm:h-5 text-muted-foreground" />
                         <Input
                           id="amount"
