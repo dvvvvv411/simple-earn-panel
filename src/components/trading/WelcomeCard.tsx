@@ -48,9 +48,9 @@ export function WelcomeCard() {
         const revealedStreakDay = streakDays[nextDay - 1];
         if (revealedStreakDay?.grantsFreeBot && revealedStreakDay?.isToday && newFreeBotEarned) {
           setTimeout(() => {
-            confetti({
-              particleCount: 150,
-              spread: 80,
+          confetti({
+            particleCount: 50,
+            spread: 50,
               origin: { y: 0.5 },
               colors: ['#fbbf24', '#f59e0b', '#d97706', '#ffffff'],
             });
@@ -105,7 +105,7 @@ export function WelcomeCard() {
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 'min(90vw, 550px)',
+      width: 'min(92vw, 620px)',
       zIndex: 100,
     };
   };
@@ -148,7 +148,7 @@ export function WelcomeCard() {
       {/* Dark Overlay */}
       {isAnimating && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99]"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99]"
           onClick={handleClose}
         />
       )}
@@ -215,9 +215,9 @@ export function WelcomeCard() {
           {isAnimating && animationPhase === 'expanded' && (
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors z-10"
             >
-              <X className="w-4 h-4 text-white" />
+              <X className="w-5 h-5 text-white" />
             </button>
           )}
 

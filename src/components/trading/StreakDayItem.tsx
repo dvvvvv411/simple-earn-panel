@@ -18,7 +18,7 @@ export function StreakDayItem({ day, isRevealed, animationDelay }: StreakDayItem
     <div
       className={cn(
         "flex flex-col items-center gap-2 transition-all duration-500",
-        isRevealed ? "opacity-100 scale-100" : "opacity-30 scale-75"
+        isRevealed ? "opacity-100 scale-100" : "opacity-60 scale-90"
       )}
       style={{
         transitionDelay: `${animationDelay}ms`,
@@ -35,9 +35,9 @@ export function StreakDayItem({ day, isRevealed, animationDelay }: StreakDayItem
           // Today (current, not yet revealed or pending)
           day.isToday && !isActive && "border-primary/50 border-dashed bg-primary/5",
           // Future/not logged in
-          isFuture && !day.isToday && "border-muted-foreground/30 border-dashed bg-muted/30 text-muted-foreground/50",
+          isFuture && !day.isToday && "border-muted-foreground/50 border-dashed bg-muted/40 text-muted-foreground/70",
           // Free bot indicator for future days
-          isFuture && isFreeBotDay && "border-amber-400/30"
+          isFuture && isFreeBotDay && "border-amber-400/50"
         )}
       >
         {/* Inner content */}
@@ -58,9 +58,9 @@ export function StreakDayItem({ day, isRevealed, animationDelay }: StreakDayItem
           <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse-ring" />
         )}
         
-        {/* Free bot glow effect */}
+        {/* Free bot glow effect - subtle pulse instead of ping */}
         {isActive && isFreeBotDay && (
-          <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping" />
+          <div className="absolute inset-0 rounded-full bg-amber-400/10 animate-pulse" />
         )}
       </div>
 
