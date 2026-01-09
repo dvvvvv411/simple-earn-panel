@@ -111,7 +111,18 @@ export default function Deposits() {
     return `${amount.toFixed(8)} ${currency.toUpperCase()}`;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (deposit: Deposit) => {
+    const status = deposit.status;
+    
+    // Prüfe ob abgelaufen basierend auf expiration_estimate_date
+    const isExpired = deposit.expiration_estimate_date && 
+      new Date(deposit.expiration_estimate_date) < new Date() &&
+      ['pending', 'waiting'].includes(status);
+    
+    if (isExpired) {
+      return <Badge className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"><Clock className="w-3 h-3 mr-1" />Abgelaufen</Badge>;
+    }
+    
     switch (status) {
       case 'waiting':
         return <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400"><Clock className="w-3 h-3 mr-1" />Warte auf Zahlung</Badge>;
@@ -356,7 +367,7 @@ export default function Deposits() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell>{getStatusBadge(deposit.status)}</TableCell>
+                    <TableCell>{getStatusBadge(deposit)}</TableCell>
                     <TableCell>
                       {format(new Date(deposit.created_at), 'dd.MM.yyyy HH:mm', { locale: de })}
                     </TableCell>
@@ -452,7 +463,7 @@ export default function Deposits() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Status</Label>
-                  <div className="mt-1">{getStatusBadge(selectedDeposit.status)}</div>
+                  <div className="mt-1">{getStatusBadge(selectedDeposit)}</div>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Erstellt am</Label>
