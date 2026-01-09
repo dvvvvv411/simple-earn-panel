@@ -133,15 +133,26 @@ const Auth = () => {
     loadBrandingByDomain();
   }, []);
 
-  // Check if user is already logged in
+  // Auth state listener for automatic login after registration
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await redirectBasedOnRole(session.user.id);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          setTimeout(() => {
+            redirectBasedOnRole(session.user.id);
+          }, 0);
+        }
       }
-    };
-    checkAuth();
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        redirectBasedOnRole(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Auto-switch to registration mode when ref parameter is present
@@ -287,7 +298,15 @@ const Auth = () => {
         return;
       }
 
-      if (data.user) {
+      if (data.session) {
+        // Session vorhanden = sofort eingeloggt (E-Mail-Bestätigung deaktiviert)
+        toast({
+          title: "Registrierung erfolgreich",
+          description: "Willkommen! Du wirst jetzt weitergeleitet.",
+        });
+        await redirectBasedOnRole(data.user!.id);
+      } else if (data.user) {
+        // Keine Session = E-Mail-Bestätigung erforderlich
         toast({
           title: "Registrierung erfolgreich",
           description: "Bitte überprüfen Sie Ihre E-Mail zur Bestätigung.",
