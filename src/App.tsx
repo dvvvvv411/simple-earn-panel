@@ -1,7 +1,6 @@
 import React from "react";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { TradingLayout } from "./components/trading/TradingLayout";
@@ -27,7 +26,7 @@ const App: React.FC = () => {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Navigate to="/auth" replace />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/brandings" replace />} />
