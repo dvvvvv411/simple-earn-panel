@@ -885,31 +885,30 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     {/* Crypto Selection - Searchable Combobox */}
                     <div className="space-y-4 sm:space-y-3">
                       <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setDepositMethod('crypto')}
+                        className={cn(
+                          "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                          depositMethod === 'crypto'
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        Kryptowährung
+                      </button>
+                      {hasBankData && (
                         <button
-                          onClick={() => setDepositMethod('crypto')}
+                          onClick={() => setDepositMethod('bank')}
                           className={cn(
                             "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-                            depositMethod === 'crypto'
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            depositMethod === 'bank'
+                              ? "bg-muted text-foreground"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                           )}
                         >
-                          Kryptowährung
+                          Banküberweisung
                         </button>
-                        {hasBankData && (
-                          <button
-                            onClick={() => setDepositMethod('bank')}
-                            className={cn(
-                              "px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5",
-                              depositMethod === 'bank'
-                                ? "bg-primary text-primary-foreground"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                            )}
-                          >
-                            <Landmark className="w-3.5 h-3.5" />
-                            Banküberweisung
-                          </button>
-                        )}
+                      )}
                       </div>
                       
                       <Popover open={depositMethod === 'crypto' ? cryptoDropdownOpen : false} onOpenChange={depositMethod === 'crypto' ? setCryptoDropdownOpen : undefined}>
@@ -1218,9 +1217,9 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                         <h3 className="font-semibold text-lg sm:text-base mb-4">So funktioniert's</h3>
                         <div className="space-y-4">
                           {(depositMethod === 'bank' ? [
-                            { step: 1, text: "Gewünschten Betrag eingeben (min. 50€)" },
+                            { step: 1, text: "Gewünschten Betrag eingeben" },
                             { step: 2, text: "Bankdaten und Verwendungszweck notieren" },
-                            { step: 3, text: "Überweisung bei Ihrer Bank ausführen" },
+                            { step: 3, text: "Überweisung ausführen" },
                             { step: 4, text: "Guthaben wird nach Eingang gutgeschrieben" },
                           ] : [
                             { step: 1, text: "Betrag und Kryptowährung wählen" },
