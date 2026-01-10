@@ -1,6 +1,7 @@
 import React from "react";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
 import Auth from "./pages/Auth";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { TradingLayout } from "./components/trading/TradingLayout";
@@ -73,6 +74,7 @@ const App: React.FC = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <Toaster />
     </ThemeProvider>
   );
 };
