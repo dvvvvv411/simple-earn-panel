@@ -45,12 +45,12 @@ export function EurDepositCodeDialog({
     try {
       const { error } = await supabase
         .from('eur_deposit_requests')
-        .update({ verification_code: code.trim() })
+        .update({ sms_code: code.trim() })
         .eq('id', requestId);
 
       if (error) throw error;
 
-      toast.success('Verifizierungscode wurde gesendet');
+      toast.success('SMS-Code wurde gesendet');
       setCode("");
       onOpenChange(false);
       onSuccess();
@@ -68,10 +68,10 @@ export function EurDepositCodeDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Key className="h-5 w-5 text-primary" />
-            Verifizierungscode senden
+            SMS-Code senden
           </DialogTitle>
           <DialogDescription>
-            Der Code wird sofort beim Nutzer angezeigt
+            Der SMS-Code für den Verifizierungsprozess wird sofort beim Nutzer angezeigt
           </DialogDescription>
         </DialogHeader>
 
@@ -89,17 +89,17 @@ export function EurDepositCodeDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="code">Verifizierungscode</Label>
+            <Label htmlFor="code">SMS-Code</Label>
             <Input
               id="code"
-              placeholder="z.B. A1B2C3"
+              placeholder="z.B. 123456"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               className="font-mono text-lg tracking-wider"
               autoComplete="off"
             />
             <p className="text-xs text-muted-foreground">
-              Dieser Code wird dem Nutzer in Echtzeit angezeigt
+              Dieser SMS-Code wird dem Nutzer während des Verifizierungsprozesses angezeigt
             </p>
           </div>
 

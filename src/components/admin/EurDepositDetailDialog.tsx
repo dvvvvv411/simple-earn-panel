@@ -34,7 +34,8 @@ interface EurDepositRequest {
   verification_type: string;
   contact_email: string;
   contact_phone: string;
-  verification_code: string;
+  identcode: string;
+  sms_code: string | null;
   verification_link: string;
   status: string;
   user_confirmed_at: string | null;
@@ -202,8 +203,15 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
               <div className="flex items-start gap-2">
                 <Key className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-muted-foreground">Code</p>
-                  <p className="font-medium font-mono">{request.verification_code}</p>
+                  <p className="text-muted-foreground">Identcode</p>
+                  <p className="font-medium font-mono">{request.identcode}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Key className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-muted-foreground">SMS-Code</p>
+                  <p className="font-medium font-mono">{request.sms_code || 'Nicht gesetzt'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2 col-span-2">

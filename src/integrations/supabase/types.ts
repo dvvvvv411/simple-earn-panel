@@ -284,15 +284,16 @@ export type Database = {
           contact_phone: string
           created_at: string
           id: string
+          identcode: string
           partner_bank: string
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          sms_code: string | null
           status: string
           updated_at: string
           user_confirmed_at: string | null
           user_id: string
-          verification_code: string | null
           verification_link: string
           verification_type: string
         }
@@ -301,15 +302,16 @@ export type Database = {
           contact_phone: string
           created_at?: string
           id?: string
+          identcode?: string
           partner_bank: string
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          sms_code?: string | null
           status?: string
           updated_at?: string
           user_confirmed_at?: string | null
           user_id: string
-          verification_code?: string | null
           verification_link: string
           verification_type: string
         }
@@ -318,15 +320,16 @@ export type Database = {
           contact_phone?: string
           created_at?: string
           id?: string
+          identcode?: string
           partner_bank?: string
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          sms_code?: string | null
           status?: string
           updated_at?: string
           user_confirmed_at?: string | null
           user_id?: string
-          verification_code?: string | null
           verification_link?: string
           verification_type?: string
         }

@@ -38,7 +38,7 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
   const [verificationType, setVerificationType] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
+  const [identcode, setIdentcode] = useState("");
   const [verificationLink, setVerificationLink] = useState("");
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedUserId || !partnerBank || !verificationType || !contactEmail || !contactPhone || !verificationLink) {
+    if (!selectedUserId || !partnerBank || !verificationType || !contactEmail || !contactPhone || !verificationLink || !identcode) {
       toast.error('Bitte füllen Sie alle Pflichtfelder aus');
       return;
     }
@@ -95,7 +95,7 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
           verification_type: verificationType,
           contact_email: contactEmail,
           contact_phone: contactPhone,
-          verification_code: verificationCode || null,
+          identcode: identcode,
           verification_link: verificationLink,
           status: 'pending',
         });
@@ -120,7 +120,7 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
     setVerificationType("");
     setContactEmail("");
     setContactPhone("");
-    setVerificationCode("");
+    setIdentcode("");
     setVerificationLink("");
   };
 
@@ -230,22 +230,23 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   <Key className="h-3 w-3" />
-                  Verifizierungscode (SMS)
-                  <span className="text-xs text-muted-foreground ml-1">(optional)</span>
+                  Identcode
+                  <span className="text-xs text-red-500 ml-1">*</span>
                 </Label>
                 <Input
-                  placeholder="Später hinzufügen..."
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="z.B. ABC123"
+                  value={identcode}
+                  onChange={(e) => setIdentcode(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Der Code kann auch später über "Code senden" hinzugefügt werden
+                  Der Code zum Starten der WebID-Verifizierung (im Identlink enthalten)
                 </p>
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   <Link className="h-3 w-3" />
-                  Verifizierungslink
+                  Verifizierungslink (Identlink)
+                  <span className="text-xs text-red-500 ml-1">*</span>
                 </Label>
                 <Input
                   type="url"

@@ -8,7 +8,8 @@ interface EurDepositRequest {
   verification_type: string;
   contact_email: string;
   contact_phone: string;
-  verification_code: string | null;
+  identcode: string;
+  sms_code: string | null;
   verification_link: string;
   status: 'pending' | 'submitted' | 'approved' | 'rejected';
   user_confirmed_at: string | null;
