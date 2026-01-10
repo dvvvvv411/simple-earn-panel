@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Edit, Trash2, Loader2, Eye, ShieldCheck, ShieldX, ShieldAlert, Clock, CheckCircle2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import type { User } from "@/types/user";
@@ -16,9 +17,10 @@ interface UserTableProps {
   onUserDeleted: () => void;
   onUserEdit: (user: User) => void;
   onUserDetail: (user: User) => void;
+  onUnluckyStreakToggle: (userId: string, value: boolean) => void;
 }
 
-export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDetail }: UserTableProps) {
+export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDetail, onUnluckyStreakToggle }: UserTableProps) {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const handleDeleteUser = async (userId: string) => {
@@ -163,6 +165,7 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
             <TableHead className="text-foreground">Guthaben</TableHead>
             <TableHead className="text-foreground">KYC-Status</TableHead>
             <TableHead className="text-foreground">Letzte Aktivität</TableHead>
+            <TableHead className="text-foreground">Pechsträhne</TableHead>
             <TableHead className="text-foreground">Rolle</TableHead>
             <TableHead className="text-right text-foreground">Aktionen</TableHead>
           </TableRow>
@@ -195,6 +198,12 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
               </TableCell>
               <TableCell>
                 {getLastActivityDisplay(user)}
+              </TableCell>
+              <TableCell>
+                <Switch
+                  checked={user.unlucky_streak || false}
+                  onCheckedChange={(checked) => onUnluckyStreakToggle(user.id, checked)}
+                />
               </TableCell>
               <TableCell>
                 <Badge 
