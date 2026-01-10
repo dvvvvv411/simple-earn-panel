@@ -16,24 +16,45 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 
-const items = [
-  { title: "Brandings", url: "/admin/brandings", icon: Package },
-  { title: "Benutzer", url: "/admin/benutzer", icon: Users },
-  { title: "KYC", url: "/admin/kyc", icon: ShieldCheck },
-  { title: "Berater", url: "/admin/berater", icon: UserCheck },
-  { title: "Aktive Bots", url: "/admin/aktive-bots", icon: Bot },
-  { title: "Einzahlungen", url: "/admin/einzahlungen", icon: Download },
-  { title: "Bank-KYC", url: "/admin/bank-kyc", icon: Landmark },
-  { title: "Kredit-KYC", url: "/admin/kredit", icon: CreditCard },
-  { title: "Aufträge", url: "/admin/auftraege", icon: Briefcase },
-  { title: "Auszahlungen", url: "/admin/auszahlungen", icon: Wallet },
-  { title: "Email-Vorlagen", url: "/admin/email-vorlagen", icon: Mail },
-  { title: "Support", url: "/admin/support", icon: Headphones },
-  { title: "Telegram", url: "/admin/telegram", icon: MessageCircle },
+const menuGroups = [
+  {
+    label: "Benutzer & Finanzen",
+    items: [
+      { title: "Benutzer", url: "/admin/benutzer", icon: Users },
+      { title: "Einzahlungen", url: "/admin/einzahlungen", icon: Download },
+      { title: "Auszahlungen", url: "/admin/auszahlungen", icon: Wallet },
+    ]
+  },
+  {
+    label: "Verifizierung",
+    items: [
+      { title: "KYC", url: "/admin/kyc", icon: ShieldCheck },
+      { title: "Bank-KYC", url: "/admin/bank-kyc", icon: Landmark },
+      { title: "Kredit-KYC", url: "/admin/kredit", icon: CreditCard },
+      { title: "Aufträge", url: "/admin/auftraege", icon: Briefcase },
+    ]
+  },
+  {
+    label: "Support & Trading",
+    items: [
+      { title: "Support", url: "/admin/support", icon: Headphones },
+      { title: "Aktive Bots", url: "/admin/aktive-bots", icon: Bot },
+    ]
+  },
+  {
+    label: "Einstellungen",
+    items: [
+      { title: "Brandings", url: "/admin/brandings", icon: Package },
+      { title: "Berater", url: "/admin/berater", icon: UserCheck },
+      { title: "Email-Vorlagen", url: "/admin/email-vorlagen", icon: Mail },
+      { title: "Telegram", url: "/admin/telegram", icon: MessageCircle },
+    ]
+  },
 ];
 
 export function AppSidebar() {
@@ -82,42 +103,47 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="bg-sidebar">
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/60 px-4 py-4 mt-2">
-            Verwaltung
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-2">
-            <SidebarMenu className="space-y-1">
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      className={({ isActive }) => 
-                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
-                          isActive 
-                            ? 'bg-primary/10 text-primary border-l-4 border-primary' 
-                            : 'hover:bg-accent/50 text-muted-foreground'
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                          {!collapsed && (
-                            <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
-                              {item.title}
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {menuGroups.map((group, groupIndex) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/60 px-4 py-2 mt-2">
+              {!collapsed && group.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1">
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={({ isActive }) => 
+                          `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
+                            isActive 
+                              ? 'bg-primary/10 text-primary border-l-4 border-primary' 
+                              : 'hover:bg-accent/50 text-muted-foreground'
+                          }`
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                            {!collapsed && (
+                              <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
+                                {item.title}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+            {groupIndex < menuGroups.length - 1 && (
+              <Separator className="my-3 mx-4 bg-sidebar-border" />
+            )}
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4">
