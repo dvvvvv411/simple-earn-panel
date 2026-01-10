@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.send-kyc-confirmation]
 verify_jwt = false
+
+[functions.send-kyc-rejection]
+verify_jwt = false
