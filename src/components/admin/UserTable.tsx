@@ -5,11 +5,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Loader2, Eye, ShieldCheck, ShieldX, ShieldAlert, Clock, CheckCircle2 } from "lucide-react";
+import { Edit, Trash2, Loader2, Eye, ShieldCheck, ShieldX, ShieldAlert, Clock, CheckCircle2, ArrowUp, ArrowDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { de } from "date-fns/locale";
 import type { User } from "@/types/user";
+
+export type SortField = 'balance' | 'last_activity' | 'created_at';
+export type SortDirection = 'asc' | 'desc';
 
 interface UserTableProps {
   users: User[];
@@ -18,9 +21,22 @@ interface UserTableProps {
   onUserEdit: (user: User) => void;
   onUserDetail: (user: User) => void;
   onUnluckyStreakToggle: (userId: string, value: boolean) => void;
+  sortField: SortField;
+  sortDirection: SortDirection;
+  onSortChange: (field: SortField) => void;
 }
 
-export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDetail, onUnluckyStreakToggle }: UserTableProps) {
+export function UserTable({ 
+  users, 
+  loading, 
+  onUserDeleted, 
+  onUserEdit, 
+  onUserDetail, 
+  onUnluckyStreakToggle,
+  sortField,
+  sortDirection,
+  onSortChange
+}: UserTableProps) {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const handleDeleteUser = async (userId: string) => {
@@ -71,6 +87,10 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
       style: 'currency',
       currency: 'EUR'
     }).format(balance);
+  };
+
+  const formatRegistrationDate = (dateString: string) => {
+    return format(new Date(dateString), "dd.MM.yyyy HH:mm", { locale: de });
   };
 
   const getKYCStatusBadge = (status: User['kycStatus']) => {
@@ -137,6 +157,22 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
     );
   };
 
+  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
+    <TableHead 
+      className="text-foreground cursor-pointer hover:bg-accent/50 transition-colors select-none"
+      onClick={() => onSortChange(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field && (
+          sortDirection === 'asc' 
+            ? <ArrowUp className="h-4 w-4" /> 
+            : <ArrowDown className="h-4 w-4" />
+        )}
+      </div>
+    </TableHead>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -162,9 +198,10 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
             <TableHead className="text-foreground">Name</TableHead>
             <TableHead className="text-foreground">E-Mail</TableHead>
             <TableHead className="text-foreground">Branding</TableHead>
-            <TableHead className="text-foreground">Guthaben</TableHead>
+            <SortableHeader field="balance">Guthaben</SortableHeader>
             <TableHead className="text-foreground">KYC-Status</TableHead>
-            <TableHead className="text-foreground">Letzte Aktivität</TableHead>
+            <SortableHeader field="last_activity">Letzte Aktivität</SortableHeader>
+            <SortableHeader field="created_at">Registrierungsdatum</SortableHeader>
             <TableHead className="text-foreground">Pechsträhne</TableHead>
             <TableHead className="text-foreground">Rolle</TableHead>
             <TableHead className="text-right text-foreground">Aktionen</TableHead>
@@ -198,6 +235,9 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
               </TableCell>
               <TableCell>
                 {getLastActivityDisplay(user)}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {formatRegistrationDate(user.created_at)}
               </TableCell>
               <TableCell>
                 <Switch
