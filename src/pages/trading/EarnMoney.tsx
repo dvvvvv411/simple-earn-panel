@@ -158,19 +158,12 @@ export default function EarnMoney() {
       </div>
 
       {/* In Überprüfung Section */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Clock className="h-5 w-5 text-amber-500" />
-          In Überprüfung ({submittedTasks.length})
-        </h2>
-        {submittedTasks.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <Clock className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-              <p className="text-muted-foreground">Keine Aufträge in Überprüfung</p>
-            </CardContent>
-          </Card>
-        ) : (
+      {submittedTasks.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Clock className="h-5 w-5 text-amber-500" />
+            In Überprüfung ({submittedTasks.length})
+          </h2>
           <div className="grid gap-4 md:grid-cols-2">
             {submittedTasks.map((task) => (
               <Card key={task.id} className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
@@ -207,23 +200,16 @@ export default function EarnMoney() {
               </Card>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Abgeschlossen Section */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-500" />
-          Abgeschlossen ({completedTasks.length})
-        </h2>
-        {completedTasks.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <CheckCircle className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-              <p className="text-muted-foreground">Noch keine abgeschlossenen Aufträge</p>
-            </CardContent>
-          </Card>
-        ) : (
+      {completedTasks.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            Abgeschlossen ({completedTasks.length})
+          </h2>
           <div className="grid gap-4 md:grid-cols-2">
             {completedTasks.map((task) => (
               <Card key={task.id} className={`overflow-hidden cursor-pointer hover:shadow-lg transition-shadow ${task.status === 'approved' ? 'border-green-200' : 'border-red-200'}`}
@@ -271,8 +257,8 @@ export default function EarnMoney() {
               </Card>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
