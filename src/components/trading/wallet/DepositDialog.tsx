@@ -550,14 +550,14 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     Zurück
                   </Button>
 
-                  {/* Amount to Transfer - Prominent Display */}
-                  <div className="p-6 rounded-xl bg-gradient-to-br from-card to-muted/30 border shadow-sm">
-                    <div className="text-sm text-muted-foreground mb-1">Überweisungsbetrag</div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold tracking-tight">
+                  {/* Amount to Transfer - Compact Centered Display */}
+                  <div className="p-5 rounded-xl bg-gradient-to-br from-card to-muted/30 border shadow-sm text-center max-w-xs mx-auto">
+                    <div className="text-xs text-muted-foreground mb-1">Überweisungsbetrag</div>
+                    <div className="flex items-baseline justify-center gap-1.5">
+                      <span className="text-3xl font-bold tracking-tight">
                         {bankPaymentData.amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
-                      <span className="text-xl text-muted-foreground">EUR</span>
+                      <span className="text-lg text-muted-foreground">EUR</span>
                     </div>
                   </div>
 
