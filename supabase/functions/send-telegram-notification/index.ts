@@ -16,10 +16,12 @@ interface TelegramConfig {
   notify_withdrawal: boolean;
   notify_support_ticket: boolean;
   notify_kyc_submitted: boolean;
+  notify_bank_deposit_created: boolean;
+  notify_bank_kyc_submitted: boolean;
 }
 
 interface NotificationData {
-  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'test';
+  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'bank_deposit_created' | 'bank_kyc_submitted' | 'test';
   data: Record<string, unknown>;
 }
 
@@ -44,10 +46,10 @@ function formatMessage(eventType: string, data: Record<string, unknown>): string
       return `🆕 *Neuer Benutzer*\n━━━━━━━━━━━━━━━━\n📧 Email: ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n📞 Telefon: ${phone}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     case 'deposit_created':
-      return `💰 *Neue Einzahlung erstellt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n🔗 Währung: ${data.currency || 'BTC'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+      return `💰 *Neue Krypto-Einzahlung erstellt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n🔗 Währung: ${data.currency || 'BTC'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     case 'deposit_paid':
-      return `✅ *Einzahlung bezahlt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+      return `✅ *Krypto-Einzahlung bezahlt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     case 'withdrawal_created':
       const wallet = String(data.wallet || '');
@@ -61,6 +63,12 @@ function formatMessage(eventType: string, data: Record<string, unknown>): string
     
     case 'kyc_submitted':
       return `📋 *Neue KYC-Verifizierung*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'bank_deposit_created':
+      return `🏦 *Neue Bank-Einzahlung*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n💵 Betrag: €${Number(data.amount || 0).toFixed(2)}\n📋 Referenz: ${data.reference_code || 'N/A'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'bank_kyc_submitted':
+      return `🏦 *Bank-KYC eingereicht*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n🏦 Bank: ${data.partner_bank || 'N/A'}\n🔐 Verifizierung: ${data.verification_type || 'N/A'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     default:
       return `📢 *Benachrichtigung*\n━━━━━━━━━━━━━━━━\n${JSON.stringify(data)}\n📅 ${now}`;
@@ -155,6 +163,8 @@ serve(async (req) => {
         'withdrawal_created': 'notify_withdrawal',
         'support_ticket': 'notify_support_ticket',
         'kyc_submitted': 'notify_kyc_submitted',
+        'bank_deposit_created': 'notify_bank_deposit_created',
+        'bank_kyc_submitted': 'notify_bank_kyc_submitted',
       };
 
       const configKey = notificationTypeMap[event_type];

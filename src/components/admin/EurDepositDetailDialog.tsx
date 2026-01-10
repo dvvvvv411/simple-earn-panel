@@ -128,6 +128,21 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
 
       if (error) throw error;
 
+      // Send Bank-KYC confirmation email
+      try {
+        await supabase.functions.invoke('send-bank-kyc-confirmation', {
+          body: {
+            user_id: request.user_id,
+            bank_account_holder: bankAccountHolder.trim(),
+            bank_iban: bankIban.trim().toUpperCase(),
+            bank_bic: bankBic.trim().toUpperCase(),
+            bank_name: bankName.trim(),
+          }
+        });
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+
       toast.success('Anfrage wurde genehmigt mit Bankdaten');
       onOpenChange(false);
       onSuccess();
@@ -161,6 +176,18 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
         .eq('id', request.id);
 
       if (error) throw error;
+
+      // Send Bank-KYC rejection email
+      try {
+        await supabase.functions.invoke('send-bank-kyc-rejection', {
+          body: {
+            user_id: request.user_id,
+            rejection_reason: rejectionReason,
+          }
+        });
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
 
       toast.success('Anfrage wurde abgelehnt');
       onOpenChange(false);

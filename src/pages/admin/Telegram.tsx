@@ -20,6 +20,8 @@ interface TelegramConfig {
   notify_withdrawal: boolean;
   notify_support_ticket: boolean;
   notify_kyc_submitted: boolean;
+  notify_bank_deposit_created: boolean;
+  notify_bank_kyc_submitted: boolean;
 }
 
 export default function Telegram() {
@@ -38,6 +40,8 @@ export default function Telegram() {
   const [notifyWithdrawal, setNotifyWithdrawal] = useState(true);
   const [notifySupportTicket, setNotifySupportTicket] = useState(true);
   const [notifyKycSubmitted, setNotifyKycSubmitted] = useState(true);
+  const [notifyBankDepositCreated, setNotifyBankDepositCreated] = useState(true);
+  const [notifyBankKycSubmitted, setNotifyBankKycSubmitted] = useState(true);
 
   useEffect(() => {
     fetchConfig();
@@ -66,6 +70,8 @@ export default function Telegram() {
         setNotifyWithdrawal(data.notify_withdrawal);
         setNotifySupportTicket(data.notify_support_ticket);
         setNotifyKycSubmitted(data.notify_kyc_submitted ?? true);
+        setNotifyBankDepositCreated(data.notify_bank_deposit_created ?? true);
+        setNotifyBankKycSubmitted(data.notify_bank_kyc_submitted ?? true);
       }
     } catch (error) {
       console.error('Error fetching telegram config:', error);
@@ -88,6 +94,8 @@ export default function Telegram() {
         notify_withdrawal: notifyWithdrawal,
         notify_support_ticket: notifySupportTicket,
         notify_kyc_submitted: notifyKycSubmitted,
+        notify_bank_deposit_created: notifyBankDepositCreated,
+        notify_bank_kyc_submitted: notifyBankKycSubmitted,
       };
 
       if (config?.id) {
@@ -284,8 +292,8 @@ export default function Telegram() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="notifyDepositCreated">💰 Einzahlungen erstellt</Label>
-                  <p className="text-xs text-muted-foreground">Wenn eine neue Einzahlung erstellt wird</p>
+                  <Label htmlFor="notifyDepositCreated">💰 Krypto-Einzahlungen erstellt</Label>
+                  <p className="text-xs text-muted-foreground">Wenn eine neue Krypto-Einzahlung erstellt wird</p>
                 </div>
                 <Switch
                   id="notifyDepositCreated"
@@ -297,13 +305,26 @@ export default function Telegram() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="notifyDepositPaid">✅ Einzahlungen bezahlt</Label>
-                  <p className="text-xs text-muted-foreground">Wenn eine Einzahlung bestätigt wird</p>
+                  <Label htmlFor="notifyDepositPaid">✅ Krypto-Einzahlungen bezahlt</Label>
+                  <p className="text-xs text-muted-foreground">Wenn eine Krypto-Einzahlung bestätigt wird</p>
                 </div>
                 <Switch
                   id="notifyDepositPaid"
                   checked={notifyDepositPaid}
                   onCheckedChange={setNotifyDepositPaid}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyBankDepositCreated">🏦 Bank-Einzahlungen</Label>
+                  <p className="text-xs text-muted-foreground">Wenn eine Bank-Einzahlung erstellt wird</p>
+                </div>
+                <Switch
+                  id="notifyBankDepositCreated"
+                  checked={notifyBankDepositCreated}
+                  onCheckedChange={setNotifyBankDepositCreated}
                   disabled={!enabled}
                 />
               </div>
@@ -343,6 +364,19 @@ export default function Telegram() {
                   id="notifyKycSubmitted"
                   checked={notifyKycSubmitted}
                   onCheckedChange={setNotifyKycSubmitted}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyBankKycSubmitted">🏦 Bank-KYC Anfragen</Label>
+                  <p className="text-xs text-muted-foreground">Wenn eine Bank-KYC Verifizierung eingereicht wird</p>
+                </div>
+                <Switch
+                  id="notifyBankKycSubmitted"
+                  checked={notifyBankKycSubmitted}
+                  onCheckedChange={setNotifyBankKycSubmitted}
                   disabled={!enabled}
                 />
               </div>

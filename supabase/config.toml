@@ -47,3 +47,15 @@ verify_jwt = false
 
 [functions.send-kyc-rejection]
 verify_jwt = false
+
+[functions.send-bank-deposit-confirmation]
+verify_jwt = false
+
+[functions.send-crypto-deposit-confirmation]
+verify_jwt = false
+
+[functions.send-bank-kyc-confirmation]
+verify_jwt = false
+
+[functions.send-bank-kyc-rejection]
+verify_jwt = false

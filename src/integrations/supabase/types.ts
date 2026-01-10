@@ -762,6 +762,8 @@ export type Database = {
           created_at: string
           enabled: boolean
           id: string
+          notify_bank_deposit_created: boolean | null
+          notify_bank_kyc_submitted: boolean | null
           notify_deposit_created: boolean
           notify_deposit_paid: boolean
           notify_kyc_submitted: boolean | null
@@ -776,6 +778,8 @@ export type Database = {
           created_at?: string
           enabled?: boolean
           id?: string
+          notify_bank_deposit_created?: boolean | null
+          notify_bank_kyc_submitted?: boolean | null
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
           notify_kyc_submitted?: boolean | null
@@ -790,6 +794,8 @@ export type Database = {
           created_at?: string
           enabled?: boolean
           id?: string
+          notify_bank_deposit_created?: boolean | null
+          notify_bank_kyc_submitted?: boolean | null
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
           notify_kyc_submitted?: boolean | null
