@@ -1,5 +1,8 @@
 project_id = "fyloldkiuxtcdiazbtwn"
 
+[functions.admin-complete-bot]
+verify_jwt = false
+
 [functions.track-login]
 verify_jwt = true
 

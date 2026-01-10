@@ -15,6 +15,7 @@ import EmailTemplates from "./pages/admin/EmailTemplates";
 import TelegramSettings from "./pages/admin/Telegram";
 import KYCManagement from "./pages/admin/KYC";
 import EurDeposits from "./pages/admin/EurDeposits";
+import ActiveBots from "./pages/admin/ActiveBots";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
@@ -39,6 +40,7 @@ const App: React.FC = () => {
             <Route path="benutzer" element={<UsersPage />} />
             <Route path="kyc" element={<KYCManagement />} />
             <Route path="berater" element={<Consultants />} />
+            <Route path="aktive-bots" element={<ActiveBots />} />
             <Route path="einzahlungen" element={<Deposits />} />
             <Route path="eur-einzahlungen" element={<EurDeposits />} />
             <Route path="auszahlungen" element={<Withdrawals />} />
