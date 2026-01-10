@@ -20,7 +20,9 @@ import {
   AlertCircle,
   Loader2,
   Calendar,
-  Building2
+  Building2,
+  Hash,
+  Link2
 } from "lucide-react";
 
 const animationStyles = `
@@ -285,23 +287,58 @@ export default function BankDeposit() {
           </CardContent>
         </Card>
 
-        {/* Contact Card */}
-        <Card className="mb-6 border-muted/60">
+        {/* Verification Data Card */}
+        <Card className="mb-6 border-primary/20 bg-gradient-to-br from-card to-primary/5">
           <CardContent className="py-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
-                <Phone className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-primary" />
               </div>
-              <span className="font-medium text-foreground">Kontakt bei Fragen</span>
+              <span className="font-medium text-foreground">Ihre Verifizierungsdaten</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{eurDepositRequest.contact_email}</span>
+            <p className="text-sm text-muted-foreground mb-5">
+              Verwenden Sie diese Daten für die Verifizierung bei {eurDepositRequest.verification_type} über unsere Partnerbank {eurDepositRequest.partner_bank}.
+            </p>
+            
+            <div className="space-y-3">
+              {/* Identcode */}
+              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Hash className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Identcode</span>
+                </div>
+                {eurDepositRequest.verification_code ? (
+                  <p className="text-xl font-mono font-bold tracking-wider">{eurDepositRequest.verification_code}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">Noch nicht verfügbar</p>
+                )}
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{eurDepositRequest.contact_phone}</span>
+              
+              {/* Identlink */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-muted">
+                <div className="flex items-center gap-2 mb-2">
+                  <Link2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Identlink</span>
+                </div>
+                <p className="text-sm text-muted-foreground break-all">{eurDepositRequest.verification_link}</p>
+              </div>
+              
+              {/* Email & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-muted/30 border border-muted/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">E-Mail</span>
+                  </div>
+                  <p className="text-sm">{eurDepositRequest.contact_email}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/30 border border-muted/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">Telefon</span>
+                  </div>
+                  <p className="text-sm">{eurDepositRequest.contact_phone}</p>
+                </div>
               </div>
             </div>
           </CardContent>
