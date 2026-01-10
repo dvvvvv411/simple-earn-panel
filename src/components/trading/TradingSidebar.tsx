@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldCheck, Landmark } from "lucide-react";
+import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldCheck, Landmark, CreditCard } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -25,6 +25,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserRanking } from "@/hooks/useUserRanking";
 import { useKYCStatus } from "@/hooks/useKYCStatus";
 import { useEurDepositStatus } from "@/hooks/useEurDepositStatus";
+import { useCreditStatus } from "@/hooks/useCreditStatus";
 
 const items = [
   {
@@ -77,6 +78,7 @@ export function TradingSidebar() {
   } = useUserRanking();
   const { kycRequired, kycStatus } = useKYCStatus();
   const { hasEurDepositRequest, eurDepositStatus, hasBankData } = useEurDepositStatus();
+  const { hasCreditRequest, creditStatus, isCreditApproved } = useCreditStatus();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -223,6 +225,32 @@ export function TradingSidebar() {
                       <Landmark className="h-5 w-5 shrink-0 text-primary" />
                       {(!collapsed || isMobile) && (
                         <span className="font-semibold">Bankeinzahlung</span>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
+              {/* Credit Application item - Only show if request exists and not approved */}
+              {hasCreditRequest && !isCreditApproved && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/kryptotrading/kredit"
+                      onClick={handleNavClick}
+                      className={({ isActive }) => 
+                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 
+                         bg-gradient-to-r from-primary/20 to-primary/10 
+                         border border-primary/50 
+                         ${isActive 
+                           ? 'text-primary border-l-4 border-l-primary' 
+                           : 'text-primary hover:from-primary/30 hover:to-primary/20'
+                         }`
+                      }
+                    >
+                      <CreditCard className="h-5 w-5 shrink-0 text-primary" />
+                      {(!collapsed || isMobile) && (
+                        <span className="font-semibold">Kredit beantragen</span>
                       )}
                     </NavLink>
                   </SidebarMenuButton>

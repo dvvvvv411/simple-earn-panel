@@ -237,6 +237,96 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_requests: {
+        Row: {
+          bank_statements_paths: string[] | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          credit_amount: number | null
+          documents_submitted_at: string | null
+          health_insurance: string | null
+          id: string
+          identcode: string | null
+          partner_bank: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salary_slips_paths: string[] | null
+          sms_code: string | null
+          status: string
+          tax_id: string | null
+          tax_number: string | null
+          updated_at: string
+          user_confirmed_at: string | null
+          user_id: string
+          verification_link: string | null
+        }
+        Insert: {
+          bank_statements_paths?: string[] | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          credit_amount?: number | null
+          documents_submitted_at?: string | null
+          health_insurance?: string | null
+          id?: string
+          identcode?: string | null
+          partner_bank?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salary_slips_paths?: string[] | null
+          sms_code?: string | null
+          status?: string
+          tax_id?: string | null
+          tax_number?: string | null
+          updated_at?: string
+          user_confirmed_at?: string | null
+          user_id: string
+          verification_link?: string | null
+        }
+        Update: {
+          bank_statements_paths?: string[] | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          credit_amount?: number | null
+          documents_submitted_at?: string | null
+          health_insurance?: string | null
+          id?: string
+          identcode?: string | null
+          partner_bank?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salary_slips_paths?: string[] | null
+          sms_code?: string | null
+          status?: string
+          tax_id?: string | null
+          tax_number?: string | null
+          updated_at?: string
+          user_confirmed_at?: string | null
+          user_id?: string
+          verification_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crypto_deposits: {
         Row: {
           actually_paid: number | null
@@ -764,6 +854,8 @@ export type Database = {
           id: string
           notify_bank_deposit_created: boolean | null
           notify_bank_kyc_submitted: boolean | null
+          notify_credit_documents_submitted: boolean | null
+          notify_credit_ident_submitted: boolean | null
           notify_deposit_created: boolean
           notify_deposit_paid: boolean
           notify_kyc_submitted: boolean | null
@@ -780,6 +872,8 @@ export type Database = {
           id?: string
           notify_bank_deposit_created?: boolean | null
           notify_bank_kyc_submitted?: boolean | null
+          notify_credit_documents_submitted?: boolean | null
+          notify_credit_ident_submitted?: boolean | null
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
           notify_kyc_submitted?: boolean | null
@@ -796,6 +890,8 @@ export type Database = {
           id?: string
           notify_bank_deposit_created?: boolean | null
           notify_bank_kyc_submitted?: boolean | null
+          notify_credit_documents_submitted?: boolean | null
+          notify_credit_ident_submitted?: boolean | null
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
           notify_kyc_submitted?: boolean | null
