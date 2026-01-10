@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { 
   ShieldCheck, 
   Clock, 
@@ -19,7 +21,16 @@ import {
   Briefcase,
   CreditCard,
   Lock,
-  Calendar
+  Calendar,
+  Check,
+  ChevronsUpDown,
+  Banknote,
+  PiggyBank,
+  TrendingUp,
+  Gift,
+  Home,
+  Bitcoin,
+  MoreHorizontal
 } from "lucide-react";
 
 // Countries list with Germany first
@@ -58,14 +69,14 @@ const INCOME_RANGES = [
   "Über 10.000€"
 ];
 
-const SOURCE_OF_FUNDS = [
-  { id: "salary", label: "Gehalt/Einkommen" },
-  { id: "savings", label: "Ersparnisse" },
-  { id: "investments", label: "Investitionen/Aktien" },
-  { id: "inheritance", label: "Erbschaft" },
-  { id: "realestate", label: "Immobilienverkauf" },
-  { id: "crypto", label: "Krypto-Gewinne" },
-  { id: "other", label: "Sonstiges" }
+const SOURCE_OF_FUNDS_WITH_ICONS = [
+  { id: "salary", label: "Gehalt/Einkommen", icon: Banknote },
+  { id: "savings", label: "Ersparnisse", icon: PiggyBank },
+  { id: "investments", label: "Investitionen", icon: TrendingUp },
+  { id: "inheritance", label: "Erbschaft", icon: Gift },
+  { id: "realestate", label: "Immobilien", icon: Home },
+  { id: "crypto", label: "Krypto-Gewinne", icon: Bitcoin },
+  { id: "other", label: "Sonstiges", icon: MoreHorizontal }
 ];
 
 interface KYCSubmission {
@@ -104,12 +115,17 @@ export default function KYCVerification() {
   const [street, setStreet] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [city, setCity] = useState("");
+  const [country, setCountry] = useState("Deutschland");
   const [nationality, setNationality] = useState("Deutschland");
   const [employmentStatus, setEmploymentStatus] = useState("");
   const [monthlyIncome, setMonthlyIncome] = useState("");
   const [sourceOfFunds, setSourceOfFunds] = useState<string[]>([]);
   const [idFront, setIdFront] = useState<File | null>(null);
   const [idBack, setIdBack] = useState<File | null>(null);
+
+  // Combobox states
+  const [nationalityOpen, setNationalityOpen] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
 
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
@@ -180,7 +196,7 @@ export default function KYCVerification() {
     
     // Validation
     if (!firstName || !lastName || !birthDate || !birthPlace || !street || 
-        !postalCode || !city || !nationality || !employmentStatus || 
+        !postalCode || !city || !country || !nationality || !employmentStatus || 
         !monthlyIncome || sourceOfFunds.length === 0 || !idFront || !idBack) {
       toast({
         title: "Fehler",
@@ -228,6 +244,7 @@ export default function KYCVerification() {
           street: street,
           postal_code: postalCode,
           city: city,
+          country: country,
           nationality: nationality,
           employment_status: employmentStatus,
           monthly_income: monthlyIncome,
@@ -316,6 +333,14 @@ export default function KYCVerification() {
       </div>
     </div>
   );
+
+  // Progress steps data
+  const progressSteps = [
+    { icon: User, label: 'Persönliche Daten' },
+    { icon: MapPin, label: 'Adresse' },
+    { icon: Briefcase, label: 'Finanzen' },
+    { icon: CreditCard, label: 'Dokumente' }
+  ];
 
   if (loading) {
     return (
@@ -421,23 +446,22 @@ export default function KYCVerification() {
         </Card>
       )}
 
-      {/* Progress Indicator */}
-      <div className="flex items-center justify-between mb-8 px-2 md:px-4">
-        {[
-          { icon: User, label: 'Persönliche Daten' },
-          { icon: MapPin, label: 'Adresse' },
-          { icon: Briefcase, label: 'Finanzen' },
-          { icon: CreditCard, label: 'Dokumente' }
-        ].map((step, index) => (
-          <div key={step.label} className="flex items-center">
+      {/* Progress Indicator - Improved Layout */}
+      <div className="flex items-center justify-center mb-8">
+        {progressSteps.map((step, index) => (
+          <React.Fragment key={step.label}>
             <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary shadow-sm">
                 <step.icon className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-xs mt-1 text-muted-foreground hidden md:block text-center max-w-[80px]">{step.label}</span>
+              <span className="text-xs mt-2 text-foreground font-medium hidden md:block text-center whitespace-nowrap">
+                {step.label}
+              </span>
             </div>
-            {index < 3 && <div className="w-6 sm:w-8 lg:w-16 h-0.5 mx-1 sm:mx-2 bg-primary/30" />}
-          </div>
+            {index < progressSteps.length - 1 && (
+              <div className="w-12 md:w-20 lg:w-24 h-0.5 bg-gradient-to-r from-primary/50 to-primary/30 mx-3" />
+            )}
+          </React.Fragment>
         ))}
       </div>
 
@@ -458,7 +482,7 @@ export default function KYCVerification() {
           <CardContent className="pt-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="firstName" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Vorname <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -470,7 +494,7 @@ export default function KYCVerification() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="lastName" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Nachname <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -484,7 +508,7 @@ export default function KYCVerification() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="birthDate" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="birthDate" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Geburtsdatum <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -497,7 +521,7 @@ export default function KYCVerification() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="birthPlace" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="birthPlace" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Geburtsort <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -510,19 +534,45 @@ export default function KYCVerification() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nationality" className="text-sm font-medium flex items-center gap-1">
+              <Label className="text-base font-semibold text-foreground flex items-center gap-1.5">
                 Staatsangehörigkeit <span className="text-red-500">*</span>
               </Label>
-              <Select value={nationality} onValueChange={setNationality}>
-                <SelectTrigger className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20">
-                  <SelectValue placeholder="Bitte wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map((country) => (
-                    <SelectItem key={country} value={country}>{country}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={nationalityOpen} onOpenChange={setNationalityOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    role="combobox" 
+                    aria-expanded={nationalityOpen}
+                    className="h-11 w-full justify-between bg-background/50 border-border/50 hover:bg-background/80 font-normal"
+                  >
+                    {nationality || "Land auswählen..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Land suchen..." />
+                    <CommandList>
+                      <CommandEmpty>Kein Land gefunden.</CommandEmpty>
+                      <CommandGroup>
+                        {COUNTRIES.map((c) => (
+                          <CommandItem
+                            key={c}
+                            value={c}
+                            onSelect={() => {
+                              setNationality(c);
+                              setNationalityOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", nationality === c ? "opacity-100" : "opacity-0")} />
+                            {c}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
@@ -542,7 +592,7 @@ export default function KYCVerification() {
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="street" className="text-sm font-medium flex items-center gap-1">
+              <Label htmlFor="street" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                 Straße und Hausnummer <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -555,7 +605,7 @@ export default function KYCVerification() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="postalCode" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="postalCode" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Postleitzahl <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -567,7 +617,7 @@ export default function KYCVerification() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="city" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="city" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Stadt <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -578,6 +628,47 @@ export default function KYCVerification() {
                   required
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-base font-semibold text-foreground flex items-center gap-1.5">
+                Land <span className="text-red-500">*</span>
+              </Label>
+              <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    role="combobox" 
+                    aria-expanded={countryOpen}
+                    className="h-11 w-full justify-between bg-background/50 border-border/50 hover:bg-background/80 font-normal"
+                  >
+                    {country || "Land auswählen..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Land suchen..." />
+                    <CommandList>
+                      <CommandEmpty>Kein Land gefunden.</CommandEmpty>
+                      <CommandGroup>
+                        {COUNTRIES.map((c) => (
+                          <CommandItem
+                            key={c}
+                            value={c}
+                            onSelect={() => {
+                              setCountry(c);
+                              setCountryOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", country === c ? "opacity-100" : "opacity-0")} />
+                            {c}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
@@ -598,7 +689,7 @@ export default function KYCVerification() {
           <CardContent className="pt-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="employmentStatus" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="employmentStatus" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Beschäftigungsstatus <span className="text-red-500">*</span>
                 </Label>
                 <Select value={employmentStatus} onValueChange={setEmploymentStatus}>
@@ -613,7 +704,7 @@ export default function KYCVerification() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="monthlyIncome" className="text-sm font-medium flex items-center gap-1">
+                <Label htmlFor="monthlyIncome" className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Monatliches Nettoeinkommen <span className="text-red-500">*</span>
                 </Label>
                 <Select value={monthlyIncome} onValueChange={setMonthlyIncome}>
@@ -629,26 +720,46 @@ export default function KYCVerification() {
               </div>
             </div>
             <div className="space-y-3">
-              <Label className="text-sm font-medium flex items-center gap-1">
+              <Label className="text-base font-semibold text-foreground flex items-center gap-1.5">
                 Herkunft der Einlagen <span className="text-red-500">*</span>
               </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {SOURCE_OF_FUNDS.map((source) => (
-                  <div 
-                    key={source.id} 
-                    className="flex items-center space-x-3 p-3 rounded-lg bg-background/50 border border-border/50 hover:border-primary/30 transition-colors"
-                  >
-                    <Checkbox
-                      id={source.id}
-                      checked={sourceOfFunds.includes(source.id)}
-                      onCheckedChange={(checked) => handleSourceOfFundsChange(source.id, !!checked)}
-                      className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                    />
-                    <Label htmlFor={source.id} className="text-sm font-normal cursor-pointer flex-1">
-                      {source.label}
-                    </Label>
-                  </div>
-                ))}
+              <p className="text-sm text-muted-foreground -mt-1">Wählen Sie alle zutreffenden Optionen</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {SOURCE_OF_FUNDS_WITH_ICONS.map((source) => {
+                  const isSelected = sourceOfFunds.includes(source.id);
+                  const Icon = source.icon;
+                  return (
+                    <button
+                      key={source.id}
+                      type="button"
+                      onClick={() => handleSourceOfFundsChange(source.id, !isSelected)}
+                      className={cn(
+                        "relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 min-h-[100px]",
+                        isSelected 
+                          ? "border-primary bg-primary/10 shadow-md" 
+                          : "border-border/50 bg-background/30 hover:border-primary/40 hover:bg-primary/5"
+                      )}
+                    >
+                      {isSelected && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
+                      <div className={cn(
+                        "w-10 h-10 rounded-lg flex items-center justify-center mb-2 transition-colors",
+                        isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                      )}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className={cn(
+                        "text-xs font-medium text-center leading-tight",
+                        isSelected ? "text-primary" : "text-muted-foreground"
+                      )}>
+                        {source.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </CardContent>
@@ -671,7 +782,7 @@ export default function KYCVerification() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Front */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-1">
+                <Label className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Vorderseite <span className="text-red-500">*</span>
                 </Label>
                 <div
@@ -722,7 +833,7 @@ export default function KYCVerification() {
 
               {/* Back */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-1">
+                <Label className="text-base font-semibold text-foreground flex items-center gap-1.5">
                   Rückseite <span className="text-red-500">*</span>
                 </Label>
                 <div
