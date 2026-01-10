@@ -14,6 +14,7 @@ import Deposits from "./pages/admin/Deposits";
 import EmailTemplates from "./pages/admin/EmailTemplates";
 import TelegramSettings from "./pages/admin/Telegram";
 import KYCManagement from "./pages/admin/KYC";
+import EurDeposits from "./pages/admin/EurDeposits";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
@@ -22,6 +23,7 @@ import Support from "./pages/trading/Support";
 import SupportTicketDetail from "./pages/trading/SupportTicketDetail";
 import Settings from "./pages/trading/Settings";
 import KYCVerification from "./pages/trading/KYCVerification";
+import BankDeposit from "./pages/trading/BankDeposit";
 import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
@@ -38,6 +40,7 @@ const App: React.FC = () => {
             <Route path="kyc" element={<KYCManagement />} />
             <Route path="berater" element={<Consultants />} />
             <Route path="einzahlungen" element={<Deposits />} />
+            <Route path="eur-einzahlungen" element={<EurDeposits />} />
             <Route path="auszahlungen" element={<Withdrawals />} />
             <Route path="email-vorlagen" element={<EmailTemplates />} />
             <Route path="support" element={<AdminSupportPage />} />
@@ -52,6 +55,7 @@ const App: React.FC = () => {
             <Route path="support/ticket/:ticketId" element={<SupportTicketDetail />} />
             <Route path="einstellungen" element={<Settings />} />
             <Route path="kyc" element={<KYCVerification />} />
+            <Route path="bankeinzahlung" element={<BankDeposit />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

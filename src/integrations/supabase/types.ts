@@ -278,6 +278,75 @@ export type Database = {
         }
         Relationships: []
       }
+      eur_deposit_requests: {
+        Row: {
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          id: string
+          partner_bank: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_confirmed_at: string | null
+          user_id: string
+          verification_code: string
+          verification_link: string
+          verification_type: string
+        }
+        Insert: {
+          contact_email: string
+          contact_phone: string
+          created_at?: string
+          id?: string
+          partner_bank: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_confirmed_at?: string | null
+          user_id: string
+          verification_code: string
+          verification_link: string
+          verification_type: string
+        }
+        Update: {
+          contact_email?: string
+          contact_phone?: string
+          created_at?: string
+          id?: string
+          partner_bank?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_confirmed_at?: string | null
+          user_id?: string
+          verification_code?: string
+          verification_link?: string
+          verification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eur_deposit_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eur_deposit_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_submissions: {
         Row: {
           birth_date: string
