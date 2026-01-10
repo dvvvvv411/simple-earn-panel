@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TradingSidebar } from "./TradingSidebar";
 import { TradingGuard } from "./TradingGuard";
@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useActivityTracker } from "@/hooks/useActivityTracker";
+import { useKYCStatus } from "@/hooks/useKYCStatus";
 // Context for managing dashboard-level loading states
 interface DashboardLoadingContextType {
   isBalanceLoading: boolean;
@@ -47,9 +48,21 @@ function TradingContent() {
   const { branding, logoUrl } = useBranding();
   const { isBalanceLoading, setIsBalanceLoading, setUserName } = useDashboardLoading();
   const isMobile = useIsMobile();
+  const { kycRequired, kycStatus, loading: kycLoading } = useKYCStatus();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Track user activity
   useActivityTracker();
+
+  // Redirect to KYC page if required and not approved/pending
+  useEffect(() => {
+    if (!kycLoading && kycRequired && kycStatus !== 'approved' && kycStatus !== 'pending') {
+      if (location.pathname !== '/kryptotrading/kyc') {
+        navigate('/kryptotrading/kyc');
+      }
+    }
+  }, [kycLoading, kycRequired, kycStatus, location.pathname, navigate]);
   // Fetch user balance and name in a single request
   useEffect(() => {
     const fetchUserData = async () => {
