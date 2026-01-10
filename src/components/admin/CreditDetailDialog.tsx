@@ -90,7 +90,7 @@ export function CreditDetailDialog({ request, open, onOpenChange, onSuccess }: C
       case 'ident_pending':
         return { color: 'bg-purple-500/10 text-purple-600 border-purple-500/20', label: 'Ident ausstehend', icon: Key };
       case 'ident_submitted':
-        return { color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', label: 'Ident eingereicht', icon: Send };
+        return { color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', label: 'Ident durchgeführt', icon: Send };
       case 'approved':
         return { color: 'bg-green-500/10 text-green-600 border-green-500/20', label: 'Genehmigt', icon: CheckCircle };
       case 'rejected':
@@ -184,6 +184,44 @@ export function CreditDetailDialog({ request, open, onOpenChange, onSuccess }: C
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Nicht authentifiziert');
 
+      const creditAmount = request.credit_amount || 0;
+
+      // 1. Fetch current user balance
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', request.user_id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const currentBalance = profile?.balance || 0;
+      const newBalance = currentBalance + creditAmount;
+
+      // 2. Update user balance
+      const { error: updateBalanceError } = await supabase
+        .from('profiles')
+        .update({ balance: newBalance })
+        .eq('id', request.user_id);
+
+      if (updateBalanceError) throw updateBalanceError;
+
+      // 3. Create transaction record
+      const { error: transactionError } = await supabase
+        .from('user_transactions')
+        .insert({
+          user_id: request.user_id,
+          type: 'credit',
+          amount: creditAmount,
+          description: `Kredit-Auszahlung über ${request.partner_bank}`,
+          previous_balance: currentBalance,
+          new_balance: newBalance,
+          created_by: session.user.id,
+        });
+
+      if (transactionError) throw transactionError;
+
+      // 4. Update credit request status
       const { error } = await supabase
         .from('credit_requests')
         .update({
@@ -208,7 +246,7 @@ export function CreditDetailDialog({ request, open, onOpenChange, onSuccess }: C
         console.error('Email notification error:', emailError);
       }
 
-      toast.success('Kredit wurde genehmigt');
+      toast.success('Kredit wurde genehmigt und dem Konto gutgeschrieben');
       onOpenChange(false);
       onSuccess();
     } catch (error) {
