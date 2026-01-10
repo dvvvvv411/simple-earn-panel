@@ -884,46 +884,53 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
 
                     {/* Crypto Selection - Searchable Combobox */}
                     <div className="space-y-4 sm:space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-lg sm:text-base font-medium">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setDepositMethod('crypto')}
+                          className={cn(
+                            "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                            depositMethod === 'crypto'
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          )}
+                        >
                           Kryptowährung
-                        </Label>
+                        </button>
                         {hasBankData && (
-                          <Badge 
-                            variant={depositMethod === 'bank' ? 'default' : 'outline'}
+                          <button
+                            onClick={() => setDepositMethod('bank')}
                             className={cn(
-                              "cursor-pointer transition-all",
-                              depositMethod === 'bank' 
-                                ? "bg-primary text-primary-foreground" 
-                                : "hover:bg-primary/10"
+                              "px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5",
+                              depositMethod === 'bank'
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
                             )}
-                            onClick={() => setDepositMethod(depositMethod === 'bank' ? 'crypto' : 'bank')}
                           >
-                            <Landmark className="w-3 h-3 mr-1" />
+                            <Landmark className="w-3.5 h-3.5" />
                             Banküberweisung
-                          </Badge>
+                          </button>
                         )}
                       </div>
                       
-                      {depositMethod === 'bank' ? (
-                        <div className="w-full h-14 sm:h-12 flex items-center gap-3 px-4 rounded-md border bg-muted/30">
-                          <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none">
-                            <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" 
-                                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          <span className="font-medium">SEPA-Banküberweisung</span>
-                        </div>
-                      ) : (
-                      <Popover open={cryptoDropdownOpen} onOpenChange={setCryptoDropdownOpen}>
+                      <Popover open={depositMethod === 'crypto' ? cryptoDropdownOpen : false} onOpenChange={depositMethod === 'crypto' ? setCryptoDropdownOpen : undefined}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
                             aria-expanded={cryptoDropdownOpen}
                             className="w-full h-14 sm:h-12 justify-between text-lg sm:text-base font-normal"
-                            disabled={currenciesLoading}
+                            disabled={depositMethod === 'crypto' && currenciesLoading}
+                            onClick={depositMethod === 'bank' ? (e) => e.preventDefault() : undefined}
                           >
-                            {currenciesLoading ? (
+                            {depositMethod === 'bank' ? (
+                              <div className="flex items-center gap-3">
+                                <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none">
+                                  <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" 
+                                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                <span>SEPA-Banküberweisung</span>
+                              </div>
+                            ) : currenciesLoading ? (
                               <div className="flex items-center gap-2">
                                 <Loader2 className="w-5 h-5 animate-spin" />
                                 <span>Lade Währungen...</span>
@@ -956,7 +963,9 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                             ) : (
                               "Währung wählen..."
                             )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            {depositMethod === 'crypto' && (
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            )}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[400px] p-0" align="start">
@@ -1183,7 +1192,6 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                           </Command>
                         </PopoverContent>
                       </Popover>
-                      )}
                     </div>
 
                     {/* Amount Summary */}
