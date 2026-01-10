@@ -395,17 +395,23 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
       const success = await confirmBankDeposit(bankPaymentData.id);
       
       if (success) {
+        setBankTransferConfirmed(true);
+        // Update local bankPaymentData with confirmed timestamp
+        setBankPaymentData({
+          ...bankPaymentData,
+          user_confirmed_at: new Date().toISOString()
+        });
         toast({
           title: "Überweisung bestätigt",
-          description: "Ihre Einzahlung wird bearbeitet. Dies kann 1-2 Werktage dauern.",
+          description: "Wir warten jetzt auf den Geldeingang.",
         });
-        handleClose();
       }
     } catch (error) {
+      console.error('Error confirming bank transfer:', error);
       toast({
         title: "Fehler",
-        description: "Die Bestätigung konnte nicht gespeichert werden.",
-        variant: "destructive",
+        description: "Bestätigung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+        variant: "destructive"
       });
     } finally {
       setIsCreating(false);
@@ -553,6 +559,25 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     Zurück
                   </Button>
 
+                  {/* Waiting Status Message - only shown when confirmed */}
+                  {(bankPaymentData?.user_confirmed_at || bankTransferConfirmed) && (
+                    <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
+                          <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-blue-900 dark:text-blue-100">
+                            Warte auf Geldeingang
+                          </div>
+                          <div className="text-sm text-blue-700 dark:text-blue-300">
+                            Bearbeitungszeit: 1-2 Werktage
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Amount to Transfer - Compact Centered Display */}
                   <div className="p-5 rounded-xl bg-gradient-to-br from-card to-muted/30 border shadow-sm text-center max-w-xs mx-auto">
                     <div className="text-xs text-muted-foreground mb-1">Überweisungsbetrag</div>
@@ -642,22 +667,31 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                   {/* Confirm Button */}
                   <Button
                     onClick={handleConfirmBankTransfer}
-                    disabled={isCreating}
+                    disabled={isCreating || !!bankPaymentData?.user_confirmed_at || bankTransferConfirmed}
                     className="w-full h-12"
+                    variant={!!bankPaymentData?.user_confirmed_at || bankTransferConfirmed ? "secondary" : "default"}
                   >
                     {isCreating ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         Wird bestätigt...
                       </>
+                    ) : !!bankPaymentData?.user_confirmed_at || bankTransferConfirmed ? (
+                      <>
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        Überweisung bestätigt
+                      </>
                     ) : (
                       <>Überweisung bestätigen</>
                     )}
                   </Button>
 
-                  <p className="text-xs text-center text-muted-foreground">
-                    Bearbeitungszeit: 1-2 Werktage nach Geldeingang
-                  </p>
+                  {/* Only show hint when not yet confirmed */}
+                  {!bankPaymentData?.user_confirmed_at && !bankTransferConfirmed && (
+                    <p className="text-xs text-center text-muted-foreground">
+                      Bearbeitungszeit: 1-2 Werktage nach Geldeingang
+                    </p>
+                  )}
                 </div>
               ) : paymentData ? (
                 // Crypto Payment Screen - Internal display
