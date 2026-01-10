@@ -102,7 +102,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-sidebar">
+      <SidebarContent className="bg-sidebar overflow-hidden">
         {menuGroups.map((group, groupIndex) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/60 px-4 py-2 mt-2">
