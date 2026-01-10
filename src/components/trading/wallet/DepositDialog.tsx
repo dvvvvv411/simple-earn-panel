@@ -535,31 +535,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                 </div>
               </ResponsiveDialogHeader>
 
-              {/* Tabs - nur wenn User Bankdaten hat und kein Payment aktiv */}
-              {hasBankData && !paymentData && !bankPaymentData && (
-                <div className="mb-6">
-                  <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
-                    <Button
-                      variant={depositMethod === 'crypto' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setDepositMethod('crypto')}
-                      className="flex-1"
-                    >
-                      <Bitcoin className="w-4 h-4 mr-2" />
-                      Kryptowährung
-                    </Button>
-                    <Button
-                      variant={depositMethod === 'bank' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setDepositMethod('bank')}
-                      className="flex-1"
-                    >
-                      <Landmark className="w-4 h-4 mr-2" />
-                      Banküberweisung
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* Empty placeholder - tabs removed, badge is now next to crypto label */}
 
               {/* Bank Payment Details View */}
               {bankPaymentData ? (
@@ -855,139 +831,8 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     Schließen
                   </Button>
                 </div>
-              ) : depositMethod === 'bank' ? (
-                // Bank Form State
-                <div className="grid lg:grid-cols-2 gap-8 sm:gap-4">
-                  {/* Left Column - Form */}
-                  <div className="space-y-8 sm:space-y-6">
-                    <div className="space-y-4 sm:space-y-3">
-                      <Label htmlFor="bank-amount" className="text-lg sm:text-base font-medium">
-                        Einzahlungsbetrag (EUR)
-                      </Label>
-                      
-                      {/* Balance Display */}
-                      <div className="p-6 sm:p-4 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 border">
-                        <div className="flex items-center justify-between">
-                          <span className="text-base sm:text-sm text-muted-foreground">Aktuelles Guthaben</span>
-                          <span className="font-semibold text-lg sm:text-base">
-                            {formatBalance(userBalance)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Amount Input */}
-                      <div className="relative">
-                        <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 sm:w-5 sm:h-5 text-muted-foreground" />
-                        <Input
-                          id="bank-amount"
-                          type="number"
-                          placeholder="0.00"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          className="pl-14 sm:pl-12 h-14 sm:h-12 text-lg sm:text-base"
-                          min="50"
-                          step="1"
-                        />
-                      </div>
-
-                      {/* Quick Amount Buttons */}
-                      <div className="grid grid-cols-5 gap-2">
-                        {QUICK_AMOUNTS.map((quickAmount) => (
-                          <Button
-                            key={quickAmount}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setAmount(quickAmount.toString())}
-                            className="text-sm sm:text-xs h-10 sm:h-auto"
-                          >
-                            {quickAmount.toLocaleString('de-DE')} €
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Bank Transfer Selection (Static) */}
-                    <div className="space-y-4 sm:space-y-3">
-                      <Label className="text-lg sm:text-base font-medium">
-                        Zahlungsart
-                      </Label>
-                      <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
-                        <Landmark className="w-6 h-6 text-primary" />
-                        <div>
-                          <div className="font-medium">SEPA-Banküberweisung</div>
-                          <div className="text-sm text-muted-foreground">Standard oder Echtzeit-Überweisung</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Amount Summary */}
-                    {amount && parseFloat(amount) >= 50 && (
-                      <div className="p-4 sm:p-3 rounded-lg bg-primary/5 border border-primary/20">
-                        <div className="flex items-center gap-2 text-base sm:text-sm">
-                          <Zap className="w-5 h-5 sm:w-4 sm:h-4 text-primary" />
-                          <span className="font-medium">Einzahlung:</span>
-                          <span className="font-semibold text-primary">
-                            {formatBalance(parseFloat(amount))}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Column - Info */}
-                  <div className="space-y-6 sm:space-y-4">
-                    {/* How it works - Bank */}
-                    <Card className="relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
-                      <CardContent className="relative p-6 sm:p-4">
-                        <h3 className="font-semibold text-lg sm:text-base mb-4">So funktioniert's</h3>
-                        <div className="space-y-4">
-                          {[
-                            { step: 1, text: "Gewünschten Betrag eingeben (min. 50€)" },
-                            { step: 2, text: "Bankdaten und Verwendungszweck notieren" },
-                            { step: 3, text: "Überweisung bei Ihrer Bank ausführen" },
-                            { step: 4, text: "Guthaben wird nach Eingang gutgeschrieben" },
-                          ].map((item) => (
-                            <div key={item.step} className="flex items-start gap-3">
-                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <span className="text-xs font-semibold text-primary">{item.step}</span>
-                              </div>
-                              <span className="text-sm text-muted-foreground">{item.text}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Realtime Tip */}
-                    <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-sm mb-1 text-blue-700 dark:text-blue-400">Echtzeit-Überweisung</h4>
-                          <p className="text-xs text-blue-600 dark:text-blue-500">
-                            Mit einer Echtzeit-Überweisung (Instant Payment) kommt Ihr Geld meist innerhalb von Sekunden an.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Security Note */}
-                    <div className="p-4 rounded-lg bg-muted/30 border">
-                      <div className="flex items-start gap-3">
-                        <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-sm mb-1">Sichere Zahlungen</h4>
-                          <p className="text-xs text-muted-foreground">
-                            SEPA-Überweisungen sind sicher und europaweit standardisiert.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               ) : (
-                // Crypto Form State
+                // Unified Form State (Crypto + Bank option via badge)
                 <div className="grid lg:grid-cols-2 gap-8 sm:gap-4">
                   {/* Left Column - Form */}
                   <div className="space-y-8 sm:space-y-6">
@@ -1016,7 +861,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
                           className="pl-14 sm:pl-12 h-14 sm:h-12 text-lg sm:text-base"
-                          min="10"
+                          min={depositMethod === 'bank' ? "50" : "10"}
                           step="1"
                         />
                       </div>
@@ -1039,9 +884,36 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
 
                     {/* Crypto Selection - Searchable Combobox */}
                     <div className="space-y-4 sm:space-y-3">
-                      <Label className="text-lg sm:text-base font-medium">
-                        Kryptowährung
-                      </Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-lg sm:text-base font-medium">
+                          Kryptowährung
+                        </Label>
+                        {hasBankData && (
+                          <Badge 
+                            variant={depositMethod === 'bank' ? 'default' : 'outline'}
+                            className={cn(
+                              "cursor-pointer transition-all",
+                              depositMethod === 'bank' 
+                                ? "bg-primary text-primary-foreground" 
+                                : "hover:bg-primary/10"
+                            )}
+                            onClick={() => setDepositMethod(depositMethod === 'bank' ? 'crypto' : 'bank')}
+                          >
+                            <Landmark className="w-3 h-3 mr-1" />
+                            Banküberweisung
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {depositMethod === 'bank' ? (
+                        <div className="w-full h-14 sm:h-12 flex items-center gap-3 px-4 rounded-md border bg-muted/30">
+                          <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" 
+                                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span className="font-medium">SEPA-Banküberweisung</span>
+                        </div>
+                      ) : (
                       <Popover open={cryptoDropdownOpen} onOpenChange={setCryptoDropdownOpen}>
                         <PopoverTrigger asChild>
                           <Button
@@ -1311,6 +1183,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                           </Command>
                         </PopoverContent>
                       </Popover>
+                      )}
                     </div>
 
                     {/* Amount Summary */}
@@ -1330,18 +1203,23 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
 
                   {/* Right Column - Info */}
                   <div className="space-y-6 sm:space-y-4">
-                    {/* How it works */}
+                    {/* How it works - Dynamic based on deposit method */}
                     <Card className="relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
                       <CardContent className="relative p-6 sm:p-4">
                         <h3 className="font-semibold text-lg sm:text-base mb-4">So funktioniert's</h3>
                         <div className="space-y-4">
-                          {[
+                          {(depositMethod === 'bank' ? [
+                            { step: 1, text: "Gewünschten Betrag eingeben (min. 50€)" },
+                            { step: 2, text: "Bankdaten und Verwendungszweck notieren" },
+                            { step: 3, text: "Überweisung bei Ihrer Bank ausführen" },
+                            { step: 4, text: "Guthaben wird nach Eingang gutgeschrieben" },
+                          ] : [
                             { step: 1, text: "Betrag und Kryptowährung wählen" },
                             { step: 2, text: "QR-Code scannen oder Adresse kopieren" },
                             { step: 3, text: "Betrag an Wallet senden" },
                             { step: 4, text: "Guthaben wird automatisch gutgeschrieben" },
-                          ].map((item) => (
+                          ]).map((item) => (
                             <div key={item.step} className="flex items-start gap-3">
                               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                 <span className="text-xs font-semibold text-primary">{item.step}</span>
