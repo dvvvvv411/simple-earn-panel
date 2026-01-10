@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface EurDepositRequest {
+export interface EurDepositRequest {
   id: string;
   user_id: string;
   partner_bank: string;
@@ -18,6 +18,10 @@ interface EurDepositRequest {
   rejection_reason: string | null;
   created_at: string;
   updated_at: string;
+  bank_account_holder: string | null;
+  bank_iban: string | null;
+  bank_bic: string | null;
+  bank_name: string | null;
 }
 
 export function useEurDepositStatus() {
@@ -26,31 +30,7 @@ export function useEurDepositStatus() {
   const [eurDepositRequest, setEurDepositRequest] = useState<EurDepositRequest | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadEurDepositStatus();
-    
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('eur_deposit_status')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'eur_deposit_requests',
-        },
-        () => {
-          loadEurDepositStatus();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const loadEurDepositStatus = async () => {
+  const loadEurDepositStatus = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -86,7 +66,31 @@ export function useEurDepositStatus() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadEurDepositStatus();
+    
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('eur_deposit_status')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'eur_deposit_requests',
+        },
+        () => {
+          loadEurDepositStatus();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadEurDepositStatus]);
 
   const confirmVerification = async () => {
     if (!eurDepositRequest) return false;
@@ -113,6 +117,13 @@ export function useEurDepositStatus() {
     }
   };
 
+  // Check if user has bank data assigned (approved with bank details)
+  const hasBankData = Boolean(
+    eurDepositRequest?.status === 'approved' && 
+    eurDepositRequest?.bank_iban && 
+    eurDepositRequest?.bank_iban.trim() !== ''
+  );
+
   return {
     hasEurDepositRequest,
     eurDepositStatus,
@@ -120,5 +131,6 @@ export function useEurDepositStatus() {
     loading,
     confirmVerification,
     refetch: loadEurDepositStatus,
+    hasBankData,
   };
 }

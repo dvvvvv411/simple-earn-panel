@@ -24,7 +24,9 @@ import {
   CheckCircle, 
   XCircle,
   Send,
-  Calendar
+  Calendar,
+  CreditCard,
+  Building2
 } from "lucide-react";
 
 interface EurDepositRequest {
@@ -44,6 +46,10 @@ interface EurDepositRequest {
   rejection_reason: string | null;
   created_at: string;
   updated_at: string;
+  bank_account_holder?: string | null;
+  bank_iban?: string | null;
+  bank_bic?: string | null;
+  bank_name?: string | null;
   profile?: {
     first_name: string | null;
     last_name: string | null;
@@ -61,6 +67,12 @@ interface EurDepositDetailDialogProps {
 export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess }: EurDepositDetailDialogProps) {
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
+  
+  // Bank data fields
+  const [bankAccountHolder, setBankAccountHolder] = useState("");
+  const [bankIban, setBankIban] = useState("");
+  const [bankBic, setBankBic] = useState("");
+  const [bankName, setBankName] = useState("");
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -78,6 +90,24 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
   };
 
   const handleApprove = async () => {
+    // Validate bank data
+    if (!bankAccountHolder.trim()) {
+      toast.error('Bitte den Kontoinhaber eingeben');
+      return;
+    }
+    if (!bankIban.trim()) {
+      toast.error('Bitte die IBAN eingeben');
+      return;
+    }
+    if (!bankBic.trim()) {
+      toast.error('Bitte den BIC eingeben');
+      return;
+    }
+    if (!bankName.trim()) {
+      toast.error('Bitte den Banknamen eingeben');
+      return;
+    }
+
     setProcessing(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -89,12 +119,16 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
           status: 'approved',
           reviewed_by: session.user.id,
           reviewed_at: new Date().toISOString(),
+          bank_account_holder: bankAccountHolder.trim(),
+          bank_iban: bankIban.trim().toUpperCase(),
+          bank_bic: bankBic.trim().toUpperCase(),
+          bank_name: bankName.trim(),
         })
         .eq('id', request.id);
 
       if (error) throw error;
 
-      toast.success('Anfrage wurde genehmigt');
+      toast.success('Anfrage wurde genehmigt mit Bankdaten');
       onOpenChange(false);
       onSuccess();
     } catch (error) {
@@ -231,6 +265,34 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
             </div>
           </div>
 
+          {/* Assigned Bank Data - Show if approved */}
+          {request.status === 'approved' && request.bank_iban && (
+            <div className="space-y-4">
+              <h4 className="font-medium flex items-center gap-2 text-sm border-b pb-2">
+                <CreditCard className="h-4 w-4 text-green-600" />
+                Zugewiesene Bankdaten
+              </h4>
+              <div className="grid grid-cols-2 gap-4 text-sm p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                <div>
+                  <p className="text-muted-foreground">Kontoinhaber</p>
+                  <p className="font-medium">{request.bank_account_holder}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Bank</p>
+                  <p className="font-medium">{request.bank_name}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">IBAN</p>
+                  <p className="font-medium font-mono">{request.bank_iban}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">BIC</p>
+                  <p className="font-medium font-mono">{request.bank_bic}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Dates */}
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -266,16 +328,80 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
           {/* Admin Actions - Only show for submitted status */}
           {request.status === 'submitted' && (
             <div className="space-y-4 border-t pt-4">
-              <h4 className="font-medium text-sm">Admin-Aktion</h4>
+              <h4 className="font-medium text-sm flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-primary" />
+                Bankdaten zuweisen
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Diese Bankdaten werden dem Nutzer für SEPA-Einzahlungen angezeigt.
+              </p>
               
-              <div className="space-y-2">
-                <Label>Ablehnungsgrund (optional bei Ablehnung)</Label>
-                <Textarea
-                  placeholder="Grund für die Ablehnung..."
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  rows={2}
-                />
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="bankAccountHolder" className="text-xs">
+                    Kontoinhaber *
+                  </Label>
+                  <Input
+                    id="bankAccountHolder"
+                    placeholder="Max Mustermann"
+                    value={bankAccountHolder}
+                    onChange={(e) => setBankAccountHolder(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <Label htmlFor="bankIban" className="text-xs">
+                    IBAN *
+                  </Label>
+                  <Input
+                    id="bankIban"
+                    placeholder="DE89 3704 0044 0532 0130 00"
+                    value={bankIban}
+                    onChange={(e) => setBankIban(e.target.value)}
+                    className="h-9 font-mono"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bankBic" className="text-xs">
+                      BIC *
+                    </Label>
+                    <Input
+                      id="bankBic"
+                      placeholder="COBADEFFXXX"
+                      value={bankBic}
+                      onChange={(e) => setBankBic(e.target.value)}
+                      className="h-9 font-mono"
+                    />
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bankName" className="text-xs">
+                      Bank *
+                    </Label>
+                    <Input
+                      id="bankName"
+                      placeholder="Commerzbank AG"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4 mt-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">Ablehnungsgrund (optional bei Ablehnung)</Label>
+                  <Textarea
+                    placeholder="Grund für die Ablehnung..."
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    rows={2}
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3">
@@ -291,7 +417,7 @@ export function EurDepositDetailDialog({ request, open, onOpenChange, onSuccess 
                 <Button
                   onClick={handleApprove}
                   disabled={processing}
-                  className="flex-1"
+                  className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Genehmigen

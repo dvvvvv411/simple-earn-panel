@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_deposit_requests: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          reference_code: string
+          status: string
+          updated_at: string
+          user_confirmed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          reference_code: string
+          status?: string
+          updated_at?: string
+          user_confirmed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          reference_code?: string
+          status?: string
+          updated_at?: string
+          user_confirmed_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_deposit_requests_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_deposit_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bot_trades: {
         Row: {
           amount: number
@@ -280,6 +334,10 @@ export type Database = {
       }
       eur_deposit_requests: {
         Row: {
+          bank_account_holder: string | null
+          bank_bic: string | null
+          bank_iban: string | null
+          bank_name: string | null
           contact_email: string
           contact_phone: string
           created_at: string
@@ -298,6 +356,10 @@ export type Database = {
           verification_type: string
         }
         Insert: {
+          bank_account_holder?: string | null
+          bank_bic?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           contact_email: string
           contact_phone: string
           created_at?: string
@@ -316,6 +378,10 @@ export type Database = {
           verification_type: string
         }
         Update: {
+          bank_account_holder?: string | null
+          bank_bic?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           contact_email?: string
           contact_phone?: string
           created_at?: string
@@ -1087,6 +1153,10 @@ export type Database = {
         Returns: boolean
       }
       initialize_user_rankings: { Args: never; Returns: undefined }
+      process_bank_deposit: {
+        Args: { p_admin_id: string; p_request_id: string }
+        Returns: boolean
+      }
       process_withdrawal_request: {
         Args: {
           admin_note_text?: string
