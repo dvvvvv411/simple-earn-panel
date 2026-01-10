@@ -203,9 +203,23 @@ export default function KYCManagement() {
 
       if (error) throw error;
 
+      // Send rejection email
+      try {
+        await supabase.functions.invoke('send-kyc-rejection', {
+          body: {
+            user_id: selectedSubmission.user_id,
+            rejection_reason: rejectionReason
+          }
+        });
+        console.log('✅ Rejection email sent');
+      } catch (emailError) {
+        console.error('⚠️ Failed to send rejection email:', emailError);
+        // Don't throw - the rejection was successful, just email failed
+      }
+
       toast({
         title: "Erfolgreich",
-        description: "KYC-Verifizierung wurde abgelehnt.",
+        description: "KYC-Verifizierung wurde abgelehnt und Nutzer per E-Mail informiert.",
       });
 
       setRejectionDialogOpen(false);
