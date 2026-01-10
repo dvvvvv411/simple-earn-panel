@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldCheck } from "lucide-react";
+import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldCheck, Landmark } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -23,6 +23,7 @@ import { useBranding } from "@/contexts/BrandingContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserRanking } from "@/hooks/useUserRanking";
 import { useKYCStatus } from "@/hooks/useKYCStatus";
+import { useEurDepositStatus } from "@/hooks/useEurDepositStatus";
 import { Badge } from "@/components/ui/badge";
 
 const items = [
@@ -75,6 +76,7 @@ export function TradingSidebar() {
     loading: rankingLoading 
   } = useUserRanking();
   const { kycRequired, kycStatus } = useKYCStatus();
+  const { hasEurDepositRequest, eurDepositStatus } = useEurDepositStatus();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -195,6 +197,53 @@ export function TradingSidebar() {
                             </Badge>
                           )}
                         </div>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
+              {/* EUR Deposit / Bank Deposit item - Only show if request exists */}
+              {hasEurDepositRequest && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/kryptotrading/bankeinzahlung"
+                      onClick={handleNavClick}
+                      className={({ isActive }) => 
+                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
+                          isActive 
+                            ? 'bg-primary/10 text-primary border-l-4 border-primary' 
+                            : 'hover:bg-accent/50 text-muted-foreground'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <Landmark className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                          {(!collapsed || isMobile) && (
+                            <div className="flex items-center gap-2 flex-1">
+                              <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
+                                Bankeinzahlung
+                              </span>
+                              {eurDepositStatus === 'pending' && (
+                                <Badge variant="outline" className="ml-auto text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                                  Offen
+                                </Badge>
+                              )}
+                              {eurDepositStatus === 'submitted' && (
+                                <Badge variant="outline" className="ml-auto text-xs bg-blue-500/10 text-blue-600 border-blue-500/20">
+                                  In Prüfung
+                                </Badge>
+                              )}
+                              {eurDepositStatus === 'approved' && (
+                                <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                                  Aktiv
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </>
                       )}
                     </NavLink>
                   </SidebarMenuButton>
