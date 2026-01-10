@@ -33,118 +33,24 @@ import {
   MoreHorizontal
 } from "lucide-react";
 
-// Countries list with Germany first - includes ISO codes for flag emojis
-const COUNTRIES_WITH_FLAGS = [
-  { name: "Deutschland", code: "DE" },
-  { name: "Österreich", code: "AT" },
-  { name: "Schweiz", code: "CH" },
-  { name: "Afghanistan", code: "AF" },
-  { name: "Albanien", code: "AL" },
-  { name: "Algerien", code: "DZ" },
-  { name: "Andorra", code: "AD" },
-  { name: "Angola", code: "AO" },
-  { name: "Argentinien", code: "AR" },
-  { name: "Armenien", code: "AM" },
-  { name: "Australien", code: "AU" },
-  { name: "Aserbaidschan", code: "AZ" },
-  { name: "Bahrain", code: "BH" },
-  { name: "Bangladesch", code: "BD" },
-  { name: "Belgien", code: "BE" },
-  { name: "Bosnien und Herzegowina", code: "BA" },
-  { name: "Brasilien", code: "BR" },
-  { name: "Bulgarien", code: "BG" },
-  { name: "Chile", code: "CL" },
-  { name: "China", code: "CN" },
-  { name: "Dänemark", code: "DK" },
-  { name: "Ecuador", code: "EC" },
-  { name: "Estland", code: "EE" },
-  { name: "Finnland", code: "FI" },
-  { name: "Frankreich", code: "FR" },
-  { name: "Georgien", code: "GE" },
-  { name: "Ghana", code: "GH" },
-  { name: "Griechenland", code: "GR" },
-  { name: "Großbritannien", code: "GB" },
-  { name: "Indien", code: "IN" },
-  { name: "Indonesien", code: "ID" },
-  { name: "Irak", code: "IQ" },
-  { name: "Iran", code: "IR" },
-  { name: "Irland", code: "IE" },
-  { name: "Island", code: "IS" },
-  { name: "Israel", code: "IL" },
-  { name: "Italien", code: "IT" },
-  { name: "Japan", code: "JP" },
-  { name: "Jordanien", code: "JO" },
-  { name: "Kanada", code: "CA" },
-  { name: "Kasachstan", code: "KZ" },
-  { name: "Katar", code: "QA" },
-  { name: "Kenia", code: "KE" },
-  { name: "Kolumbien", code: "CO" },
-  { name: "Kroatien", code: "HR" },
-  { name: "Kuwait", code: "KW" },
-  { name: "Lettland", code: "LV" },
-  { name: "Libanon", code: "LB" },
-  { name: "Liechtenstein", code: "LI" },
-  { name: "Litauen", code: "LT" },
-  { name: "Luxemburg", code: "LU" },
-  { name: "Malaysia", code: "MY" },
-  { name: "Marokko", code: "MA" },
-  { name: "Mexiko", code: "MX" },
-  { name: "Moldawien", code: "MD" },
-  { name: "Monaco", code: "MC" },
-  { name: "Montenegro", code: "ME" },
-  { name: "Neuseeland", code: "NZ" },
-  { name: "Niederlande", code: "NL" },
-  { name: "Nigeria", code: "NG" },
-  { name: "Nordmazedonien", code: "MK" },
-  { name: "Norwegen", code: "NO" },
-  { name: "Pakistan", code: "PK" },
-  { name: "Peru", code: "PE" },
-  { name: "Philippinen", code: "PH" },
-  { name: "Polen", code: "PL" },
-  { name: "Portugal", code: "PT" },
-  { name: "Rumänien", code: "RO" },
-  { name: "Russland", code: "RU" },
-  { name: "Saudi-Arabien", code: "SA" },
-  { name: "Schweden", code: "SE" },
-  { name: "Serbien", code: "RS" },
-  { name: "Singapur", code: "SG" },
-  { name: "Slowakei", code: "SK" },
-  { name: "Slowenien", code: "SI" },
-  { name: "Spanien", code: "ES" },
-  { name: "Südafrika", code: "ZA" },
-  { name: "Südkorea", code: "KR" },
-  { name: "Thailand", code: "TH" },
-  { name: "Tschechien", code: "CZ" },
-  { name: "Türkei", code: "TR" },
-  { name: "Tunesien", code: "TN" },
-  { name: "Ukraine", code: "UA" },
-  { name: "Ungarn", code: "HU" },
-  { name: "USA", code: "US" },
-  { name: "Vereinigte Arabische Emirate", code: "AE" },
-  { name: "Vietnam", code: "VN" },
-  { name: "Zypern", code: "CY" }
+// Countries list with Germany first
+const COUNTRIES = [
+  "Deutschland",
+  "Österreich",
+  "Schweiz",
+  "Afghanistan", "Albanien", "Algerien", "Andorra", "Angola", "Argentinien", "Armenien",
+  "Australien", "Aserbaidschan", "Bahrain", "Bangladesch", "Belgien", "Bosnien und Herzegowina",
+  "Brasilien", "Bulgarien", "Chile", "China", "Dänemark", "Ecuador", "Estland", "Finnland",
+  "Frankreich", "Georgien", "Ghana", "Griechenland", "Großbritannien", "Indien", "Indonesien",
+  "Irak", "Iran", "Irland", "Island", "Israel", "Italien", "Japan", "Jordanien", "Kanada",
+  "Kasachstan", "Katar", "Kenia", "Kolumbien", "Kroatien", "Kuwait", "Lettland", "Libanon",
+  "Liechtenstein", "Litauen", "Luxemburg", "Malaysia", "Marokko", "Mexiko", "Moldawien",
+  "Monaco", "Montenegro", "Neuseeland", "Niederlande", "Nigeria", "Nordmazedonien", "Norwegen",
+  "Pakistan", "Peru", "Philippinen", "Polen", "Portugal", "Rumänien", "Russland", "Saudi-Arabien",
+  "Schweden", "Serbien", "Singapur", "Slowakei", "Slowenien", "Spanien", "Südafrika", "Südkorea",
+  "Thailand", "Tschechien", "Türkei", "Tunesien", "Ukraine", "Ungarn", "USA", "Vereinigte Arabische Emirate",
+  "Vietnam", "Zypern"
 ];
-
-// Country flag component using CDN images (works on all platforms including Windows)
-const CountryFlag = ({ code, size = 20 }: { code: string; size?: number }) => {
-  return (
-    <img 
-      src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
-      srcSet={`https://flagcdn.com/w80/${code.toLowerCase()}.png 2x`}
-      width={size}
-      height={Math.round(size * 0.75)}
-      alt=""
-      className="inline-block rounded-sm object-cover"
-      style={{ minWidth: size }}
-      loading="lazy"
-    />
-  );
-};
-
-// Get country object by name
-const getCountryByName = (name: string) => {
-  return COUNTRIES_WITH_FLAGS.find(c => c.name === name);
-};
 
 const EMPLOYMENT_STATUS = [
   "Angestellt",
@@ -639,12 +545,7 @@ export default function KYCVerification() {
                     aria-expanded={nationalityOpen}
                     className="h-11 w-full justify-between bg-background/50 border-border/50 hover:bg-background/80 font-normal"
                   >
-                    <span className="flex items-center gap-2">
-                      {nationality && getCountryByName(nationality) && (
-                        <CountryFlag code={getCountryByName(nationality)!.code} size={20} />
-                      )}
-                      {nationality || "Land auswählen..."}
-                    </span>
+                    {nationality || "Land auswählen..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -654,19 +555,17 @@ export default function KYCVerification() {
                     <CommandList>
                       <CommandEmpty>Kein Land gefunden.</CommandEmpty>
                       <CommandGroup>
-                        {COUNTRIES_WITH_FLAGS.map((c) => (
+                        {COUNTRIES.map((c) => (
                           <CommandItem
-                            key={c.code}
-                            value={c.name}
+                            key={c}
+                            value={c}
                             onSelect={() => {
-                              setNationality(c.name);
+                              setNationality(c);
                               setNationalityOpen(false);
                             }}
-                            className="flex items-center gap-3 cursor-pointer"
                           >
-                            <CountryFlag code={c.code} size={24} />
-                            <span className="flex-1">{c.name}</span>
-                            <Check className={cn("h-4 w-4", nationality === c.name ? "opacity-100" : "opacity-0")} />
+                            <Check className={cn("mr-2 h-4 w-4", nationality === c ? "opacity-100" : "opacity-0")} />
+                            {c}
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -742,12 +641,7 @@ export default function KYCVerification() {
                     aria-expanded={countryOpen}
                     className="h-11 w-full justify-between bg-background/50 border-border/50 hover:bg-background/80 font-normal"
                   >
-                    <span className="flex items-center gap-2">
-                      {country && getCountryByName(country) && (
-                        <CountryFlag code={getCountryByName(country)!.code} size={20} />
-                      )}
-                      {country || "Land auswählen..."}
-                    </span>
+                    {country || "Land auswählen..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -757,19 +651,17 @@ export default function KYCVerification() {
                     <CommandList>
                       <CommandEmpty>Kein Land gefunden.</CommandEmpty>
                       <CommandGroup>
-                        {COUNTRIES_WITH_FLAGS.map((c) => (
+                        {COUNTRIES.map((c) => (
                           <CommandItem
-                            key={c.code}
-                            value={c.name}
+                            key={c}
+                            value={c}
                             onSelect={() => {
-                              setCountry(c.name);
+                              setCountry(c);
                               setCountryOpen(false);
                             }}
-                            className="flex items-center gap-3 cursor-pointer"
                           >
-                            <CountryFlag code={c.code} size={24} />
-                            <span className="flex-1">{c.name}</span>
-                            <Check className={cn("h-4 w-4", country === c.name ? "opacity-100" : "opacity-0")} />
+                            <Check className={cn("mr-2 h-4 w-4", country === c ? "opacity-100" : "opacity-0")} />
+                            {c}
                           </CommandItem>
                         ))}
                       </CommandGroup>
