@@ -50,9 +50,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Parse request body
-    const { bot_id, trade_type, target_profit_percent, preview } = await req.json();
+    const { bot_id, trade_type, target_profit_percent, is_unlucky, preview } = await req.json();
+    const isUnlucky = is_unlucky === true;
 
-    console.log(`📋 Request: bot_id=${bot_id}, trade_type=${trade_type}, target_profit=${target_profit_percent}%, preview=${preview}`);
+    console.log(`📋 Request: bot_id=${bot_id}, trade_type=${trade_type}, target=${target_profit_percent}%, unlucky=${isUnlucky}, preview=${preview}`);
 
     // Validate inputs
     if (!bot_id || !trade_type || target_profit_percent === undefined) {
@@ -112,8 +113,10 @@ serve(async (req) => {
 
     console.log(`📈 Found ${priceHistory.length} price points from ${bot.created_at} to now`);
 
-    // Find optimal trade scenario based on trade_type and target_profit
-    const scenario = findOptimalScenario(priceHistory, trade_type, target_profit_percent);
+    // Find optimal trade scenario based on trade_type, target_profit, and unlucky mode
+    const scenario = isUnlucky 
+      ? findOptimalLossScenario(priceHistory, trade_type, target_profit_percent)
+      : findOptimalScenario(priceHistory, trade_type, target_profit_percent);
 
     if (!scenario) {
       return new Response(
@@ -209,10 +212,14 @@ serve(async (req) => {
     const totalReturn = bot.start_amount + profitAmount;
     console.log(`💰 Returning ${totalReturn.toFixed(2)} EUR to user balance`);
     
+    const description = profitAmount < 0
+      ? `Trading Bot abgeschlossen (Admin) - ${bot.cryptocurrency} (${scenario.profitPercent.toFixed(2)}% Verlust)`
+      : `Trading Bot abgeschlossen (Admin) - ${bot.cryptocurrency} (+${scenario.profitPercent.toFixed(2)}% Gewinn)`;
+    
     const { error: balanceError } = await supabase.rpc('credit_balance_from_bot', {
       target_user_id: bot.user_id,
       amount: totalReturn,
-      description: `Trading Bot abgeschlossen (Admin) - ${bot.cryptocurrency} (+${scenario.profitPercent.toFixed(2)}% Gewinn)`
+      description
     });
 
     if (balanceError) {
@@ -457,6 +464,186 @@ function findBestAvailableScenario(
 
   if (bestScenario) {
     console.log(`🎯 Best available: ${bestScenario.tradeType} ${bestScenario.leverage}x, ${bestScenario.profitPercent.toFixed(2)}% profit (natural: ${bestScenario.naturalMovement.toFixed(3)}%)`);
+  }
+
+  return bestScenario;
+}
+
+// Find optimal LOSS scenario for unlucky mode
+function findOptimalLossScenario(
+  prices: HistoricalPrice[], 
+  tradeType: string, 
+  targetLoss: number
+): TradeScenario | null {
+  console.log(`🔍 Finding optimal ${tradeType.toUpperCase()} LOSS scenario for -${targetLoss}% loss...`);
+
+  const lossScenarios: TradeScenario[] = [];
+
+  if (tradeType === 'long') {
+    // LONG Loss: Buy HIGH, sell LOW (price dropped after buying)
+    for (let buyIndex = 0; buyIndex < prices.length - 1; buyIndex++) {
+      for (let sellIndex = buyIndex + 1; sellIndex < prices.length; sellIndex++) {
+        const buyPrice = prices[buyIndex].price;
+        const sellPrice = prices[sellIndex].price;
+        
+        if (sellPrice >= buyPrice) continue; // Need price drop for LONG loss
+        
+        const naturalMovement = ((buyPrice - sellPrice) / buyPrice) * 100;
+        if (naturalMovement < 0.01) continue;
+        
+        for (let leverage = 1; leverage <= 100; leverage++) {
+          const lossPercent = naturalMovement * leverage;
+          
+          if (lossPercent >= targetLoss - 0.5 && lossPercent <= targetLoss + 0.5) {
+            lossScenarios.push({
+              buyPrice,
+              sellPrice,
+              leverage,
+              profitPercent: -lossPercent, // Negative for loss!
+              naturalMovement,
+              tradeType: 'long'
+            });
+          }
+        }
+      }
+    }
+  } else {
+    // SHORT Loss: Sell LOW, buy HIGH (price rose instead of falling)
+    for (let sellIndex = 0; sellIndex < prices.length - 1; sellIndex++) {
+      for (let buyIndex = sellIndex + 1; buyIndex < prices.length; buyIndex++) {
+        const sellPrice = prices[sellIndex].price;
+        const buyPrice = prices[buyIndex].price;
+        
+        if (buyPrice <= sellPrice) continue; // Need price rise for SHORT loss
+        
+        const naturalMovement = ((buyPrice - sellPrice) / sellPrice) * 100;
+        if (naturalMovement < 0.01) continue;
+        
+        for (let leverage = 1; leverage <= 100; leverage++) {
+          const lossPercent = naturalMovement * leverage;
+          
+          if (lossPercent >= targetLoss - 0.5 && lossPercent <= targetLoss + 0.5) {
+            lossScenarios.push({
+              buyPrice,
+              sellPrice,
+              leverage,
+              profitPercent: -lossPercent, // Negative for loss!
+              naturalMovement,
+              tradeType: 'short'
+            });
+          }
+        }
+      }
+    }
+  }
+
+  console.log(`📉 Found ${lossScenarios.length} loss scenarios`);
+
+  if (lossScenarios.length === 0) {
+    return findBestAvailableLossScenario(prices, tradeType, targetLoss);
+  }
+
+  // Sort by closest to target loss, then by lower leverage
+  lossScenarios.sort((a, b) => {
+    const diffA = Math.abs(Math.abs(a.profitPercent) - targetLoss);
+    const diffB = Math.abs(Math.abs(b.profitPercent) - targetLoss);
+    
+    if (Math.abs(diffA - diffB) < 0.1) {
+      return a.leverage - b.leverage;
+    }
+    
+    return diffA - diffB;
+  });
+
+  console.log(`🎯 Best loss scenario: ${lossScenarios[0].tradeType} ${lossScenarios[0].leverage}x, ${lossScenarios[0].profitPercent.toFixed(2)}% loss`);
+
+  return lossScenarios[0];
+}
+
+// Fallback for loss scenarios
+function findBestAvailableLossScenario(
+  prices: HistoricalPrice[],
+  tradeType: string,
+  targetLoss: number
+): TradeScenario | null {
+  console.log('🔍 Searching for best available loss scenario with maximum leverage...');
+
+  let bestScenario: TradeScenario | null = null;
+
+  if (tradeType === 'long') {
+    // Find the biggest price DROP for LONG loss
+    let maxDrop = 0;
+    let bestBuyPrice = 0;
+    let bestSellPrice = 0;
+
+    for (let buyIndex = 0; buyIndex < prices.length - 1; buyIndex++) {
+      for (let sellIndex = buyIndex + 1; sellIndex < prices.length; sellIndex++) {
+        const buyPrice = prices[buyIndex].price;
+        const sellPrice = prices[sellIndex].price;
+        
+        if (sellPrice < buyPrice) {
+          const drop = ((buyPrice - sellPrice) / buyPrice) * 100;
+          if (drop > maxDrop) {
+            maxDrop = drop;
+            bestBuyPrice = buyPrice;
+            bestSellPrice = sellPrice;
+          }
+        }
+      }
+    }
+
+    if (maxDrop > 0) {
+      const leverage = Math.min(100, Math.ceil(targetLoss / maxDrop));
+      const lossPercent = maxDrop * leverage;
+      
+      bestScenario = {
+        buyPrice: bestBuyPrice,
+        sellPrice: bestSellPrice,
+        leverage,
+        profitPercent: -lossPercent, // Negative for loss
+        naturalMovement: maxDrop,
+        tradeType: 'long'
+      };
+    }
+  } else {
+    // Find the biggest price RISE for SHORT loss
+    let maxRise = 0;
+    let bestBuyPrice = 0;
+    let bestSellPrice = 0;
+
+    for (let sellIndex = 0; sellIndex < prices.length - 1; sellIndex++) {
+      for (let buyIndex = sellIndex + 1; buyIndex < prices.length; buyIndex++) {
+        const sellPrice = prices[sellIndex].price;
+        const buyPrice = prices[buyIndex].price;
+        
+        if (buyPrice > sellPrice) {
+          const rise = ((buyPrice - sellPrice) / sellPrice) * 100;
+          if (rise > maxRise) {
+            maxRise = rise;
+            bestBuyPrice = buyPrice;
+            bestSellPrice = sellPrice;
+          }
+        }
+      }
+    }
+
+    if (maxRise > 0) {
+      const leverage = Math.min(100, Math.ceil(targetLoss / maxRise));
+      const lossPercent = maxRise * leverage;
+      
+      bestScenario = {
+        buyPrice: bestBuyPrice,
+        sellPrice: bestSellPrice,
+        leverage,
+        profitPercent: -lossPercent, // Negative for loss
+        naturalMovement: maxRise,
+        tradeType: 'short'
+      };
+    }
+  }
+
+  if (bestScenario) {
+    console.log(`🎯 Best available loss: ${bestScenario.tradeType} ${bestScenario.leverage}x, ${bestScenario.profitPercent.toFixed(2)}% loss (natural: ${bestScenario.naturalMovement.toFixed(3)}%)`);
   }
 
   return bestScenario;

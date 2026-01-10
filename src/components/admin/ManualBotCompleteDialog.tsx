@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   AlertTriangle,
   TrendingUp,
@@ -23,7 +24,8 @@ import {
   Calculator,
   Loader2,
   CheckCircle,
-  Info
+  Info,
+  Skull
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -88,6 +90,7 @@ export function ManualBotCompleteDialog({
 }: ManualBotCompleteDialogProps) {
   const [tradeType, setTradeType] = useState<'long' | 'short'>('long');
   const [targetProfit, setTargetProfit] = useState<number>(1.5);
+  const [isUnlucky, setIsUnlucky] = useState(false);
   const [preview, setPreview] = useState<TradePreview | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [executing, setExecuting] = useState(false);
@@ -100,6 +103,7 @@ export function ManualBotCompleteDialog({
     if (open && bot) {
       setTradeType('long');
       setTargetProfit(1.5);
+      setIsUnlucky(false);
       setPreview(null);
       fetchPriceMovement();
     }
@@ -174,6 +178,7 @@ export function ManualBotCompleteDialog({
           bot_id: bot.id,
           trade_type: tradeType,
           target_profit_percent: targetProfit,
+          is_unlucky: isUnlucky,
           preview: true
         }
       });
@@ -209,6 +214,7 @@ export function ManualBotCompleteDialog({
           bot_id: bot.id,
           trade_type: tradeType,
           target_profit_percent: targetProfit,
+          is_unlucky: isUnlucky,
           preview: false
         }
       });
@@ -349,11 +355,34 @@ export function ManualBotCompleteDialog({
                 </RadioGroup>
               </div>
 
-              {/* Profit Target */}
+              {/* Unlucky Mode Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-lg border border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900">
+                <div className="space-y-0.5">
+                  <Label htmlFor="unlucky-mode" className="flex items-center gap-2 cursor-pointer">
+                    <Skull className="w-4 h-4 text-orange-500" />
+                    Pechsträhne aktivieren
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Bot macht Verlust statt Gewinn
+                  </p>
+                </div>
+                <Switch
+                  id="unlucky-mode"
+                  checked={isUnlucky}
+                  onCheckedChange={(checked) => {
+                    setIsUnlucky(checked);
+                    setPreview(null);
+                  }}
+                />
+              </div>
+
+              {/* Profit/Loss Target */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label>Ziel-Gewinn</Label>
-                  <span className="text-lg font-bold text-primary">{targetProfit.toFixed(1)}%</span>
+                  <Label>{isUnlucky ? "Ziel-Verlust" : "Ziel-Gewinn"}</Label>
+                  <span className={`text-lg font-bold ${isUnlucky ? 'text-red-600' : 'text-primary'}`}>
+                    {isUnlucky ? '-' : ''}{targetProfit.toFixed(1)}%
+                  </span>
                 </div>
                 <Slider
                   value={[targetProfit]}
@@ -371,9 +400,13 @@ export function ManualBotCompleteDialog({
                   <span>2.0%</span>
                   <span>3.0%</span>
                 </div>
-                <div className="p-3 rounded-lg bg-primary/10 flex items-center justify-between">
-                  <span className="text-sm">Geschätzter Gewinn:</span>
-                  <span className="font-bold text-primary">{formatCurrency(estimatedProfit)}</span>
+                <div className={`p-3 rounded-lg flex items-center justify-between ${
+                  isUnlucky ? 'bg-red-100/50 dark:bg-red-950/30' : 'bg-primary/10'
+                }`}>
+                  <span className="text-sm">{isUnlucky ? 'Geschätzter Verlust:' : 'Geschätzter Gewinn:'}</span>
+                  <span className={`font-bold ${isUnlucky ? 'text-red-600' : 'text-primary'}`}>
+                    {isUnlucky ? '-' : ''}{formatCurrency(estimatedProfit)}
+                  </span>
                 </div>
               </div>
 
@@ -402,11 +435,27 @@ export function ManualBotCompleteDialog({
             {preview && (
               <>
                 <Separator />
-                <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-900">
+                <Card className={preview.profit_percent < 0 
+                  ? "border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-900"
+                  : "border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-900"
+                }>
                   <CardContent className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
-                      <CheckCircle className="w-5 h-5" />
-                      <h4 className="font-semibold">Trade-Vorschau</h4>
+                    <div className={`flex items-center gap-2 ${
+                      preview.profit_percent < 0 
+                        ? 'text-red-700 dark:text-red-400' 
+                        : 'text-green-700 dark:text-green-400'
+                    }`}>
+                      {preview.profit_percent < 0 ? (
+                        <>
+                          <AlertTriangle className="w-5 h-5" />
+                          <h4 className="font-semibold">Verlust-Vorschau</h4>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          <h4 className="font-semibold">Trade-Vorschau</h4>
+                        </>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3 text-sm">
@@ -438,8 +487,12 @@ export function ManualBotCompleteDialog({
                         <p className="font-medium">{preview.natural_movement.toFixed(3)}%</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Effektiver Profit:</span>
-                        <p className="font-medium text-green-600">{preview.profit_percent.toFixed(2)}%</p>
+                        <span className="text-muted-foreground">
+                          {preview.profit_percent < 0 ? 'Effektiver Verlust:' : 'Effektiver Profit:'}
+                        </span>
+                        <p className={`font-medium ${preview.profit_percent < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {preview.profit_percent.toFixed(2)}%
+                        </p>
                       </div>
                     </div>
 
@@ -447,8 +500,12 @@ export function ManualBotCompleteDialog({
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-sm text-muted-foreground">Gewinn-Betrag:</span>
-                        <p className="text-xl font-bold text-green-600">{formatCurrency(preview.profit_amount)}</p>
+                        <span className="text-sm text-muted-foreground">
+                          {preview.profit_percent < 0 ? 'Verlust-Betrag:' : 'Gewinn-Betrag:'}
+                        </span>
+                        <p className={`text-xl font-bold ${preview.profit_percent < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {formatCurrency(preview.profit_amount)}
+                        </p>
                       </div>
                       <div className="text-right">
                         <span className="text-sm text-muted-foreground">Endguthaben:</span>
