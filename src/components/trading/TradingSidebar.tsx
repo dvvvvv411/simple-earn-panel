@@ -76,7 +76,7 @@ export function TradingSidebar() {
     loading: rankingLoading 
   } = useUserRanking();
   const { kycRequired, kycStatus } = useKYCStatus();
-  const { hasEurDepositRequest, eurDepositStatus } = useEurDepositStatus();
+  const { hasEurDepositRequest, eurDepositStatus, hasBankData } = useEurDepositStatus();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -203,8 +203,8 @@ export function TradingSidebar() {
                 </SidebarMenuItem>
               )}
 
-              {/* EUR Deposit / Bank Deposit item - Only show if request exists */}
-              {hasEurDepositRequest && (
+              {/* EUR Deposit / Bank Deposit item - Only show if request exists but NO bank data yet */}
+              {hasEurDepositRequest && !hasBankData && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink 

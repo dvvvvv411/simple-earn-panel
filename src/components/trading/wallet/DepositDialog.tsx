@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Wallet, 
   Euro, 
@@ -24,11 +26,16 @@ import {
   ChevronsUpDown,
   Check,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Landmark,
+  Building2,
+  CreditCard
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCryptoDeposits, CryptoDeposit, CreateDepositResult } from "@/hooks/useCryptoDeposits";
 import { useNowPaymentsCurrencies, CryptoCurrency } from "@/hooks/useNowPaymentsCurrencies";
+import { useBankDeposits, BankDepositRequest } from "@/hooks/useBankDeposits";
+import { useEurDepositStatus } from "@/hooks/useEurDepositStatus";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
@@ -72,9 +79,16 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
   const [currentPaymentStatus, setCurrentPaymentStatus] = useState<string>("waiting");
   const [isPolling, setIsPolling] = useState(false);
   
+  // Bank deposit states
+  const [depositMethod, setDepositMethod] = useState<'crypto' | 'bank'>('crypto');
+  const [bankPaymentData, setBankPaymentData] = useState<BankDepositRequest | null>(null);
+  const [bankTransferConfirmed, setBankTransferConfirmed] = useState(false);
+  
   const { toast } = useToast();
   const { createDeposit, deposits, checkStatus, getPendingDeposits, loading: depositsLoading } = useCryptoDeposits();
   const { currencies, popularCurrencies, usdtCurrencies, usdcCurrencies, otherStablecoins, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
+  const { createDeposit: createBankDeposit, confirmDeposit: confirmBankDeposit, getPendingDeposits: getPendingBankDeposits, loading: bankDepositsLoading } = useBankDeposits();
+  const { hasBankData, eurDepositRequest } = useEurDepositStatus();
 
   const formatBalance = (value: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -312,12 +326,110 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
     setAmount("");
     setSelectedCrypto("btc");
     setPaymentData(null);
+    setBankPaymentData(null);
+    setBankTransferConfirmed(false);
     setCurrentPaymentStatus("waiting");
+    setDepositMethod('crypto');
     onOpenChange(false);
   };
 
   const handleBackToForm = () => {
     setPaymentData(null);
+    setBankPaymentData(null);
+    setBankTransferConfirmed(false);
+  };
+
+  // Bank deposit handlers
+  const handleCreateBankDeposit = async () => {
+    const depositAmount = parseFloat(amount);
+    
+    if (!depositAmount || depositAmount <= 0) {
+      toast({
+        title: "Ungültiger Betrag",
+        description: "Bitte geben Sie einen gültigen Betrag ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (depositAmount < 50) {
+      toast({
+        title: "Mindestbetrag",
+        description: "Der Mindestbetrag für Banküberweisungen beträgt 50€.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const result = await createBankDeposit(depositAmount);
+      
+      if (result) {
+        setBankPaymentData(result);
+        onDepositCreated?.();
+        
+        toast({
+          title: "Einzahlung erstellt",
+          description: "Überweisen Sie den Betrag an die angegebene Bankverbindung.",
+        });
+      }
+    } catch (error) {
+      console.error('Bank deposit creation error:', error);
+      toast({
+        title: "Fehler",
+        description: "Die Einzahlung konnte nicht erstellt werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleConfirmBankTransfer = async () => {
+    if (!bankPaymentData) return;
+
+    setIsCreating(true);
+    try {
+      const success = await confirmBankDeposit(bankPaymentData.id);
+      
+      if (success) {
+        toast({
+          title: "Überweisung bestätigt",
+          description: "Ihre Einzahlung wird bearbeitet. Dies kann 1-2 Werktage dauern.",
+        });
+        handleClose();
+      }
+    } catch (error) {
+      toast({
+        title: "Fehler",
+        description: "Die Bestätigung konnte nicht gespeichert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCopyIban = () => {
+    if (eurDepositRequest?.bank_iban) {
+      navigator.clipboard.writeText(eurDepositRequest.bank_iban);
+      toast({
+        title: "Kopiert",
+        description: "IBAN wurde in die Zwischenablage kopiert.",
+      });
+    }
+  };
+
+  const handleCopyReference = () => {
+    if (bankPaymentData?.reference_code) {
+      navigator.clipboard.writeText(bankPaymentData.reference_code);
+      toast({
+        title: "Kopiert",
+        description: "Verwendungszweck wurde in die Zwischenablage kopiert.",
+      });
+    }
   };
 
   const handleRefreshStatus = async () => {
