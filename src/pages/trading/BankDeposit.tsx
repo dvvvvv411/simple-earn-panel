@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEurDepositStatus } from "@/hooks/useEurDepositStatus";
@@ -9,7 +8,7 @@ import { toast } from "@/components/ui/sonner";
 import { 
   Landmark, 
   ExternalLink, 
-  CheckCircle, 
+  CheckCircle2, 
   Clock, 
   XCircle, 
   Phone, 
@@ -19,8 +18,58 @@ import {
   Video,
   FileCheck,
   AlertCircle,
-  Copy
+  Loader2,
+  Calendar,
+  Building2
 } from "lucide-react";
+
+const animationStyles = `
+  @keyframes floating {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+  }
+  @keyframes floating-delayed {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(-3deg); }
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) skewX(-12deg); }
+    100% { transform: translateX(100%) skewX(-12deg); }
+  }
+`;
+
+// Premium Header Component
+const PremiumHeader = ({ subtitle }: { subtitle: string }) => (
+  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-6 md:p-8 mb-8">
+    <div 
+      className="absolute top-6 left-12 w-24 h-24 bg-white/10 rounded-full blur-sm"
+      style={{ animation: '6s ease-in-out infinite floating' }} 
+    />
+    <div 
+      className="absolute bottom-8 right-16 w-20 h-20 bg-white/15 rounded-full blur-sm"
+      style={{ animation: '8s ease-in-out infinite 2s floating-delayed' }} 
+    />
+    <div 
+      className="absolute top-1/2 left-1/3 w-16 h-16 bg-white/5 rounded-full blur-sm"
+      style={{ animation: '7s ease-in-out infinite 1s floating' }} 
+    />
+    <div className="absolute inset-0 overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+        style={{ animation: '3s linear infinite shimmer' }} 
+      />
+    </div>
+    <div className="relative z-10 flex items-center gap-4 md:gap-6">
+      <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20">
+        <Landmark className="w-7 h-7 md:w-8 md:h-8 text-white" />
+      </div>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Bankeinzahlung</h1>
+        <p className="text-white/80 mt-1 text-sm md:text-base">{subtitle}</p>
+      </div>
+    </div>
+  </div>
+);
 
 export default function BankDeposit() {
   const { eurDepositRequest, eurDepositStatus, loading, confirmVerification } = useEurDepositStatus();
@@ -43,32 +92,43 @@ export default function BankDeposit() {
     setSubmitting(false);
   };
 
-  const handleCopyCode = () => {
-    if (eurDepositRequest?.verification_code) {
-      navigator.clipboard.writeText(eurDepositRequest.verification_code);
-      toast.success('Code wurde kopiert');
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Lade Status...</p>
+        </div>
+        <style>{animationStyles}</style>
       </div>
     );
   }
 
   if (!eurDepositRequest) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Landmark className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
+        <PremiumHeader subtitle="SEPA-Einzahlung nicht verfügbar" />
+        <Card className="border-muted bg-muted/30">
+          <CardContent className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
+              <Landmark className="h-8 w-8 text-muted-foreground" />
+            </div>
             <p className="text-muted-foreground">
               EUR-Einzahlung ist für Ihr Konto nicht aktiviert.
             </p>
           </CardContent>
         </Card>
+        <style>{animationStyles}</style>
       </div>
     );
   }
@@ -76,196 +136,200 @@ export default function BankDeposit() {
   // Pending - User needs to complete verification
   if (eurDepositStatus === 'pending') {
     return (
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Landmark className="h-8 w-8 text-primary" />
-            Bankeinzahlung einrichten
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Eröffnen Sie ein Anlegekonto für SEPA-Einzahlungen
-          </p>
-        </div>
+      <div className="container max-w-4xl mx-auto py-4 md:py-8 px-4">
+        <PremiumHeader subtitle="Richten Sie Ihr SEPA-Einzahlungskonto ein" />
 
-        {/* Partner Bank Info */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10">
-                <Landmark className="h-8 w-8 text-primary" />
+        {/* Partner Bank Card */}
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 overflow-hidden relative mb-6">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          
+          <CardContent className="py-8 relative z-10">
+            <div className="flex items-start gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center shadow-lg border border-primary/20 shrink-0">
+                <Building2 className="h-8 w-8 text-primary" />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold">
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold text-foreground">
                   Ihre Partnerbank: {eurDepositRequest.partner_bank}
                 </h2>
-                <p className="text-muted-foreground mt-2 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   Um EUR-Einzahlungen per SEPA-Überweisung zu ermöglichen, eröffnen wir für Sie über 
-                  unsere Partnerbank <strong>{eurDepositRequest.partner_bank}</strong> ein separates Anlegekonto.
+                  unsere Partnerbank <span className="font-semibold text-foreground">{eurDepositRequest.partner_bank}</span> ein separates Anlegekonto.
                 </p>
-                <p className="text-muted-foreground mt-2">
-                  Für die Kontoeröffnung ist eine Identitätsprüfung via <strong>{eurDepositRequest.verification_type}</strong> erforderlich.
+                <p className="text-muted-foreground">
+                  Für die Kontoeröffnung ist eine Identitätsprüfung via <span className="font-semibold text-foreground">{eurDepositRequest.verification_type}</span> erforderlich.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Verification Process */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
+        {/* Verification Process Card */}
+        <Card className="mb-6">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Shield className="h-5 w-5 text-primary" />
+              </div>
               So funktioniert die {eurDepositRequest.verification_type}-Verifizierung
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              {/* Step 1 */}
-              <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
-                  1
-                </div>
-                <div>
-                  <p className="font-medium">Klicken Sie auf "Verifizierung starten"</p>
-                  <p className="text-sm text-muted-foreground">
-                    Sie werden zur {eurDepositRequest.verification_type}-Plattform weitergeleitet
-                  </p>
-                </div>
+            {/* Step 1 */}
+            <div className="flex gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-md">
+                1
               </div>
-
-              {/* Step 2 */}
-              <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
-                  2
-                </div>
-                <div>
-                  <p className="font-medium flex items-center gap-2">
-                    <FileCheck className="h-4 w-4" />
-                    Halten Sie folgende Dokumente bereit
-                  </p>
-                  <ul className="text-sm text-muted-foreground mt-1 space-y-1">
-                    <li>• Gültiger Personalausweis oder Reisepass</li>
-                    <li>• Smartphone mit Kamera</li>
-                  </ul>
-                </div>
+              <div className="pt-1">
+                <p className="font-semibold text-foreground">Klicken Sie auf "Verifizierung starten"</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Sie werden zur {eurDepositRequest.verification_type}-Plattform weitergeleitet
+                </p>
               </div>
+            </div>
 
-              {/* Step 3 */}
-              <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
-                  3
-                </div>
-                <div>
-                  <p className="font-medium flex items-center gap-2">
-                    <Video className="h-4 w-4" />
-                    Video-Identifikation durchführen
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Ein Mitarbeiter prüft Ihre Identität per Video-Chat (ca. 5-10 Minuten)
-                  </p>
-                </div>
+            {/* Step 2 */}
+            <div className="flex gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-md">
+                2
               </div>
+              <div className="pt-1">
+                <p className="font-semibold text-foreground flex items-center gap-2">
+                  <FileCheck className="h-4 w-4 text-primary" />
+                  Halten Sie folgende Dokumente bereit
+                </p>
+                <ul className="text-sm text-muted-foreground mt-2 space-y-1.5 ml-6">
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                    Gültiger Personalausweis oder Reisepass
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                    Smartphone mit Kamera
+                  </li>
+                </ul>
+              </div>
+            </div>
 
-              {/* Step 4 - SMS Code */}
-              <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
-                  4
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium flex items-center gap-2">
-                    <Smartphone className="h-4 w-4" />
-                    SMS-Code eingeben
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Am Ende der Verifizierung werden Sie nach einem Bestätigungscode gefragt. 
-                    Diesen erhalten Sie per SMS von Ihrem persönlichen Berater:
-                  </p>
-                  
-                  {/* Code Display */}
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-primary flex items-center gap-2">
-                          <Smartphone className="h-4 w-4" />
-                          Ihr Verifizierungscode
-                        </p>
-                        <p className="text-2xl font-mono font-bold mt-1">
-                          {eurDepositRequest.verification_code}
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={handleCopyCode}>
-                        <Copy className="h-4 w-4 mr-1" />
-                        Kopieren
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Geben Sie diesen Code am Ende der {eurDepositRequest.verification_type}-Verifizierung ein.
-                    </p>
+            {/* Step 3 */}
+            <div className="flex gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-md">
+                3
+              </div>
+              <div className="pt-1">
+                <p className="font-semibold text-foreground flex items-center gap-2">
+                  <Video className="h-4 w-4 text-primary" />
+                  Video-Identifikation durchführen
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Ein Mitarbeiter prüft Ihre Identität per Video-Chat (ca. 5-10 Minuten)
+                </p>
+              </div>
+            </div>
+
+            {/* Step 4 - SMS Code */}
+            <div className="flex gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-md">
+                4
+              </div>
+              <div className="pt-1 flex-1">
+                <p className="font-semibold text-foreground flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-primary" />
+                  SMS-Code eingeben
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
+                  Am Ende der Verifizierung werden Sie nach einem Bestätigungscode gefragt. 
+                  Diesen erhalten Sie per SMS von Ihrem persönlichen Berater:
+                </p>
+                
+                {/* Code Display Box */}
+                <div className="p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Smartphone className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-primary">Ihr Verifizierungscode</span>
                   </div>
+                  {eurDepositRequest.verification_code ? (
+                    <p className="text-3xl font-mono font-bold tracking-widest text-foreground">
+                      {eurDepositRequest.verification_code}
+                    </p>
+                  ) : (
+                    <p className="text-lg font-medium text-muted-foreground italic">
+                      Kein Code verfügbar
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-3">
+                    {eurDepositRequest.verification_code 
+                      ? `Geben Sie diesen Code am Ende der ${eurDepositRequest.verification_type}-Verifizierung ein.`
+                      : 'Ihr Berater wird Ihnen den Code in Kürze mitteilen.'}
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Step 5 */}
-              <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
-                  5
-                </div>
-                <div>
-                  <p className="font-medium flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Bestätigung auf dieser Seite
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Nach erfolgreicher Verifizierung bestätigen Sie dies hier, damit wir Ihr Konto aktivieren können.
-                  </p>
-                </div>
+            {/* Step 5 */}
+            <div className="flex gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-md">
+                5
+              </div>
+              <div className="pt-1">
+                <p className="font-semibold text-foreground flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  Bestätigung auf dieser Seite
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Nach erfolgreicher Verifizierung bestätigen Sie dies hier, damit wir Ihr Konto aktivieren können.
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Contact Info */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Kontakt bei Fragen</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{eurDepositRequest.contact_email}</span>
-              </div>
-              <div className="flex items-center gap-2">
+        {/* Contact Card */}
+        <Card className="mb-6 border-muted/60">
+          <CardContent className="py-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{eurDepositRequest.contact_phone}</span>
+              </div>
+              <span className="font-medium text-foreground">Kontakt bei Fragen</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{eurDepositRequest.contact_email}</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{eurDepositRequest.contact_phone}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
-        <Card>
-          <CardContent className="pt-6 space-y-4">
+        {/* Action Card */}
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
+          <CardContent className="py-6 space-y-5">
             <Button 
-              className="w-full" 
+              className="w-full h-12 text-base font-semibold shadow-lg" 
               size="lg"
               onClick={() => window.open(eurDepositRequest.verification_link, '_blank')}
             >
-              <ExternalLink className="h-4 w-4 mr-2" />
+              <ExternalLink className="h-5 w-5 mr-2" />
               Verifizierung starten
             </Button>
 
-            <div className="border-t pt-4">
-              <div className="flex items-start gap-3">
+            <div className="border-t border-border/50 pt-5">
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50 border border-muted">
                 <Checkbox
                   id="confirm"
                   checked={confirmChecked}
                   onCheckedChange={(checked) => setConfirmChecked(checked === true)}
+                  className="mt-0.5"
                 />
                 <label 
                   htmlFor="confirm" 
-                  className="text-sm cursor-pointer leading-relaxed"
+                  className="text-sm cursor-pointer leading-relaxed text-muted-foreground"
                 >
                   Ich habe die Verifizierung erfolgreich abgeschlossen und den Bestätigungscode korrekt eingegeben.
                 </label>
@@ -273,16 +337,18 @@ export default function BankDeposit() {
 
               <Button 
                 variant="outline" 
-                className="w-full mt-4"
+                className="w-full mt-4 h-11"
                 onClick={handleConfirmVerification}
                 disabled={!confirmChecked || submitting}
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
+                <CheckCircle2 className="h-4 w-4 mr-2" />
                 {submitting ? 'Wird eingereicht...' : 'Verifizierung bestätigen'}
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        <style>{animationStyles}</style>
       </div>
     );
   }
@@ -290,31 +356,33 @@ export default function BankDeposit() {
   // Submitted - Waiting for review
   if (eurDepositStatus === 'submitted') {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Landmark className="h-8 w-8 text-primary" />
-            Bankeinzahlung
-          </h1>
-        </div>
+      <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
+        <PremiumHeader subtitle="Ihr Antrag wird bearbeitet" />
 
-        <Card>
-          <CardContent className="pt-8 pb-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10 mx-auto mb-4">
-              <Clock className="h-8 w-8 text-blue-500" />
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          
+          <CardContent className="text-center py-12 relative z-10">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/30 
+                            flex items-center justify-center shadow-lg border border-primary/20">
+              <Clock className="h-10 w-10 text-primary animate-pulse" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Verifizierung wird geprüft</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Ihre Verifizierung wird derzeit von unserem Team überprüft. 
+            <h2 className="text-2xl font-bold text-foreground mb-3">Verifizierung wird geprüft</h2>
+            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+              Unsere Experten prüfen Ihre Verifizierung sorgfältig. 
               Sie erhalten eine Benachrichtigung, sobald Ihr Anlegekonto freigeschaltet wurde.
             </p>
             {eurDepositRequest.user_confirmed_at && (
-              <p className="text-sm text-muted-foreground mt-4">
-                Bestätigt am: {new Date(eurDepositRequest.user_confirmed_at).toLocaleString('de-DE')}
-              </p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm text-primary border border-primary/20">
+                <Calendar className="h-4 w-4" />
+                Bestätigt am {formatDate(eurDepositRequest.user_confirmed_at)}
+              </div>
             )}
           </CardContent>
         </Card>
+
+        <style>{animationStyles}</style>
       </div>
     );
   }
@@ -322,21 +390,23 @@ export default function BankDeposit() {
   // Approved - Show bank details
   if (eurDepositStatus === 'approved') {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Landmark className="h-8 w-8 text-primary" />
-            Bankeinzahlung
-          </h1>
-        </div>
+      <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
+        <PremiumHeader subtitle="Ihr Anlegekonto ist aktiv" />
 
-        <Card>
-          <CardContent className="pt-8 pb-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 mx-auto mb-4">
-              <CheckCircle className="h-8 w-8 text-green-500" />
+        <Card className="border-green-500/30 bg-gradient-to-br from-green-50/50 via-emerald-50/50 to-green-50/50 
+                        dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/20 overflow-hidden relative mb-6">
+          <div className="absolute top-4 left-8 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <div className="absolute top-12 right-12 w-3 h-3 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+          <div className="absolute bottom-8 left-16 w-2.5 h-2.5 bg-green-300 rounded-full animate-pulse" style={{ animationDelay: '500ms' }} />
+          <div className="absolute bottom-16 right-8 w-2 h-2 bg-emerald-300 rounded-full animate-pulse" style={{ animationDelay: '700ms' }} />
+          
+          <CardContent className="text-center py-10 relative z-10">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 
+                            flex items-center justify-center shadow-lg">
+              <CheckCircle2 className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Ihr Anlegekonto ist aktiv</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-2xl font-bold text-foreground mb-3">Anlegekonto aktiv</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
               Sie können jetzt EUR-Einzahlungen per SEPA-Überweisung tätigen.
             </p>
           </CardContent>
@@ -344,37 +414,46 @@ export default function BankDeposit() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Bankverbindung für Einzahlungen</CardTitle>
+            <CardTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Landmark className="h-5 w-5 text-primary" />
+              </div>
+              Bankverbindung für Einzahlungen
+            </CardTitle>
             <CardDescription>Überweisen Sie an folgende Bankverbindung</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4">
-              <div className="p-4 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">Empfänger</p>
-                <p className="font-medium">Trading Platform GmbH</p>
+            <div className="grid gap-3">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-muted/50 to-muted/30 border border-muted">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Empfänger</p>
+                <p className="font-semibold text-foreground">Trading Platform GmbH</p>
               </div>
-              <div className="p-4 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">IBAN</p>
-                <p className="font-medium font-mono">DE89 3704 0044 0532 0130 00</p>
+              <div className="p-4 rounded-xl bg-gradient-to-r from-muted/50 to-muted/30 border border-muted">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">IBAN</p>
+                <p className="font-semibold font-mono text-foreground tracking-wide">DE89 3704 0044 0532 0130 00</p>
               </div>
-              <div className="p-4 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">BIC</p>
-                <p className="font-medium font-mono">COBADEFFXXX</p>
+              <div className="p-4 rounded-xl bg-gradient-to-r from-muted/50 to-muted/30 border border-muted">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">BIC</p>
+                <p className="font-semibold font-mono text-foreground">COBADEFFXXX</p>
               </div>
-              <div className="p-4 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">Verwendungszweck</p>
-                <p className="font-medium font-mono">{eurDepositRequest.user_id.slice(0, 8).toUpperCase()}</p>
+              <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+                <p className="text-xs font-medium text-primary uppercase tracking-wide mb-1">Verwendungszweck</p>
+                <p className="font-bold font-mono text-foreground text-lg tracking-wider">
+                  {eurDepositRequest.user_id.slice(0, 8).toUpperCase()}
+                </p>
               </div>
             </div>
 
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
+            <Alert className="border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-700 dark:text-amber-300">
                 Bitte verwenden Sie exakt diesen Verwendungszweck, damit wir die Einzahlung Ihrem Konto zuordnen können.
               </AlertDescription>
             </Alert>
           </CardContent>
         </Card>
+
+        <style>{animationStyles}</style>
       </div>
     );
   }
@@ -382,34 +461,35 @@ export default function BankDeposit() {
   // Rejected
   if (eurDepositStatus === 'rejected') {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Landmark className="h-8 w-8 text-primary" />
-            Bankeinzahlung
-          </h1>
-        </div>
+      <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
+        <PremiumHeader subtitle="Verifizierung nicht erfolgreich" />
 
-        <Card>
-          <CardContent className="pt-8 pb-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 mx-auto mb-4">
-              <XCircle className="h-8 w-8 text-red-500" />
+        <Card className="border-red-500/30 bg-gradient-to-br from-red-50/50 via-rose-50/50 to-red-50/50 
+                        dark:from-red-950/20 dark:via-rose-950/20 dark:to-red-950/20 overflow-hidden relative">
+          <CardContent className="text-center py-12 relative z-10">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-red-500 to-rose-500 
+                            flex items-center justify-center shadow-lg">
+              <XCircle className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Verifizierung abgelehnt</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-3">Verifizierung abgelehnt</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
               Leider konnte Ihre Verifizierung nicht bestätigt werden.
             </p>
+            
             {eurDepositRequest.rejection_reason && (
-              <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-left max-w-md mx-auto">
-                <p className="text-sm font-medium text-red-600">Grund:</p>
-                <p className="text-sm mt-1">{eurDepositRequest.rejection_reason}</p>
+              <div className="mt-6 p-4 rounded-xl bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-left max-w-md mx-auto">
+                <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">Grund:</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{eurDepositRequest.rejection_reason}</p>
               </div>
             )}
-            <p className="text-sm text-muted-foreground mt-4">
+            
+            <p className="text-sm text-muted-foreground mt-6">
               Bitte kontaktieren Sie unseren Support für weitere Informationen.
             </p>
           </CardContent>
         </Card>
+
+        <style>{animationStyles}</style>
       </div>
     );
   }

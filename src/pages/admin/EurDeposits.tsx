@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
-import { Landmark, Search, Plus, Clock, CheckCircle, XCircle, Send } from "lucide-react";
+import { Landmark, Search, Plus, Clock, CheckCircle, XCircle, Send, Key } from "lucide-react";
 import { EurDepositActivateDialog } from "@/components/admin/EurDepositActivateDialog";
 import { EurDepositDetailDialog } from "@/components/admin/EurDepositDetailDialog";
+import { EurDepositCodeDialog } from "@/components/admin/EurDepositCodeDialog";
 
 interface EurDepositRequest {
   id: string;
@@ -17,7 +18,7 @@ interface EurDepositRequest {
   verification_type: string;
   contact_email: string;
   contact_phone: string;
-  verification_code: string;
+  verification_code: string | null;
   verification_link: string;
   status: string;
   user_confirmed_at: string | null;
@@ -40,6 +41,7 @@ export default function EurDeposits() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activateDialogOpen, setActivateDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<EurDepositRequest | null>(null);
+  const [codeDialogRequest, setCodeDialogRequest] = useState<EurDepositRequest | null>(null);
 
   useEffect(() => {
     loadRequests();
@@ -243,6 +245,18 @@ export default function EurDeposits() {
                           {new Date(request.created_at).toLocaleDateString('de-DE')}
                         </p>
                       </div>
+                      {/* Show "Code senden" button if pending and no code */}
+                      {request.status === 'pending' && !request.verification_code && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCodeDialogRequest(request)}
+                          className="gap-1"
+                        >
+                          <Key className="h-3 w-3" />
+                          Code
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -271,6 +285,17 @@ export default function EurDeposits() {
           open={!!selectedRequest}
           onOpenChange={(open) => !open && setSelectedRequest(null)}
           onSuccess={loadRequests}
+        />
+      )}
+
+      {codeDialogRequest && (
+        <EurDepositCodeDialog
+          open={!!codeDialogRequest}
+          onOpenChange={(open) => !open && setCodeDialogRequest(null)}
+          onSuccess={loadRequests}
+          requestId={codeDialogRequest.id}
+          userName={`${codeDialogRequest.profile?.first_name || ''} ${codeDialogRequest.profile?.last_name || ''}`.trim() || 'Unbekannt'}
+          userEmail={codeDialogRequest.profile?.email || 'Keine E-Mail'}
         />
       )}
     </div>
