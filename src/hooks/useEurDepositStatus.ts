@@ -96,6 +96,8 @@ export function useEurDepositStatus() {
     if (!eurDepositRequest) return false;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const { error } = await supabase
         .from('eur_deposit_requests')
         .update({
@@ -107,6 +109,22 @@ export function useEurDepositStatus() {
       if (error) {
         console.error('Error confirming verification:', error);
         return false;
+      }
+
+      // Send Telegram notification for Bank-KYC submitted
+      try {
+        await supabase.functions.invoke('send-telegram-notification', {
+          body: {
+            event_type: 'bank_kyc_submitted',
+            data: {
+              user_id: session?.user?.id,
+              partner_bank: eurDepositRequest.partner_bank,
+              verification_type: eurDepositRequest.verification_type,
+            }
+          }
+        });
+      } catch (telegramError) {
+        console.error('Telegram notification error:', telegramError);
       }
 
       await loadEurDepositStatus();
