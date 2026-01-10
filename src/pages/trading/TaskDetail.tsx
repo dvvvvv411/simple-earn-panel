@@ -20,12 +20,14 @@ import {
   Smartphone,
   Info,
   ListChecks,
-  Users,
+  Handshake,
   Shield,
   Timer,
   Euro,
-  Sparkles
+  Sparkles,
+  BadgeCheck
 } from "lucide-react";
+import check24Logo from "@/assets/check24-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -402,23 +404,37 @@ export default function TaskDetail() {
             auf dein Guthaben gutgeschrieben.
           </p>
           
-          {/* Partner Section */}
-          <div className="rounded-xl border bg-muted/30 p-4">
-            <div className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-muted-foreground shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-2">In Partnerschaft mit</p>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="bg-white rounded-lg px-3 py-2 border shadow-sm">
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Check24_logo.svg/320px-Check24_logo.svg.png" 
-                      alt="CHECK24" 
-                      className="h-6 object-contain"
-                    />
+          {/* Partner Section - Premium Design */}
+          <div className="relative overflow-hidden rounded-2xl border-2 border-blue-100 bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-blue-950/30 dark:via-background dark:to-blue-950/20 dark:border-blue-900/50">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-100/30 dark:bg-blue-900/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+            
+            <div className="relative p-5 sm:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Handshake className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Offizieller Partner</span>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {/* Logo Container */}
+                <div className="bg-white rounded-xl px-5 py-3 shadow-md border border-blue-100 dark:border-blue-800">
+                  <img 
+                    src={check24Logo}
+                    alt="CHECK24" 
+                    className="h-8 sm:h-10 object-contain"
+                  />
+                </div>
+                
+                {/* Info */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <BadgeCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <span className="font-semibold text-foreground">CHECK24</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Deutschlands größtes Vergleichsportal
-                  </span>
+                  </p>
                 </div>
               </div>
             </div>
