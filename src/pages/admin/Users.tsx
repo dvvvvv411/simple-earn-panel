@@ -130,6 +130,34 @@ export default function UsersPage() {
     setDetailDialogOpen(true);
   };
 
+  const handleUnluckyStreakToggle = async (userId: string, value: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ unlucky_streak: value })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      // Lokales Update für sofortige UI-Reaktion
+      setUsers(prev => prev.map(user => 
+        user.id === userId ? { ...user, unlucky_streak: value } : user
+      ));
+
+      toast({
+        title: value ? "Pechsträhne aktiviert" : "Pechsträhne deaktiviert",
+        description: "Einstellung wurde erfolgreich geändert.",
+      });
+    } catch (error: any) {
+      console.error('Error updating unlucky streak:', error);
+      toast({
+        title: "Fehler",
+        description: "Einstellung konnte nicht geändert werden.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredUsers = users.filter((user) => {
     const searchLower = searchTerm.toLowerCase();
     const name = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
@@ -188,6 +216,7 @@ export default function UsersPage() {
               onUserDeleted={fetchUsers}
               onUserEdit={handleUserEdit}
               onUserDetail={handleUserDetail}
+              onUnluckyStreakToggle={handleUnluckyStreakToggle}
             />
         </CardContent>
       </Card>
