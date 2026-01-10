@@ -213,8 +213,8 @@ serve(async (req) => {
     console.log(`💰 Returning ${totalReturn.toFixed(2)} EUR to user balance`);
     
     const description = profitAmount < 0
-      ? `Trading Bot abgeschlossen (Admin) - ${bot.cryptocurrency} (${scenario.profitPercent.toFixed(2)}% Verlust)`
-      : `Trading Bot abgeschlossen (Admin) - ${bot.cryptocurrency} (+${scenario.profitPercent.toFixed(2)}% Gewinn)`;
+      ? `Trading Bot abgeschlossen - ${bot.cryptocurrency} (${scenario.profitPercent.toFixed(2)}% Verlust)`
+      : `Trading Bot abgeschlossen - ${bot.cryptocurrency} (+${scenario.profitPercent.toFixed(2)}% Gewinn)`;
     
     const { error: balanceError } = await supabase.rpc('credit_balance_from_bot', {
       target_user_id: bot.user_id,
