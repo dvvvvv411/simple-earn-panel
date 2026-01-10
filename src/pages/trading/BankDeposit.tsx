@@ -356,12 +356,13 @@ export default function BankDeposit() {
         {/* Action Card */}
         <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
           <CardContent className="py-6 space-y-5">
+            {/* Verifizierung starten - Secondary */}
             <Button 
-              className="w-full h-12 text-base font-semibold shadow-lg" 
-              size="lg"
+              variant="outline"
+              className="w-full h-11" 
               onClick={() => window.open(eurDepositRequest.verification_link, '_blank')}
             >
-              <ExternalLink className="h-5 w-5 mr-2" />
+              <ExternalLink className="h-4 w-4 mr-2" />
               Verifizierung starten
             </Button>
 
@@ -381,13 +382,14 @@ export default function BankDeposit() {
                 </label>
               </div>
 
+              {/* Verifizierung bestätigen - Dominant Primary */}
               <Button 
-                variant="outline" 
-                className="w-full mt-4 h-11"
+                className="w-full mt-4 h-12 text-base font-semibold shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                size="lg"
                 onClick={handleConfirmVerification}
                 disabled={!confirmChecked || submitting}
               >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
+                <CheckCircle2 className="h-5 w-5 mr-2" />
                 {submitting ? 'Wird eingereicht...' : 'Verifizierung bestätigen'}
               </Button>
             </div>
