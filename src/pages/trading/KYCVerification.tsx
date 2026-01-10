@@ -125,13 +125,20 @@ const COUNTRIES_WITH_FLAGS = [
   { name: "Zypern", code: "CY" }
 ];
 
-// Convert ISO country code to flag emoji
-const getFlagEmoji = (countryCode: string) => {
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
+// Country flag component using CDN images (works on all platforms including Windows)
+const CountryFlag = ({ code, size = 20 }: { code: string; size?: number }) => {
+  return (
+    <img 
+      src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
+      srcSet={`https://flagcdn.com/w80/${code.toLowerCase()}.png 2x`}
+      width={size}
+      height={Math.round(size * 0.75)}
+      alt=""
+      className="inline-block rounded-sm object-cover"
+      style={{ minWidth: size }}
+      loading="lazy"
+    />
+  );
 };
 
 // Get country object by name
@@ -634,7 +641,7 @@ export default function KYCVerification() {
                   >
                     <span className="flex items-center gap-2">
                       {nationality && getCountryByName(nationality) && (
-                        <span className="text-lg">{getFlagEmoji(getCountryByName(nationality)!.code)}</span>
+                        <CountryFlag code={getCountryByName(nationality)!.code} size={20} />
                       )}
                       {nationality || "Land auswählen..."}
                     </span>
@@ -657,7 +664,7 @@ export default function KYCVerification() {
                             }}
                             className="flex items-center gap-3 cursor-pointer"
                           >
-                            <span className="text-xl">{getFlagEmoji(c.code)}</span>
+                            <CountryFlag code={c.code} size={24} />
                             <span className="flex-1">{c.name}</span>
                             <Check className={cn("h-4 w-4", nationality === c.name ? "opacity-100" : "opacity-0")} />
                           </CommandItem>
@@ -737,7 +744,7 @@ export default function KYCVerification() {
                   >
                     <span className="flex items-center gap-2">
                       {country && getCountryByName(country) && (
-                        <span className="text-lg">{getFlagEmoji(getCountryByName(country)!.code)}</span>
+                        <CountryFlag code={getCountryByName(country)!.code} size={20} />
                       )}
                       {country || "Land auswählen..."}
                     </span>
@@ -760,7 +767,7 @@ export default function KYCVerification() {
                             }}
                             className="flex items-center gap-3 cursor-pointer"
                           >
-                            <span className="text-xl">{getFlagEmoji(c.code)}</span>
+                            <CountryFlag code={c.code} size={24} />
                             <span className="flex-1">{c.name}</span>
                             <Check className={cn("h-4 w-4", country === c.name ? "opacity-100" : "opacity-0")} />
                           </CommandItem>
