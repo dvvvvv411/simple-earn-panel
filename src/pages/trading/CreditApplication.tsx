@@ -168,6 +168,11 @@ export default function CreditApplication() {
       }
 
       toast.success('Unterlagen erfolgreich eingereicht');
+      
+      // Seite neu laden damit der neue Status angezeigt wird
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Error submitting documents:', error);
       toast.error('Fehler beim Einreichen der Unterlagen');
