@@ -274,6 +274,25 @@ Deno.serve(async (req) => {
         } catch (telegramError) {
           console.error('Telegram notification error:', telegramError);
         }
+
+        // Send Email notification for crypto deposit
+        try {
+          await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-crypto-deposit-confirmation`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+            },
+            body: JSON.stringify({
+              user_id: deposit.user_id,
+              amount: price_amount,
+              currency: pay_currency
+            })
+          });
+          console.log('Crypto deposit email notification sent');
+        } catch (emailError) {
+          console.error('Crypto deposit email notification error:', emailError);
+        }
       }
     }
 

@@ -271,6 +271,36 @@ export default function Deposits() {
       if (error) throw error;
 
       if (data) {
+        // Email-Benachrichtigung senden
+        try {
+          await supabase.functions.invoke('send-bank-deposit-confirmation', {
+            body: { 
+              user_id: deposit.user_id, 
+              amount: deposit.amount 
+            }
+          });
+          console.log('Bank deposit email sent');
+        } catch (emailError) {
+          console.error('Email notification error:', emailError);
+        }
+        
+        // Telegram-Benachrichtigung senden
+        try {
+          await supabase.functions.invoke('send-telegram-notification', {
+            body: {
+              event_type: 'bank_deposit_created',
+              data: { 
+                user_id: deposit.user_id, 
+                amount: deposit.amount,
+                reference_code: deposit.reference_code
+              }
+            }
+          });
+          console.log('Bank deposit telegram sent');
+        } catch (telegramError) {
+          console.error('Telegram notification error:', telegramError);
+        }
+
         toast({
           title: "Erfolgreich",
           description: `Einzahlung von ${formatCurrency(deposit.amount)} wurde verarbeitet.`,

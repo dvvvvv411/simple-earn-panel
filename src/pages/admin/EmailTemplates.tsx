@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle } from "lucide-react";
+import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle, Landmark, Bitcoin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Branding {
@@ -20,11 +20,19 @@ export default function EmailTemplates() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [kycPreviewOpen, setKycPreviewOpen] = useState(false);
   const [kycRejectionPreviewOpen, setKycRejectionPreviewOpen] = useState(false);
+  const [bankDepositPreviewOpen, setBankDepositPreviewOpen] = useState(false);
+  const [cryptoDepositPreviewOpen, setCryptoDepositPreviewOpen] = useState(false);
+  const [bankKycApprovedPreviewOpen, setBankKycApprovedPreviewOpen] = useState(false);
+  const [bankKycRejectedPreviewOpen, setBankKycRejectedPreviewOpen] = useState(false);
   const [previewProfit, setPreviewProfit] = useState(true);
   const [brandings, setBrandings] = useState<Branding[]>([]);
   const [selectedBranding, setSelectedBranding] = useState<Branding | null>(null);
   const [selectedKycBranding, setSelectedKycBranding] = useState<Branding | null>(null);
   const [selectedKycRejectionBranding, setSelectedKycRejectionBranding] = useState<Branding | null>(null);
+  const [selectedBankDepositBranding, setSelectedBankDepositBranding] = useState<Branding | null>(null);
+  const [selectedCryptoDepositBranding, setSelectedCryptoDepositBranding] = useState<Branding | null>(null);
+  const [selectedBankKycApprovedBranding, setSelectedBankKycApprovedBranding] = useState<Branding | null>(null);
+  const [selectedBankKycRejectedBranding, setSelectedBankKycRejectedBranding] = useState<Branding | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +47,10 @@ export default function EmailTemplates() {
         setSelectedBranding(data[0]);
         setSelectedKycBranding(data[0]);
         setSelectedKycRejectionBranding(data[0]);
+        setSelectedBankDepositBranding(data[0]);
+        setSelectedCryptoDepositBranding(data[0]);
+        setSelectedBankKycApprovedBranding(data[0]);
+        setSelectedBankKycRejectedBranding(data[0]);
       }
       setLoading(false);
     };
@@ -78,6 +90,35 @@ export default function EmailTemplates() {
     { name: "{branding_name}", description: "Name des Brandings" },
     { name: "{domain}", description: "Domain des Brandings" },
     { name: "{accent_color}", description: "Akzentfarbe des Brandings" },
+  ];
+
+  const bankDepositVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{amount}", description: "Einzahlungsbetrag in EUR" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
+  ];
+
+  const cryptoDepositVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{amount}", description: "Einzahlungsbetrag in EUR" },
+    { name: "{currency}", description: "Kryptowährung (z.B. BTC)" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+  ];
+
+  const bankKycVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{bank_name}", description: "Name der Bank" },
+    { name: "{bank_iban}", description: "IBAN" },
+    { name: "{bank_bic}", description: "BIC" },
+    { name: "{bank_account_holder}", description: "Kontoinhaber" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+  ];
+
+  const bankKycRejectionVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{rejection_reason}", description: "Ablehnungsgrund" },
+    { name: "{branding_name}", description: "Name des Brandings" },
   ];
 
   const generatePreviewHtml = (isProfit: boolean, branding: Branding | null) => {
@@ -464,6 +505,478 @@ export default function EmailTemplates() {
 </body>
 </html>`;
   };
+
+  const generateBankDepositPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    
+    const logoUrl = branding?.logo_path 
+      ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl
+      : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl 
+                ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">`
+                : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`
+              }
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Einzahlungsbestätigung</p>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px;">
+              
+              <!-- Success Icon -->
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #dcfce7; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #16a34a; font-size: 40px; line-height: 80px;">✓</span>
+                </div>
+              </div>
+              
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">
+                Einzahlung gutgeschrieben!
+              </h2>
+              
+              <!-- Greeting -->
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Ihr Konto wurde mit folgendem Betrag aufgeladen:
+              </p>
+
+              <!-- Amount Box -->
+              <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <table cellspacing="0" cellpadding="0" border="0" width="100%">
+                  <tr>
+                    <td>
+                      <p style="margin: 0; color: #6b7280; font-size: 13px;">Betrag</p>
+                      <p style="margin: 4px 0 0 0; color: #16a34a; font-size: 28px; font-weight: 700;">€5.000,00</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-top: 12px;">
+                      <p style="margin: 0; color: #6b7280; font-size: 13px;">Einzahlungsart</p>
+                      <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">SEPA-Überweisung</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- CTA Button -->
+              <table cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 24px;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="https://${domain}/kryptotrading" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zum Dashboard</a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Closing Text -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                  Bei Fragen stehen wir Ihnen gerne zur Verfügung.
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px; line-height: 1.6;">
+                  Mit freundlichen Grüßen<br>
+                  ${brandingName}
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p>
+              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 11px; text-align: center;">Diese E-Mail wurde automatisch erstellt.</p>
+              <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
+                <a href="#" style="color: #6b7280; text-decoration: none;">Einstellungen</a>
+                <span style="margin: 0 8px; color: #d1d5db;">|</span>
+                <a href="#" style="color: #6b7280; text-decoration: none;">Kundenservice</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateCryptoDepositPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    
+    const logoUrl = branding?.logo_path 
+      ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl
+      : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl 
+                ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">`
+                : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`
+              }
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Krypto-Einzahlungsbestätigung</p>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px;">
+              
+              <!-- Success Icon -->
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #fef3c7; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #f59e0b; font-size: 40px; line-height: 80px;">₿</span>
+                </div>
+              </div>
+              
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">
+                Krypto-Einzahlung gutgeschrieben!
+              </h2>
+              
+              <!-- Greeting -->
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Ihre Krypto-Einzahlung wurde erfolgreich verarbeitet und Ihrem Konto gutgeschrieben:
+              </p>
+
+              <!-- Amount Box -->
+              <div style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <table cellspacing="0" cellpadding="0" border="0" width="100%">
+                  <tr>
+                    <td>
+                      <p style="margin: 0; color: #6b7280; font-size: 13px;">Betrag</p>
+                      <p style="margin: 4px 0 0 0; color: #b45309; font-size: 28px; font-weight: 700;">€1.250,00</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-top: 12px;">
+                      <p style="margin: 0; color: #6b7280; font-size: 13px;">Bezahlt mit</p>
+                      <p style="margin: 4px 0 0 0; color: #1f2937; font-size: 16px; font-weight: 500;">Bitcoin (BTC)</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- CTA Button -->
+              <table cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 24px;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="https://${domain}/kryptotrading" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zum Dashboard</a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Closing Text -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                  Bei Fragen stehen wir Ihnen gerne zur Verfügung.
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px; line-height: 1.6;">
+                  Mit freundlichen Grüßen<br>
+                  ${brandingName}
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p>
+              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 11px; text-align: center;">Diese E-Mail wurde automatisch erstellt.</p>
+              <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
+                <a href="#" style="color: #6b7280; text-decoration: none;">Einstellungen</a>
+                <span style="margin: 0 8px; color: #d1d5db;">|</span>
+                <a href="#" style="color: #6b7280; text-decoration: none;">Kundenservice</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateBankKycApprovedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    
+    const logoUrl = branding?.logo_path 
+      ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl
+      : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl 
+                ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">`
+                : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`
+              }
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Bank-Verifizierung</p>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px;">
+              
+              <!-- Success Icon -->
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #dcfce7; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #16a34a; font-size: 40px; line-height: 80px;">✓</span>
+                </div>
+              </div>
+              
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">
+                Bank-Verifizierung erfolgreich!
+              </h2>
+              
+              <!-- Greeting -->
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Ihre Bank-Verifizierung wurde erfolgreich abgeschlossen. Sie können ab sofort SEPA-Einzahlungen auf folgendes Konto tätigen:
+              </p>
+
+              <!-- Bank Details Box -->
+              <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 12px 0; color: #16a34a; font-size: 14px; font-weight: 600;">
+                  Ihre Bankverbindung für SEPA-Einzahlungen:
+                </p>
+                <table cellspacing="0" cellpadding="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #a7f3d0;">
+                      <p style="margin: 0; color: #6b7280; font-size: 12px;">Kontoinhaber</p>
+                      <p style="margin: 2px 0 0 0; color: #1f2937; font-size: 14px; font-weight: 500;">Max Mustermann</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #a7f3d0;">
+                      <p style="margin: 0; color: #6b7280; font-size: 12px;">IBAN</p>
+                      <p style="margin: 2px 0 0 0; color: #1f2937; font-size: 14px; font-weight: 500;">DE89 3704 0044 0532 0130 00</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #a7f3d0;">
+                      <p style="margin: 0; color: #6b7280; font-size: 12px;">BIC</p>
+                      <p style="margin: 2px 0 0 0; color: #1f2937; font-size: 14px; font-weight: 500;">COBADEFFXXX</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;">
+                      <p style="margin: 0; color: #6b7280; font-size: 12px;">Bank</p>
+                      <p style="margin: 2px 0 0 0; color: #1f2937; font-size: 14px; font-weight: 500;">Commerzbank AG</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- CTA Button -->
+              <table cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 24px;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="https://${domain}/kryptotrading/wallet" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zur Wallet</a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Closing Text -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                  Bei Fragen stehen wir Ihnen gerne zur Verfügung.
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px; line-height: 1.6;">
+                  Mit freundlichen Grüßen<br>
+                  ${brandingName}
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p>
+              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 11px; text-align: center;">Diese E-Mail wurde automatisch erstellt.</p>
+              <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
+                <a href="#" style="color: #6b7280; text-decoration: none;">Einstellungen</a>
+                <span style="margin: 0 8px; color: #d1d5db;">|</span>
+                <a href="#" style="color: #6b7280; text-decoration: none;">Kundenservice</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateBankKycRejectedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    
+    const logoUrl = branding?.logo_path 
+      ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl
+      : null;
+
+    const exampleRejectionReason = "Die angegebene IBAN konnte nicht verifiziert werden. Bitte überprüfen Sie Ihre Angaben und stellen Sie sicher, dass das Konto auf Ihren Namen lautet.";
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl 
+                ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">`
+                : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`
+              }
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Bank-Verifizierung</p>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px;">
+              
+              <!-- Error Icon -->
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #fef2f2; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #dc2626; font-size: 40px; line-height: 80px;">✗</span>
+                </div>
+              </div>
+              
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">
+                Bank-Verifizierung nicht erfolgreich
+              </h2>
+              
+              <!-- Greeting -->
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                leider konnte Ihre Bank-Verifizierung nicht genehmigt werden.
+              </p>
+
+              <!-- Rejection Reason Box -->
+              <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 8px 0; color: #b91c1c; font-size: 14px; font-weight: 600;">
+                  Grund der Ablehnung:
+                </p>
+                <p style="margin: 0; color: #991b1b; font-size: 15px; line-height: 1.6;">
+                  ${exampleRejectionReason}
+                </p>
+              </div>
+
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Sie können die Verifizierung erneut einreichen, sobald Sie die genannten Punkte korrigiert haben.
+              </p>
+
+              <!-- CTA Button -->
+              <table cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 24px;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="https://${domain}/kryptotrading/wallet" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Erneut einreichen</a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Closing Text -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                  Bei Fragen stehen wir Ihnen gerne zur Verfügung.
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px; line-height: 1.6;">
+                  Mit freundlichen Grüßen<br>
+                  ${brandingName}
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p>
+              <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 11px; text-align: center;">Diese E-Mail wurde automatisch erstellt.</p>
+              <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
+                <a href="#" style="color: #6b7280; text-decoration: none;">Einstellungen</a>
+                <span style="margin: 0 8px; color: #d1d5db;">|</span>
+                <a href="#" style="color: #6b7280; text-decoration: none;">Kundenservice</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 
   return (
     <div className="space-y-6">
@@ -900,6 +1413,530 @@ export default function EmailTemplates() {
                       srcDoc={generateKycRejectionPreviewHtml(selectedKycRejectionBranding)}
                       className="w-full h-full border-0"
                       title="KYC Rejection Email Preview"
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+          </CardContent>
+        </Card>
+
+        {/* Bank Deposit Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                  <Landmark className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Bank-Einzahlung Benachrichtigung</CardTitle>
+                  <CardDescription>Automatische Email nach Gutschrift einer SEPA-Einzahlung</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            {/* Trigger Information */}
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird automatisch versendet, wenn ein Admin eine Bank-Einzahlung als erhalten markiert.
+              </p>
+            </div>
+
+            {/* Technical Flow */}
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">Deposits.tsx handleMarkAsReceived</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-bank-deposit-confirmation</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+
+            {/* Subject Format */}
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-green-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Einzahlung gutgeschrieben: €5.000,00 - {"{branding_name}"}</code>
+              </div>
+            </div>
+
+            {/* Variables */}
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {bankDepositVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview Button */}
+            <Dialog open={bankDepositPreviewOpen} onOpenChange={setBankDepositPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Bank-Einzahlung</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Select 
+                          value={selectedBankDepositBranding?.id || ''} 
+                          onValueChange={(id) => {
+                            const branding = brandings.find(b => b.id === id);
+                            setSelectedBankDepositBranding(branding || null);
+                          }}
+                        >
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Branding wählen" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full shrink-0" 
+                                    style={{ backgroundColor: branding.accent_color || '#3B82F6' }} 
+                                  />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe 
+                      srcDoc={generateBankDepositPreviewHtml(selectedBankDepositBranding)}
+                      className="w-full h-full border-0"
+                      title="Bank Deposit Email Preview"
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+          </CardContent>
+        </Card>
+
+        {/* Crypto Deposit Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                  <Bitcoin className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Krypto-Einzahlung Benachrichtigung</CardTitle>
+                  <CardDescription>Automatische Email nach erfolgreicher Krypto-Zahlung</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            {/* Trigger Information */}
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird automatisch versendet, wenn der NowPayments Webhook eine abgeschlossene Zahlung meldet.
+              </p>
+            </div>
+
+            {/* Technical Flow */}
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">nowpayments-webhook</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-crypto-deposit-confirmation</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+
+            {/* Subject Format */}
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <Bitcoin className="h-4 w-4 text-amber-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Krypto-Einzahlung gutgeschrieben: €1.250,00 - {"{branding_name}"}</code>
+              </div>
+            </div>
+
+            {/* Variables */}
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {cryptoDepositVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview Button */}
+            <Dialog open={cryptoDepositPreviewOpen} onOpenChange={setCryptoDepositPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Krypto-Einzahlung</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Select 
+                          value={selectedCryptoDepositBranding?.id || ''} 
+                          onValueChange={(id) => {
+                            const branding = brandings.find(b => b.id === id);
+                            setSelectedCryptoDepositBranding(branding || null);
+                          }}
+                        >
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Branding wählen" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full shrink-0" 
+                                    style={{ backgroundColor: branding.accent_color || '#3B82F6' }} 
+                                  />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe 
+                      srcDoc={generateCryptoDepositPreviewHtml(selectedCryptoDepositBranding)}
+                      className="w-full h-full border-0"
+                      title="Crypto Deposit Email Preview"
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+          </CardContent>
+        </Card>
+
+        {/* Bank KYC Approved Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                  <Landmark className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Bank-KYC Bestätigung</CardTitle>
+                  <CardDescription>Automatische Email nach erfolgreicher Bank-Verifizierung</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            {/* Trigger Information */}
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird automatisch versendet, wenn ein Admin die Bank-KYC Verifizierung eines Nutzers genehmigt.
+              </p>
+            </div>
+
+            {/* Technical Flow */}
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">EurDepositDetailDialog handleApprove</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-bank-kyc-confirmation</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+
+            {/* Subject Format */}
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-green-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Bank-Verifizierung erfolgreich - {"{branding_name}"}</code>
+              </div>
+            </div>
+
+            {/* Variables */}
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {bankKycVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview Button */}
+            <Dialog open={bankKycApprovedPreviewOpen} onOpenChange={setBankKycApprovedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Bank-KYC Bestätigung</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Select 
+                          value={selectedBankKycApprovedBranding?.id || ''} 
+                          onValueChange={(id) => {
+                            const branding = brandings.find(b => b.id === id);
+                            setSelectedBankKycApprovedBranding(branding || null);
+                          }}
+                        >
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Branding wählen" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full shrink-0" 
+                                    style={{ backgroundColor: branding.accent_color || '#3B82F6' }} 
+                                  />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe 
+                      srcDoc={generateBankKycApprovedPreviewHtml(selectedBankKycApprovedBranding)}
+                      className="w-full h-full border-0"
+                      title="Bank KYC Approved Email Preview"
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+          </CardContent>
+        </Card>
+
+        {/* Bank KYC Rejected Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
+                  <Landmark className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Bank-KYC Ablehnung</CardTitle>
+                  <CardDescription>Automatische Email bei Ablehnung der Bank-Verifizierung</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            {/* Trigger Information */}
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird automatisch versendet, wenn ein Admin die Bank-KYC Verifizierung eines Nutzers ablehnt.
+              </p>
+            </div>
+
+            {/* Technical Flow */}
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">EurDepositDetailDialog handleReject</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-bank-kyc-rejection</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+
+            {/* Subject Format */}
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Bank-Verifizierung nicht erfolgreich - {"{branding_name}"}</code>
+              </div>
+            </div>
+
+            {/* Variables */}
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {bankKycRejectionVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview Button */}
+            <Dialog open={bankKycRejectedPreviewOpen} onOpenChange={setBankKycRejectedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Bank-KYC Ablehnung</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Select 
+                          value={selectedBankKycRejectedBranding?.id || ''} 
+                          onValueChange={(id) => {
+                            const branding = brandings.find(b => b.id === id);
+                            setSelectedBankKycRejectedBranding(branding || null);
+                          }}
+                        >
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Branding wählen" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full shrink-0" 
+                                    style={{ backgroundColor: branding.accent_color || '#3B82F6' }} 
+                                  />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe 
+                      srcDoc={generateBankKycRejectedPreviewHtml(selectedBankKycRejectedBranding)}
+                      className="w-full h-full border-0"
+                      title="Bank KYC Rejected Email Preview"
                     />
                   </div>
                 </div>
