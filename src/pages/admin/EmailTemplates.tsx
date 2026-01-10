@@ -977,6 +977,7 @@ export default function EmailTemplates() {
   </table>
 </body>
 </html>`;
+  };
 
   return (
     <div className="space-y-6">
