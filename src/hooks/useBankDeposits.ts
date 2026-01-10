@@ -125,6 +125,9 @@ export function useBankDeposits() {
   };
 
   const getPendingDeposits = () => deposits.filter(d => d.status === 'pending');
+  
+  const getConfirmedPendingDeposits = () => 
+    deposits.filter(d => d.status === 'pending' && d.user_confirmed_at !== null);
 
   return {
     deposits,
@@ -132,6 +135,7 @@ export function useBankDeposits() {
     createDeposit,
     confirmDeposit,
     getPendingDeposits,
+    getConfirmedPendingDeposits,
     refetch: loadDeposits,
   };
 }

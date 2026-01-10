@@ -87,7 +87,7 @@ export function DepositDialog({ userBalance, open, onOpenChange, onDepositCreate
   const { toast } = useToast();
   const { createDeposit, deposits, checkStatus, getPendingDeposits, loading: depositsLoading } = useCryptoDeposits();
   const { currencies, popularCurrencies, usdtCurrencies, usdcCurrencies, otherStablecoins, otherCurrencies, loading: currenciesLoading } = useNowPaymentsCurrencies();
-  const { createDeposit: createBankDeposit, confirmDeposit: confirmBankDeposit, getPendingDeposits: getPendingBankDeposits, loading: bankDepositsLoading } = useBankDeposits();
+  const { createDeposit: createBankDeposit, confirmDeposit: confirmBankDeposit, getPendingDeposits: getPendingBankDeposits, getConfirmedPendingDeposits: getConfirmedPendingBankDeposits, loading: bankDepositsLoading } = useBankDeposits();
   const { hasBankData, eurDepositRequest } = useEurDepositStatus();
 
   const formatBalance = (value: number) => {
@@ -550,126 +550,96 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     Zurück
                   </Button>
 
-                  {/* Amount to Transfer */}
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-2">Überweisen Sie diesen Betrag:</div>
-                    <div className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-                      <Euro className="w-8 h-8 text-primary" />
-                      <span className="text-3xl font-bold text-foreground">
-                        {formatBalance(bankPaymentData.amount)}
+                  {/* Amount to Transfer - Prominent Display */}
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-card to-muted/30 border shadow-sm">
+                    <div className="text-sm text-muted-foreground mb-1">Überweisungsbetrag</div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-bold tracking-tight">
+                        {bankPaymentData.amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
+                      <span className="text-xl text-muted-foreground">EUR</span>
                     </div>
                   </div>
 
-                  {/* Bank Details */}
+                  {/* Bank Details - Clean Design with Copy Buttons */}
                   <Card>
                     <CardContent className="p-0">
                       <div className="p-4 border-b bg-muted/30">
-                        <h3 className="font-semibold flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-primary" />
-                          An folgendes Konto überweisen:
-                        </h3>
+                        <h3 className="font-semibold text-sm">An folgendes Konto überweisen:</h3>
                       </div>
                       <div className="divide-y">
+                        {/* Kontoinhaber */}
                         <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <CreditCard className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <div className="text-xs text-muted-foreground">Kontoinhaber</div>
-                              <div className="font-medium">{eurDepositRequest?.bank_account_holder || '—'}</div>
-                            </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs text-muted-foreground">Kontoinhaber</div>
+                            <div className="font-medium truncate">{eurDepositRequest?.bank_account_holder || '—'}</div>
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <CreditCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <div className="min-w-0">
-                              <div className="text-xs text-muted-foreground">IBAN</div>
-                              <div className="font-mono font-medium truncate">{eurDepositRequest?.bank_iban || '—'}</div>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="flex-shrink-0 ml-2"
-                            onClick={handleCopyIban}
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(eurDepositRequest?.bank_account_holder || '');
+                              toast({ title: "Kopiert", description: "Kontoinhaber kopiert" });
+                            }}
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors ml-2"
                           >
                             <Copy className="w-4 h-4" />
-                          </Button>
+                          </button>
                         </div>
+                        
+                        {/* IBAN */}
                         <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <CreditCard className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <div className="text-xs text-muted-foreground">BIC</div>
-                              <div className="font-mono font-medium">{eurDepositRequest?.bank_bic || '—'}</div>
-                            </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs text-muted-foreground">IBAN</div>
+                            <div className="font-mono font-medium truncate">{eurDepositRequest?.bank_iban || '—'}</div>
                           </div>
+                          <button 
+                            onClick={handleCopyIban}
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors ml-2"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
                         </div>
+                        
+                        {/* BIC */}
                         <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <Landmark className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <div className="text-xs text-muted-foreground">Bank</div>
-                              <div className="font-medium">{eurDepositRequest?.bank_name || '—'}</div>
-                            </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs text-muted-foreground">BIC</div>
+                            <div className="font-mono font-medium">{eurDepositRequest?.bank_bic || '—'}</div>
                           </div>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(eurDepositRequest?.bank_bic || '');
+                              toast({ title: "Kopiert", description: "BIC kopiert" });
+                            }}
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors ml-2"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        {/* Bank */}
+                        <div className="flex items-center justify-between p-4">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs text-muted-foreground">Bank</div>
+                            <div className="font-medium">{eurDepositRequest?.bank_name || '—'}</div>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(eurDepositRequest?.bank_name || '');
+                              toast({ title: "Kopiert", description: "Bankname kopiert" });
+                            }}
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors ml-2"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-
-                  {/* Reference Code */}
-                  <Card className="border-primary/30 bg-primary/5">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1 flex items-center gap-2">
-                            <AlertCircle className="w-3 h-3" />
-                            Verwendungszweck (wichtig!)
-                          </div>
-                          <div className="font-mono font-bold text-lg">{bankPaymentData.reference_code}</div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleCopyReference}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Tip */}
-                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-start gap-3">
-                      <Zap className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                      <div className="text-sm text-blue-700 dark:text-blue-400">
-                        <strong>Tipp:</strong> Nutzen Sie eine Echtzeit-Überweisung für schnellere Bearbeitung (meist innerhalb von Sekunden).
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Confirmation Checkbox */}
-                  <div className="flex items-center space-x-3 p-4 rounded-lg border bg-muted/30">
-                    <Checkbox
-                      id="bank-transfer-confirm"
-                      checked={bankTransferConfirmed}
-                      onCheckedChange={(checked) => setBankTransferConfirmed(checked as boolean)}
-                    />
-                    <label
-                      htmlFor="bank-transfer-confirm"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      Ich habe die Überweisung ausgeführt
-                    </label>
-                  </div>
 
                   {/* Confirm Button */}
                   <Button
                     onClick={handleConfirmBankTransfer}
-                    disabled={!bankTransferConfirmed || isCreating}
+                    disabled={isCreating}
                     className="w-full h-12"
                   >
                     {isCreating ? (
@@ -678,15 +648,12 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                         Wird bestätigt...
                       </>
                     ) : (
-                      <>
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                        Überweisung bestätigen
-                      </>
+                      <>Überweisung bestätigen</>
                     )}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    Nach Eingang der Überweisung wird Ihr Guthaben innerhalb von 1-2 Werktagen gutgeschrieben.
+                    Bearbeitungszeit: 1-2 Werktage nach Geldeingang
                   </p>
                 </div>
               ) : paymentData ? (
@@ -1255,7 +1222,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
               )}
 
               {/* Pending Deposits - Full Width (only show when not in payment state) */}
-              {!paymentData && getPendingDeposits().length > 0 && (
+              {!paymentData && !bankPaymentData && (getPendingDeposits().length > 0 || getConfirmedPendingBankDeposits().length > 0) && (
                 <Card className="mt-4">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between mb-2">
@@ -1280,6 +1247,7 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
 
                     {/* Data Rows */}
                     <div className="divide-y divide-border/50">
+                      {/* Crypto Deposits */}
                       {getPendingDeposits().slice(0, 5).map((deposit: CryptoDeposit) => (
                         <div 
                           key={deposit.id} 
@@ -1301,6 +1269,41 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                           {/* Status */}
                           <div className="col-span-2 sm:col-span-1 flex justify-start">
                             {getStatusBadge(deposit.status)}
+                          </div>
+                          
+                          {/* Aktion */}
+                          <div className="hidden sm:flex justify-end">
+                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Bank Deposits */}
+                      {getConfirmedPendingBankDeposits().map((bankDeposit: BankDepositRequest) => (
+                        <div 
+                          key={bankDeposit.id} 
+                          className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 sm:gap-4 px-3 py-2.5 items-center hover:bg-muted/50 cursor-pointer transition-colors group"
+                          onClick={() => {
+                            setBankPaymentData(bankDeposit);
+                            setAmount(bankDeposit.amount.toString());
+                            setDepositMethod('bank');
+                          }}
+                          title="Klicken um Überweisungsdetails anzuzeigen"
+                        >
+                          {/* Währung mit Icon */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                              <Landmark className="w-3.5 h-3.5 text-primary" />
+                            </div>
+                            <span className="font-medium text-sm">SEPA</span>
+                          </div>
+                          
+                          {/* Betrag */}
+                          <div className="font-medium text-sm text-right sm:text-left">{formatBalance(bankDeposit.amount)}</div>
+                          
+                          {/* Status */}
+                          <div className="col-span-2 sm:col-span-1 flex justify-start">
+                            <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Ausstehend</Badge>
                           </div>
                           
                           {/* Aktion */}
