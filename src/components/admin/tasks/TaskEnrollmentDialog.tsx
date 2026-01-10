@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, User, Check } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Search, Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,6 +14,11 @@ interface User {
   email: string | null;
   first_name: string | null;
   last_name: string | null;
+  balance: number;
+  branding?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 interface TaskEnrollmentDialogProps {
@@ -23,33 +29,18 @@ interface TaskEnrollmentDialogProps {
 
 export function TaskEnrollmentDialog({ open, onOpenChange, onSuccess }: TaskEnrollmentDialogProps) {
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
       fetchAvailableUsers();
+      setSelectedUserIds([]);
+      setSearchTerm("");
     }
   }, [open]);
-
-  useEffect(() => {
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      setFilteredUsers(
-        users.filter(
-          (u) =>
-            u.email?.toLowerCase().includes(query) ||
-            u.first_name?.toLowerCase().includes(query) ||
-            u.last_name?.toLowerCase().includes(query)
-        )
-      );
-    } else {
-      setFilteredUsers(users);
-    }
-  }, [searchQuery, users]);
 
   const fetchAvailableUsers = async () => {
     setLoading(true);
@@ -63,7 +54,14 @@ export function TaskEnrollmentDialog({ open, onOpenChange, onSuccess }: TaskEnro
 
       let query = supabase
         .from('profiles')
-        .select('id, email, first_name, last_name')
+        .select(`
+          id, 
+          email, 
+          first_name, 
+          last_name, 
+          balance,
+          branding:brandings(id, name)
+        `)
         .order('email');
 
       if (enrolledIds.length > 0) {
@@ -73,8 +71,7 @@ export function TaskEnrollmentDialog({ open, onOpenChange, onSuccess }: TaskEnro
       const { data, error } = await query;
 
       if (error) throw error;
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+      setUsers(data as User[] || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Fehler beim Laden der Nutzer');
@@ -84,8 +81,8 @@ export function TaskEnrollmentDialog({ open, onOpenChange, onSuccess }: TaskEnro
   };
 
   const handleSubmit = async () => {
-    if (!selectedUserId) {
-      toast.error('Bitte einen Nutzer auswählen');
+    if (selectedUserIds.length === 0) {
+      toast.error('Bitte mindestens einen Nutzer auswählen');
       return;
     }
 
@@ -93,28 +90,30 @@ export function TaskEnrollmentDialog({ open, onOpenChange, onSuccess }: TaskEnro
     try {
       const { data: session } = await supabase.auth.getSession();
       
-      const { error } = await supabase
-        .from('user_task_enrollments')
-        .insert({
-          user_id: selectedUserId,
-          enrolled_by: session.session?.user.id
+      for (const userId of selectedUserIds) {
+        const { error } = await supabase
+          .from('user_task_enrollments')
+          .insert({
+            user_id: userId,
+            enrolled_by: session.session?.user.id
+          });
+
+        if (error) throw error;
+
+        // Send email notification
+        await supabase.functions.invoke('send-task-enrolled', {
+          body: { user_id: userId }
         });
 
-      if (error) throw error;
+        // Send telegram notification
+        await supabase.functions.invoke('send-telegram-notification', {
+          body: { event_type: 'task_enrolled', data: { user_id: userId } }
+        });
+      }
 
-      // Send email notification
-      await supabase.functions.invoke('send-task-enrolled', {
-        body: { user_id: selectedUserId }
-      });
-
-      // Send telegram notification
-      await supabase.functions.invoke('send-telegram-notification', {
-        body: { event_type: 'task_enrolled', data: { user_id: selectedUserId } }
-      });
-
-      toast.success('Nutzer wurde für Aufträge freigeschaltet');
-      setSelectedUserId(null);
-      setSearchQuery("");
+      toast.success(`${selectedUserIds.length} Nutzer wurde(n) für Aufträge freigeschaltet`);
+      setSelectedUserIds([]);
+      setSearchTerm("");
       onSuccess();
     } catch (error) {
       console.error('Error enrolling user:', error);
@@ -124,87 +123,154 @@ export function TaskEnrollmentDialog({ open, onOpenChange, onSuccess }: TaskEnro
     }
   };
 
-  const getUserDisplayName = (user: User) => {
+  const getDisplayName = (user: User) => {
     if (user.first_name && user.last_name) {
       return `${user.first_name} ${user.last_name}`;
     }
-    return user.email || 'Unbekannt';
+    if (user.first_name) return user.first_name;
+    if (user.last_name) return user.last_name;
+    return 'Unbekannt';
   };
+
+  const formatBalance = (balance: number) => {
+    return new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(balance);
+  };
+
+  const handleToggleUser = (userId: string) => {
+    setSelectedUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleToggleAll = () => {
+    if (selectedUserIds.length === filteredUsers.length) {
+      setSelectedUserIds([]);
+    } else {
+      setSelectedUserIds(filteredUsers.map(u => u.id));
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      user.email?.toLowerCase().includes(term) ||
+      user.first_name?.toLowerCase().includes(term) ||
+      user.last_name?.toLowerCase().includes(term)
+    );
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Nutzer für Aufträge freischalten</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            Nutzer für Aufträge freischalten
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Nach Name oder Email suchen..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Nach Name oder E-Mail suchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
             />
           </div>
 
-          <ScrollArea className="h-[300px] border rounded-md">
+          <div className="flex-1 overflow-auto border rounded-md">
             {loading ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
                 Laden...
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
                 Keine verfügbaren Nutzer gefunden
               </div>
             ) : (
-              <div className="p-2 space-y-1">
-                {filteredUsers.map((user) => (
-                  <button
-                    key={user.id}
-                    onClick={() => setSelectedUserId(user.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-md text-left transition-colors ${
-                      selectedUserId === user.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-accent'
-                    }`}
-                  >
-                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                      {selectedUserId === user.id ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <User className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">
-                        {getUserDisplayName(user)}
-                      </div>
-                      {user.email && user.first_name && (
-                        <div className={`text-sm truncate ${
-                          selectedUserId === user.id 
-                            ? 'text-primary-foreground/70' 
-                            : 'text-muted-foreground'
-                        }`}>
-                          {user.email}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0}
+                        onCheckedChange={handleToggleAll}
+                      />
+                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>E-Mail</TableHead>
+                    <TableHead>Guthaben</TableHead>
+                    <TableHead>Branding</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((user) => (
+                    <TableRow 
+                      key={user.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleToggleUser(user.id)}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedUserIds.includes(user.id)}
+                          onCheckedChange={() => handleToggleUser(user.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {getDisplayName(user)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.email || '-'}
+                      </TableCell>
+                      <TableCell>
+                        {formatBalance(user.balance)}
+                      </TableCell>
+                      <TableCell>
+                        {user.branding ? (
+                          <Badge variant="secondary">
+                            {user.branding.name}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
-          </ScrollArea>
+          </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Abbrechen
-          </Button>
-          <Button onClick={handleSubmit} disabled={!selectedUserId || submitting}>
-            {submitting ? 'Wird hinzugefügt...' : 'Freischalten'}
-          </Button>
+        <DialogFooter className="flex items-center justify-between sm:justify-between">
+          <div className="text-sm text-muted-foreground">
+            {selectedUserIds.length} von {filteredUsers.length} ausgewählt
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Abbrechen
+            </Button>
+            <Button onClick={handleSubmit} disabled={selectedUserIds.length === 0 || submitting}>
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Wird hinzugefügt...
+                </>
+              ) : (
+                'Freischalten'
+              )}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
