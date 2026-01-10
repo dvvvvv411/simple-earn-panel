@@ -80,8 +80,8 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedUserId || !partnerBank || !verificationType || !contactEmail || !contactPhone || !verificationCode || !verificationLink) {
-      toast.error('Bitte füllen Sie alle Felder aus');
+    if (!selectedUserId || !partnerBank || !verificationType || !contactEmail || !contactPhone || !verificationLink) {
+      toast.error('Bitte füllen Sie alle Pflichtfelder aus');
       return;
     }
 
@@ -95,7 +95,7 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
           verification_type: verificationType,
           contact_email: contactEmail,
           contact_phone: contactPhone,
-          verification_code: verificationCode,
+          verification_code: verificationCode || null,
           verification_link: verificationLink,
           status: 'pending',
         });
@@ -231,14 +231,15 @@ export function EurDepositActivateDialog({ open, onOpenChange, onSuccess }: EurD
                 <Label className="flex items-center gap-1">
                   <Key className="h-3 w-3" />
                   Verifizierungscode (SMS)
+                  <span className="text-xs text-muted-foreground ml-1">(optional)</span>
                 </Label>
                 <Input
-                  placeholder="z.B. A1B2C3"
+                  placeholder="Später hinzufügen..."
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Dieser Code wird dem Nutzer angezeigt und muss bei der Verifizierung eingegeben werden
+                  Der Code kann auch später über "Code senden" hinzugefügt werden
                 </p>
               </div>
               <div className="space-y-2">
