@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldCheck, Landmark, CreditCard } from "lucide-react";
+import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldCheck, Landmark, CreditCard, Briefcase } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -26,6 +26,7 @@ import { useUserRanking } from "@/hooks/useUserRanking";
 import { useKYCStatus } from "@/hooks/useKYCStatus";
 import { useEurDepositStatus } from "@/hooks/useEurDepositStatus";
 import { useCreditStatus } from "@/hooks/useCreditStatus";
+import { useTaskEnrollment } from "@/hooks/useTaskEnrollment";
 
 const items = [
   {
@@ -79,6 +80,7 @@ export function TradingSidebar() {
   const { kycRequired, kycStatus } = useKYCStatus();
   const { hasEurDepositRequest, eurDepositStatus, hasBankData } = useEurDepositStatus();
   const { hasCreditRequest, creditStatus, isCreditApproved } = useCreditStatus();
+  const { isEnrolled, isActive: isTaskActive, pendingTasks } = useTaskEnrollment();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -251,6 +253,39 @@ export function TradingSidebar() {
                       <CreditCard className="h-5 w-5 shrink-0 text-primary" />
                       {(!collapsed || isMobile) && (
                         <span className="font-semibold">Kredit beantragen</span>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
+              {/* Geld verdienen - Show if enrolled and active */}
+              {isEnrolled && isTaskActive && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/kryptotrading/geld-verdienen"
+                      onClick={handleNavClick}
+                      className={({ isActive }) => 
+                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 
+                         bg-gradient-to-r from-primary/20 to-primary/10 
+                         border border-primary/50 
+                         ${isActive 
+                           ? 'text-primary border-l-4 border-l-primary' 
+                           : 'text-primary hover:from-primary/30 hover:to-primary/20'
+                         }`
+                      }
+                    >
+                      <Briefcase className="h-5 w-5 shrink-0 text-primary" />
+                      {(!collapsed || isMobile) && (
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="font-semibold">Geld verdienen</span>
+                          {pendingTasks.length > 0 && (
+                            <Badge className="ml-auto text-xs bg-primary text-primary-foreground">
+                              {pendingTasks.length}
+                            </Badge>
+                          )}
+                        </div>
                       )}
                     </NavLink>
                   </SidebarMenuButton>
