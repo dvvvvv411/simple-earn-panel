@@ -11,9 +11,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plus, Save, Euro, Frown, Gift, Bot, ShieldCheck, User as UserIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Plus, Save, Euro, Frown, Gift, Bot, ShieldCheck, User as UserIcon, StickyNote, Trash2 } from "lucide-react";
 import type { User, Transaction, BalanceUpdateData } from "@/types/user";
 import { UserActivitySection } from "./UserActivitySection";
+
+interface UserNote {
+  id: string;
+  user_id: string;
+  admin_id: string;
+  content: string;
+  created_at: string;
+  admin?: { first_name: string | null; last_name: string | null; email: string | null };
+}
 
 interface UserDetailDialogProps {
   user: User | null;
@@ -41,6 +51,10 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const [consultants, setConsultants] = useState<{ id: string; name: string }[]>([]);
   const [selectedConsultantId, setSelectedConsultantId] = useState<string | null>(null);
   const [consultantLoading, setConsultantLoading] = useState(false);
+  const [notes, setNotes] = useState<UserNote[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [newNote, setNewNote] = useState("");
+  const [addingNote, setAddingNote] = useState(false);
 
   useEffect(() => {
     if (user && open) {
@@ -50,8 +64,100 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
       setSelectedConsultantId(user.consultant_id || null);
       fetchKycRequired();
       fetchConsultants();
+      fetchNotes();
     }
   }, [user, open]);
+
+  const fetchNotes = async () => {
+    if (!user) return;
+    setLoadingNotes(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_notes')
+        .select('*, admin:profiles!user_notes_admin_id_fkey(first_name, last_name, email)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setNotes((data || []) as UserNote[]);
+    } catch (error: any) {
+      console.error('Error fetching notes:', error);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!user || !newNote.trim()) return;
+    
+    setAddingNote(true);
+    try {
+      const currentUser = await supabase.auth.getUser();
+      if (!currentUser.data.user) throw new Error('Nicht authentifiziert');
+
+      const { error } = await supabase
+        .from('user_notes')
+        .insert({
+          user_id: user.id,
+          admin_id: currentUser.data.user.id,
+          content: newNote.trim()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Notiz hinzugefügt",
+        description: "Die Notiz wurde erfolgreich gespeichert.",
+      });
+      
+      setNewNote("");
+      fetchNotes();
+    } catch (error: any) {
+      console.error('Error adding note:', error);
+      toast({
+        title: "Fehler",
+        description: "Notiz konnte nicht gespeichert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setAddingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_notes')
+        .delete()
+        .eq('id', noteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Notiz gelöscht",
+        description: "Die Notiz wurde entfernt.",
+      });
+      
+      setNotes(notes.filter(n => n.id !== noteId));
+    } catch (error: any) {
+      console.error('Error deleting note:', error);
+      toast({
+        title: "Fehler",
+        description: "Notiz konnte nicht gelöscht werden.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getAdminName = (note: UserNote) => {
+    if (!note.admin) return 'Admin';
+    if (note.admin.first_name && note.admin.last_name) {
+      return `${note.admin.first_name} ${note.admin.last_name}`;
+    }
+    if (note.admin.first_name) return note.admin.first_name;
+    if (note.admin.email) return note.admin.email.split('@')[0];
+    return 'Admin';
+  };
 
   const fetchConsultants = async () => {
     try {
@@ -657,6 +763,76 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
                   Bonus-Bots aktualisieren
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Admin Notes */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <StickyNote className="h-5 w-5 text-blue-500" />
+                Admin-Notizen
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Notiz zum Benutzer hinzufügen..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="bg-background border-input text-foreground min-h-[80px]"
+                />
+                <Button
+                  onClick={handleAddNote}
+                  disabled={addingNote || !newNote.trim()}
+                  className="w-full"
+                >
+                  {addingNote ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  Notiz hinzufügen
+                </Button>
+              </div>
+
+              {loadingNotes ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                </div>
+              ) : notes.length === 0 ? (
+                <p className="text-center text-muted-foreground text-sm py-4">
+                  Keine Notizen vorhanden.
+                </p>
+              ) : (
+                <ScrollArea className="h-[200px] pr-4">
+                  <div className="space-y-3">
+                    {notes.map((note) => (
+                      <div 
+                        key={note.id} 
+                        className="p-3 rounded-lg bg-muted/50 border border-border group"
+                      >
+                        <p className="text-foreground text-sm whitespace-pre-wrap">
+                          {note.content}
+                        </p>
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(note.created_at).toLocaleString('de-DE')} – {getAdminName(note)}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteNote(note.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
             </CardContent>
           </Card>
         </div>
