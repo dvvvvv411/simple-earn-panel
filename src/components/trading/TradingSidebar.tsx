@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldAlert } from "lucide-react";
+import { BarChart3, LogOut, History, Wallet, Headphones, Settings, Bot, ShieldCheck } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -23,6 +23,7 @@ import { useBranding } from "@/contexts/BrandingContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserRanking } from "@/hooks/useUserRanking";
 import { useKYCStatus } from "@/hooks/useKYCStatus";
+import { Badge } from "@/components/ui/badge";
 
 const items = [
   {
@@ -76,6 +77,9 @@ export function TradingSidebar() {
   const { kycRequired, kycStatus } = useKYCStatus();
 
   const isActive = (path: string) => currentPath === path;
+
+  // Show KYC item if required and not approved
+  const showKYCItem = kycRequired && kycStatus !== 'approved';
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -133,75 +137,13 @@ export function TradingSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-2">
             <SidebarMenu className="space-y-1">
-              {/* Dashboard item */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/kryptotrading"
-                    end
-                    onClick={handleNavClick}
-                    className={({ isActive }) => 
-                      `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
-                        isActive 
-                          ? 'bg-primary/10 text-primary border-l-4 border-primary' 
-                          : 'hover:bg-accent/50 text-muted-foreground'
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <BarChart3 className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                        {(!collapsed || isMobile) && (
-                          <span className={isActive ? 'text-primary' : 'text-muted-foreground'}>
-                            Dashboard
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {/* KYC item - only shown when required and not approved */}
-              {kycRequired && kycStatus !== 'approved' && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to="/kryptotrading/kyc"
-                      onClick={handleNavClick}
-                      className={({ isActive }) => 
-                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 
-                         bg-gradient-to-r from-amber-500/20 to-orange-500/20 
-                         border border-amber-500/50 
-                         ${isActive 
-                           ? 'text-amber-600 border-l-4 border-l-amber-500' 
-                           : 'text-amber-600 hover:from-amber-500/30 hover:to-orange-500/30'
-                         }`
-                      }
-                    >
-                      <ShieldAlert className="h-5 w-5 shrink-0 text-amber-500" />
-                      {(!collapsed || isMobile) && (
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="font-semibold">KYC Verifizierung</span>
-                          {kycStatus === 'rejected' && (
-                            <span className="ml-auto text-xs bg-red-500 text-white px-2 py-0.5 rounded">Abgelehnt</span>
-                          )}
-                          {kycStatus === 'pending' && (
-                            <span className="ml-auto text-xs bg-amber-500 text-white px-2 py-0.5 rounded">In Prüfung</span>
-                          )}
-                        </div>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-
-              {/* Other navigation items */}
-              {items.slice(1).map((item) => (
+              {/* All navigation items */}
+              {items.map((item, index) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url}
+                      end={item.url === "/kryptotrading"}
                       onClick={handleNavClick}
                       className={({ isActive }) => 
                         `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 ${
@@ -225,6 +167,44 @@ export function TradingSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* KYC item - After Einstellungen (bottom of list) */}
+              {showKYCItem && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/kryptotrading/kyc"
+                      onClick={handleNavClick}
+                      className={({ isActive }) => 
+                        `flex items-center gap-4 px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 mx-2 
+                         bg-gradient-to-r from-primary/20 to-primary/10 
+                         border border-primary/50 
+                         ${isActive 
+                           ? 'text-primary border-l-4 border-l-primary' 
+                           : 'text-primary hover:from-primary/30 hover:to-primary/20'
+                         }`
+                      }
+                    >
+                      <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
+                      {(!collapsed || isMobile) && (
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="font-semibold">KYC Überprüfung</span>
+                          {kycStatus === 'rejected' && (
+                            <Badge variant="destructive" className="ml-auto text-xs">
+                              Abgelehnt
+                            </Badge>
+                          )}
+                          {kycStatus === 'pending' && (
+                            <Badge className="ml-auto text-xs bg-primary/80 hover:bg-primary/80">
+                              In Prüfung
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
