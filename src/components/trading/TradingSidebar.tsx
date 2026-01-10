@@ -194,11 +194,6 @@ export function TradingSidebar() {
                               Abgelehnt
                             </Badge>
                           )}
-                          {kycStatus === 'pending' && (
-                            <Badge className="ml-auto text-xs bg-primary/80 hover:bg-primary/80">
-                              In Prüfung
-                            </Badge>
-                          )}
                         </div>
                       )}
                     </NavLink>

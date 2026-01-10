@@ -260,10 +260,10 @@ export default function KYCVerification() {
       try {
         await supabase.functions.invoke('send-telegram-notification', {
           body: {
-            event: 'kyc_submitted',
+            event_type: 'kyc_submitted',
             data: {
-              user_email: session.user.email,
-              user_name: `${firstName} ${lastName}`
+              user_id: session.user.id,
+              name: `${firstName} ${lastName}`
             }
           }
         });

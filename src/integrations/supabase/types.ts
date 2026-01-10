@@ -626,6 +626,7 @@ export type Database = {
           id: string
           notify_deposit_created: boolean
           notify_deposit_paid: boolean
+          notify_kyc_submitted: boolean | null
           notify_new_user: boolean
           notify_support_ticket: boolean
           notify_withdrawal: boolean
@@ -639,6 +640,7 @@ export type Database = {
           id?: string
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
+          notify_kyc_submitted?: boolean | null
           notify_new_user?: boolean
           notify_support_ticket?: boolean
           notify_withdrawal?: boolean
@@ -652,6 +654,7 @@ export type Database = {
           id?: string
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
+          notify_kyc_submitted?: boolean | null
           notify_new_user?: boolean
           notify_support_ticket?: boolean
           notify_withdrawal?: boolean
