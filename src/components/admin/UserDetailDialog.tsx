@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, Save, Euro, Frown, Gift, Bot, ShieldCheck } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Plus, Save, Euro, Frown, Gift, Bot, ShieldCheck, User as UserIcon } from "lucide-react";
 import type { User, Transaction, BalanceUpdateData } from "@/types/user";
 import { UserActivitySection } from "./UserActivitySection";
 
@@ -37,15 +38,63 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const [kycRequired, setKycRequired] = useState(false);
   const [kycLoading, setKycLoading] = useState(false);
   const [kycStatus, setKycStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
+  const [consultants, setConsultants] = useState<{ id: string; name: string }[]>([]);
+  const [selectedConsultantId, setSelectedConsultantId] = useState<string | null>(null);
+  const [consultantLoading, setConsultantLoading] = useState(false);
 
   useEffect(() => {
     if (user && open) {
       fetchTransactions();
       setUnluckyStreak(user.unlucky_streak ?? false);
       setCurrentFreeBots(user.free_bots || 0);
+      setSelectedConsultantId(user.consultant_id || null);
       fetchKycRequired();
+      fetchConsultants();
     }
   }, [user, open]);
+
+  const fetchConsultants = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('consultants')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setConsultants(data || []);
+    } catch (error) {
+      console.error('Error fetching consultants:', error);
+    }
+  };
+
+  const handleConsultantChange = async (consultantId: string) => {
+    if (!user) return;
+    setConsultantLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ consultant_id: consultantId })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setSelectedConsultantId(consultantId);
+      toast({
+        title: "Berater zugewiesen",
+        description: "Berater wurde erfolgreich geändert.",
+      });
+      onUserUpdated();
+    } catch (error: any) {
+      console.error('Error updating consultant:', error);
+      toast({
+        title: "Fehler",
+        description: "Berater konnte nicht geändert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setConsultantLoading(false);
+    }
+  };
 
   const fetchKycRequired = async () => {
     if (!user) return;
@@ -356,6 +405,27 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
                 ) : (
                   <p className="text-foreground">-</p>
                 )}
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Berater</Label>
+                <Select 
+                  value={selectedConsultantId || ''} 
+                  onValueChange={handleConsultantChange}
+                  disabled={consultantLoading}
+                >
+                  <SelectTrigger className="mt-1 bg-background border-input">
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Kein Berater" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {consultants.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>

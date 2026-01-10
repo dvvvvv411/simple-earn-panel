@@ -30,10 +30,12 @@ export default function UsersPage() {
   const [brandingFilter, setBrandingFilter] = useState<string>('all');
   const [balanceRange, setBalanceRange] = useState<number[]>([0, 100000]);
   const [brandings, setBrandings] = useState<{ id: string; name: string }[]>([]);
+  const [consultants, setConsultants] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     fetchUsers();
     fetchBrandings();
+    fetchConsultants();
   }, []);
 
   const fetchBrandings = async () => {
@@ -50,6 +52,20 @@ export default function UsersPage() {
     }
   };
 
+  const fetchConsultants = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('consultants')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setConsultants(data || []);
+    } catch (error) {
+      console.error('Error fetching consultants:', error);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -57,7 +73,8 @@ export default function UsersPage() {
         .from('profiles')
         .select(`
           *,
-          branding:brandings(id, name)
+          branding:brandings(id, name),
+          consultant:consultants(id, name)
         `)
         .order('created_at', { ascending: false });
 
@@ -190,6 +207,35 @@ export default function UsersPage() {
     } else {
       setSortField(field);
       setSortDirection('desc');
+    }
+  };
+
+  const handleConsultantAssign = async (userId: string, consultantId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ consultant_id: consultantId })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      // Lokales Update
+      const consultant = consultants.find(c => c.id === consultantId);
+      setUsers(prev => prev.map(u => 
+        u.id === userId ? { ...u, consultant_id: consultantId, consultant } : u
+      ));
+
+      toast({
+        title: "Berater zugewiesen",
+        description: `Berater wurde erfolgreich zugewiesen.`,
+      });
+    } catch (error: any) {
+      console.error('Error assigning consultant:', error);
+      toast({
+        title: "Fehler",
+        description: "Berater konnte nicht zugewiesen werden.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -333,6 +379,8 @@ export default function UsersPage() {
             sortField={sortField}
             sortDirection={sortDirection}
             onSortChange={handleSortChange}
+            consultants={consultants}
+            onConsultantAssign={handleConsultantAssign}
           />
         </CardContent>
       </Card>

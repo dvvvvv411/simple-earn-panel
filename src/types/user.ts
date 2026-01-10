@@ -16,6 +16,10 @@ export interface User {
     id: string;
     name: string;
   };
+  consultant?: {
+    id: string;
+    name: string;
+  };
   roles?: Array<{
     role: string;
   }>;
