@@ -480,39 +480,241 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                 <div className="relative">
                   <ResponsiveDialogTitle className="flex items-center gap-3 text-xl sm:text-lg">
                     <div className="p-3 sm:p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
-                      <Wallet className="w-8 h-8 sm:w-6 sm:h-6" />
+                      {depositMethod === 'bank' ? (
+                        <Landmark className="w-8 h-8 sm:w-6 sm:h-6" />
+                      ) : (
+                        <Wallet className="w-8 h-8 sm:w-6 sm:h-6" />
+                      )}
                     </div>
                     <div>
                       <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                        Krypto Einzahlung
+                        {depositMethod === 'bank' ? 'SEPA-Banküberweisung' : 'Krypto Einzahlung'}
                       </span>
                       <p className="text-base sm:text-sm font-normal text-muted-foreground mt-1">
-                        Schnell und sicher mit Kryptowährungen
+                        {depositMethod === 'bank' ? 'Sicher per Banküberweisung einzahlen' : 'Schnell und sicher mit Kryptowährungen'}
                       </p>
                     </div>
                   </ResponsiveDialogTitle>
                   
-                  {!paymentData && (
+
+                  {!paymentData && !bankPaymentData && (
                     <div className="flex gap-3 sm:gap-2 mt-6 sm:mt-4">
-                      <Badge variant="secondary" className="text-sm sm:text-xs">
-                        <Shield className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                        Sicher
-                      </Badge>
-                      <Badge variant="secondary" className="text-sm sm:text-xs">
-                        <Zap className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                        Sofort
-                      </Badge>
-                      <Badge variant="secondary" className="text-sm sm:text-xs">
-                        <Bitcoin className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-                        30+ Coins
-                      </Badge>
+                      {depositMethod === 'crypto' ? (
+                        <>
+                          <Badge variant="secondary" className="text-sm sm:text-xs">
+                            <Shield className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                            Sicher
+                          </Badge>
+                          <Badge variant="secondary" className="text-sm sm:text-xs">
+                            <Zap className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                            Sofort
+                          </Badge>
+                          <Badge variant="secondary" className="text-sm sm:text-xs">
+                            <Bitcoin className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                            30+ Coins
+                          </Badge>
+                        </>
+                      ) : (
+                        <>
+                          <Badge variant="secondary" className="text-sm sm:text-xs">
+                            <Shield className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                            Sicher
+                          </Badge>
+                          <Badge variant="secondary" className="text-sm sm:text-xs">
+                            <Zap className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                            Echtzeit möglich
+                          </Badge>
+                          <Badge variant="secondary" className="text-sm sm:text-xs">
+                            <Landmark className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+                            SEPA
+                          </Badge>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
               </ResponsiveDialogHeader>
 
-              {paymentData ? (
-                // Payment Screen - Internal display
+              {/* Tabs - nur wenn User Bankdaten hat und kein Payment aktiv */}
+              {hasBankData && !paymentData && !bankPaymentData && (
+                <div className="mb-6">
+                  <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+                    <Button
+                      variant={depositMethod === 'crypto' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setDepositMethod('crypto')}
+                      className="flex-1"
+                    >
+                      <Bitcoin className="w-4 h-4 mr-2" />
+                      Kryptowährung
+                    </Button>
+                    <Button
+                      variant={depositMethod === 'bank' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setDepositMethod('bank')}
+                      className="flex-1"
+                    >
+                      <Landmark className="w-4 h-4 mr-2" />
+                      Banküberweisung
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Bank Payment Details View */}
+              {bankPaymentData ? (
+                <div className="space-y-6">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleBackToForm}
+                    className="mb-2"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Zurück
+                  </Button>
+
+                  {/* Amount to Transfer */}
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground mb-2">Überweisen Sie diesen Betrag:</div>
+                    <div className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+                      <Euro className="w-8 h-8 text-primary" />
+                      <span className="text-3xl font-bold text-foreground">
+                        {formatBalance(bankPaymentData.amount)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bank Details */}
+                  <Card>
+                    <CardContent className="p-0">
+                      <div className="p-4 border-b bg-muted/30">
+                        <h3 className="font-semibold flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-primary" />
+                          An folgendes Konto überweisen:
+                        </h3>
+                      </div>
+                      <div className="divide-y">
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <CreditCard className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-xs text-muted-foreground">Kontoinhaber</div>
+                              <div className="font-medium">{eurDepositRequest?.bank_account_holder || '—'}</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <CreditCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-xs text-muted-foreground">IBAN</div>
+                              <div className="font-mono font-medium truncate">{eurDepositRequest?.bank_iban || '—'}</div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="flex-shrink-0 ml-2"
+                            onClick={handleCopyIban}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <CreditCard className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-xs text-muted-foreground">BIC</div>
+                              <div className="font-mono font-medium">{eurDepositRequest?.bank_bic || '—'}</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <Landmark className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-xs text-muted-foreground">Bank</div>
+                              <div className="font-medium">{eurDepositRequest?.bank_name || '—'}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Reference Code */}
+                  <Card className="border-primary/30 bg-primary/5">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1 flex items-center gap-2">
+                            <AlertCircle className="w-3 h-3" />
+                            Verwendungszweck (wichtig!)
+                          </div>
+                          <div className="font-mono font-bold text-lg">{bankPaymentData.reference_code}</div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleCopyReference}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Tip */}
+                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <Zap className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="text-sm text-blue-700 dark:text-blue-400">
+                        <strong>Tipp:</strong> Nutzen Sie eine Echtzeit-Überweisung für schnellere Bearbeitung (meist innerhalb von Sekunden).
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Confirmation Checkbox */}
+                  <div className="flex items-center space-x-3 p-4 rounded-lg border bg-muted/30">
+                    <Checkbox
+                      id="bank-transfer-confirm"
+                      checked={bankTransferConfirmed}
+                      onCheckedChange={(checked) => setBankTransferConfirmed(checked as boolean)}
+                    />
+                    <label
+                      htmlFor="bank-transfer-confirm"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Ich habe die Überweisung ausgeführt
+                    </label>
+                  </div>
+
+                  {/* Confirm Button */}
+                  <Button
+                    onClick={handleConfirmBankTransfer}
+                    disabled={!bankTransferConfirmed || isCreating}
+                    className="w-full h-12"
+                  >
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Wird bestätigt...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        Überweisung bestätigen
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-center text-muted-foreground">
+                    Nach Eingang der Überweisung wird Ihr Guthaben innerhalb von 1-2 Werktagen gutgeschrieben.
+                  </p>
+                </div>
+              ) : paymentData ? (
+                // Crypto Payment Screen - Internal display
                 <div className="space-y-6">
                   <Button 
                     variant="ghost" 
@@ -653,8 +855,139 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     Schließen
                   </Button>
                 </div>
+              ) : depositMethod === 'bank' ? (
+                // Bank Form State
+                <div className="grid lg:grid-cols-2 gap-8 sm:gap-4">
+                  {/* Left Column - Form */}
+                  <div className="space-y-8 sm:space-y-6">
+                    <div className="space-y-4 sm:space-y-3">
+                      <Label htmlFor="bank-amount" className="text-lg sm:text-base font-medium">
+                        Einzahlungsbetrag (EUR)
+                      </Label>
+                      
+                      {/* Balance Display */}
+                      <div className="p-6 sm:p-4 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 border">
+                        <div className="flex items-center justify-between">
+                          <span className="text-base sm:text-sm text-muted-foreground">Aktuelles Guthaben</span>
+                          <span className="font-semibold text-lg sm:text-base">
+                            {formatBalance(userBalance)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Amount Input */}
+                      <div className="relative">
+                        <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 sm:w-5 sm:h-5 text-muted-foreground" />
+                        <Input
+                          id="bank-amount"
+                          type="number"
+                          placeholder="0.00"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          className="pl-14 sm:pl-12 h-14 sm:h-12 text-lg sm:text-base"
+                          min="50"
+                          step="1"
+                        />
+                      </div>
+
+                      {/* Quick Amount Buttons */}
+                      <div className="grid grid-cols-5 gap-2">
+                        {QUICK_AMOUNTS.map((quickAmount) => (
+                          <Button
+                            key={quickAmount}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setAmount(quickAmount.toString())}
+                            className="text-sm sm:text-xs h-10 sm:h-auto"
+                          >
+                            {quickAmount.toLocaleString('de-DE')} €
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Bank Transfer Selection (Static) */}
+                    <div className="space-y-4 sm:space-y-3">
+                      <Label className="text-lg sm:text-base font-medium">
+                        Zahlungsart
+                      </Label>
+                      <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+                        <Landmark className="w-6 h-6 text-primary" />
+                        <div>
+                          <div className="font-medium">SEPA-Banküberweisung</div>
+                          <div className="text-sm text-muted-foreground">Standard oder Echtzeit-Überweisung</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Amount Summary */}
+                    {amount && parseFloat(amount) >= 50 && (
+                      <div className="p-4 sm:p-3 rounded-lg bg-primary/5 border border-primary/20">
+                        <div className="flex items-center gap-2 text-base sm:text-sm">
+                          <Zap className="w-5 h-5 sm:w-4 sm:h-4 text-primary" />
+                          <span className="font-medium">Einzahlung:</span>
+                          <span className="font-semibold text-primary">
+                            {formatBalance(parseFloat(amount))}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column - Info */}
+                  <div className="space-y-6 sm:space-y-4">
+                    {/* How it works - Bank */}
+                    <Card className="relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
+                      <CardContent className="relative p-6 sm:p-4">
+                        <h3 className="font-semibold text-lg sm:text-base mb-4">So funktioniert's</h3>
+                        <div className="space-y-4">
+                          {[
+                            { step: 1, text: "Gewünschten Betrag eingeben (min. 50€)" },
+                            { step: 2, text: "Bankdaten und Verwendungszweck notieren" },
+                            { step: 3, text: "Überweisung bei Ihrer Bank ausführen" },
+                            { step: 4, text: "Guthaben wird nach Eingang gutgeschrieben" },
+                          ].map((item) => (
+                            <div key={item.step} className="flex items-start gap-3">
+                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs font-semibold text-primary">{item.step}</span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">{item.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Realtime Tip */}
+                    <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start gap-3">
+                        <Zap className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-sm mb-1 text-blue-700 dark:text-blue-400">Echtzeit-Überweisung</h4>
+                          <p className="text-xs text-blue-600 dark:text-blue-500">
+                            Mit einer Echtzeit-Überweisung (Instant Payment) kommt Ihr Geld meist innerhalb von Sekunden an.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Security Note */}
+                    <div className="p-4 rounded-lg bg-muted/30 border">
+                      <div className="flex items-start gap-3">
+                        <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-sm mb-1">Sichere Zahlungen</h4>
+                          <p className="text-xs text-muted-foreground">
+                            SEPA-Überweisungen sind sicher und europaweit standardisiert.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ) : (
-                // Form State
+                // Crypto Form State
                 <div className="grid lg:grid-cols-2 gap-8 sm:gap-4">
                   {/* Left Column - Form */}
                   <div className="space-y-8 sm:space-y-6">
@@ -1097,11 +1430,11 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
               )}
 
               {/* Footer - only show when not in payment state */}
-              {!paymentData && (
+              {!paymentData && !bankPaymentData && (
                 <div className="mt-8 pt-6 border-t">
                   <Button
-                    onClick={handleCreateDeposit}
-                    disabled={!amount || parseFloat(amount) < 10 || isCreating}
+                    onClick={depositMethod === 'bank' ? handleCreateBankDeposit : handleCreateDeposit}
+                    disabled={!amount || parseFloat(amount) < (depositMethod === 'bank' ? 50 : 10) || isCreating}
                     className="w-full h-14 sm:h-12 text-lg sm:text-base"
                   >
                     {isCreating ? (
@@ -1117,7 +1450,9 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
                     )}
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-3">
-                    Mindesteinzahlung: 10€ • Keine versteckten Gebühren
+                    {depositMethod === 'bank' 
+                      ? 'Mindesteinzahlung: 50€ • Bearbeitung: 1-2 Werktage' 
+                      : 'Mindesteinzahlung: 10€ • Keine versteckten Gebühren'}
                   </p>
                 </div>
               )}

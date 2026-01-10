@@ -30,8 +30,12 @@ import {
   Loader2,
   ExternalLink,
   Euro,
-  RefreshCw
+  RefreshCw,
+  Bitcoin,
+  Landmark,
+  Check
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -60,12 +64,39 @@ interface Deposit {
   } | null;
 }
 
+interface BankDeposit {
+  id: string;
+  user_id: string;
+  amount: number;
+  status: string;
+  reference_code: string;
+  user_confirmed_at: string | null;
+  completed_at: string | null;
+  completed_by: string | null;
+  created_at: string;
+  profiles: {
+    email: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    balance: number;
+  } | null;
+}
+
 export default function Deposits() {
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
+  const [activeTab, setActiveTab] = useState<'crypto' | 'bank'>('crypto');
+  
+  // Bank deposits state
+  const [bankDeposits, setBankDeposits] = useState<BankDeposit[]>([]);
+  const [bankLoading, setBankLoading] = useState(true);
+  const [bankSearchTerm, setBankSearchTerm] = useState("");
+  const [bankStatusFilter, setBankStatusFilter] = useState<string>("all");
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  
   const { toast } = useToast();
 
   const fetchDeposits = async () => {
@@ -97,8 +128,56 @@ export default function Deposits() {
     }
   };
 
+  const fetchBankDeposits = async () => {
+    setBankLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('bank_deposit_requests')
+        .select(`
+          id,
+          user_id,
+          amount,
+          status,
+          reference_code,
+          user_confirmed_at,
+          completed_at,
+          completed_by,
+          created_at
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch profiles separately
+      const userIds = [...new Set((data || []).map(d => d.user_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, email, first_name, last_name, balance')
+        .in('id', userIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+      const depositsWithProfiles = (data || []).map(d => ({
+        ...d,
+        profiles: profilesMap.get(d.user_id) || null
+      }));
+
+      setBankDeposits(depositsWithProfiles as BankDeposit[]);
+    } catch (error) {
+      console.error('Error fetching bank deposits:', error);
+      toast({
+        title: "Fehler",
+        description: "Bank-Einzahlungen konnten nicht geladen werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setBankLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchDeposits();
+    fetchBankDeposits();
   }, []);
 
   const formatCurrency = (amount: number, currency: string = 'EUR') => {
@@ -155,12 +234,91 @@ export default function Deposits() {
     });
   };
 
-  const getUserName = (deposit: Deposit) => {
+  const getUserName = (deposit: Deposit | BankDeposit) => {
     if (deposit.profiles?.first_name || deposit.profiles?.last_name) {
       return `${deposit.profiles.first_name || ''} ${deposit.profiles.last_name || ''}`.trim();
     }
     return deposit.profiles?.email || 'Unbekannt';
   };
+
+  const getBankStatusBadge = (deposit: BankDeposit) => {
+    switch (deposit.status) {
+      case 'pending':
+        if (deposit.user_confirmed_at) {
+          return <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400"><Clock className="w-3 h-3 mr-1" />Bestätigt - Warte auf Eingang</Badge>;
+        }
+        return <Badge className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"><Clock className="w-3 h-3 mr-1" />Ausstehend</Badge>;
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400"><CheckCircle className="w-3 h-3 mr-1" />Abgeschlossen</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400"><XCircle className="w-3 h-3 mr-1" />Abgebrochen</Badge>;
+      default:
+        return <Badge variant="secondary">{deposit.status}</Badge>;
+    }
+  };
+
+  const handleMarkAsReceived = async (deposit: BankDeposit) => {
+    setProcessingId(deposit.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Nicht angemeldet');
+
+      const { data, error } = await supabase.rpc('process_bank_deposit', {
+        p_request_id: deposit.id,
+        p_admin_id: session.user.id
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast({
+          title: "Erfolgreich",
+          description: `Einzahlung von ${formatCurrency(deposit.amount)} wurde verarbeitet.`,
+        });
+        fetchBankDeposits();
+      } else {
+        toast({
+          title: "Fehler",
+          description: "Die Einzahlung konnte nicht verarbeitet werden.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error processing bank deposit:', error);
+      toast({
+        title: "Fehler",
+        description: "Die Einzahlung konnte nicht verarbeitet werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const filteredBankDeposits = bankDeposits.filter(deposit => {
+    const userName = getUserName(deposit);
+    const matchesSearch = 
+      userName.toLowerCase().includes(bankSearchTerm.toLowerCase()) ||
+      deposit.profiles?.email?.toLowerCase().includes(bankSearchTerm.toLowerCase()) ||
+      deposit.reference_code?.toLowerCase().includes(bankSearchTerm.toLowerCase());
+    
+    let matchesStatus = bankStatusFilter === "all";
+    if (bankStatusFilter === "pending") {
+      matchesStatus = deposit.status === 'pending';
+    } else if (bankStatusFilter === "completed") {
+      matchesStatus = deposit.status === 'completed';
+    } else if (bankStatusFilter === "cancelled") {
+      matchesStatus = deposit.status === 'cancelled';
+    }
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const bankPendingCount = bankDeposits.filter(d => d.status === 'pending').length;
+  const bankCompletedCount = bankDeposits.filter(d => d.status === 'completed').length;
+  const bankTotalAmount = bankDeposits
+    .filter(d => d.status === 'completed')
+    .reduce((sum, d) => sum + d.amount, 0);
 
   const filteredDeposits = deposits.filter(deposit => {
     const userName = getUserName(deposit);
@@ -195,198 +353,399 @@ export default function Deposits() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Einzahlungen</h1>
           <p className="text-muted-foreground">
-            Alle Krypto-Einzahlungen über NowPayments
+            Krypto- und Bank-Einzahlungen verwalten
           </p>
         </div>
-        <Button variant="outline" onClick={fetchDeposits} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+        <Button variant="outline" onClick={() => { fetchDeposits(); fetchBankDeposits(); }} disabled={loading || bankLoading}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading || bankLoading ? 'animate-spin' : ''}`} />
           Aktualisieren
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-950">
-                <Clock className="w-5 h-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Ausstehend</p>
-                <p className="text-2xl font-bold">{pendingCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-950">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Abgeschlossen</p>
-                <p className="text-2xl font-bold">{finishedCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-100 dark:bg-red-950">
-                <XCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Fehlgeschlagen</p>
-                <p className="text-2xl font-bold">{failedCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950">
-                <Euro className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Eingezahlt (Gesamt)</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalFinishedAmount)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'crypto' | 'bank')}>
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="crypto" className="flex items-center gap-2">
+            <Bitcoin className="w-4 h-4" />
+            Krypto-Einzahlungen
+          </TabsTrigger>
+          <TabsTrigger value="bank" className="flex items-center gap-2">
+            <Landmark className="w-4 h-4" />
+            Bank-Einzahlungen
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Suche nach E-Mail, Name oder Payment-ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={statusFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("all")}
-              >
-                Alle
-              </Button>
-              <Button
-                variant={statusFilter === "pending" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("pending")}
-              >
-                <Clock className="w-4 h-4 mr-1" />
-                Ausstehend
-              </Button>
-              <Button
-                variant={statusFilter === "finished" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("finished")}
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Abgeschlossen
-              </Button>
-              <Button
-                variant={statusFilter === "failed" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("failed")}
-              >
-                <XCircle className="w-4 h-4 mr-1" />
-                Fehlgeschlagen
-              </Button>
-            </div>
+        {/* Crypto Tab Content */}
+        <TabsContent value="crypto" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-950">
+                    <Clock className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ausstehend</p>
+                    <p className="text-2xl font-bold">{pendingCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-950">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Abgeschlossen</p>
+                    <p className="text-2xl font-bold">{finishedCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-red-100 dark:bg-red-950">
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Fehlgeschlagen</p>
+                    <p className="text-2xl font-bold">{failedCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950">
+                    <Euro className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Eingezahlt (Gesamt)</p>
+                    <p className="text-2xl font-bold">{formatCurrency(totalFinishedAmount)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Einzahlungen</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredDeposits.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Keine Einzahlungen gefunden.
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Benutzer</TableHead>
-                  <TableHead>Betrag</TableHead>
-                  <TableHead>Kryptowährung</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Erstellt</TableHead>
-                  <TableHead className="text-right">Aktionen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDeposits.map((deposit) => (
-                  <TableRow key={deposit.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{getUserName(deposit)}</p>
-                        <p className="text-sm text-muted-foreground">{deposit.profiles?.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-semibold">
-                      {formatCurrency(deposit.price_amount)}
-                    </TableCell>
-                    <TableCell>
-                      {deposit.pay_currency ? (
-                        <div className="flex items-center gap-2">
-                          <img 
-                            src={`https://nowpayments.io/images/coins/${deposit.pay_currency.toLowerCase()}.svg`}
-                            alt={deposit.pay_currency}
-                            className="w-5 h-5"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                          <span className="font-mono text-sm">
-                            {deposit.pay_amount?.toFixed(8)} {deposit.pay_currency.toUpperCase()}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(deposit)}</TableCell>
-                    <TableCell>
-                      {format(new Date(deposit.created_at), 'dd.MM.yyyy HH:mm', { locale: de })}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedDeposit(deposit)}
-                      >
-                        Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Suche nach E-Mail, Name oder Payment-ID..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={statusFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter("all")}
+                  >
+                    Alle
+                  </Button>
+                  <Button
+                    variant={statusFilter === "pending" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter("pending")}
+                  >
+                    <Clock className="w-4 h-4 mr-1" />
+                    Ausstehend
+                  </Button>
+                  <Button
+                    variant={statusFilter === "finished" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter("finished")}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Abgeschlossen
+                  </Button>
+                  <Button
+                    variant={statusFilter === "failed" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter("failed")}
+                  >
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Fehlgeschlagen
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Crypto Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Krypto-Einzahlungen</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredDeposits.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Keine Einzahlungen gefunden.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Benutzer</TableHead>
+                      <TableHead>Betrag</TableHead>
+                      <TableHead>Kryptowährung</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Erstellt</TableHead>
+                      <TableHead className="text-right">Aktionen</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDeposits.map((deposit) => (
+                      <TableRow key={deposit.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{getUserName(deposit)}</p>
+                            <p className="text-sm text-muted-foreground">{deposit.profiles?.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold">
+                          {formatCurrency(deposit.price_amount)}
+                        </TableCell>
+                        <TableCell>
+                          {deposit.pay_currency ? (
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={`https://nowpayments.io/images/coins/${deposit.pay_currency.toLowerCase()}.svg`}
+                                alt={deposit.pay_currency}
+                                className="w-5 h-5"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                              <span className="font-mono text-sm">
+                                {deposit.pay_amount?.toFixed(8)} {deposit.pay_currency.toUpperCase()}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(deposit)}</TableCell>
+                        <TableCell>
+                          {format(new Date(deposit.created_at), 'dd.MM.yyyy HH:mm', { locale: de })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedDeposit(deposit)}
+                          >
+                            Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Bank Tab Content */}
+        <TabsContent value="bank" className="space-y-6">
+          {/* Bank Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-950">
+                    <Clock className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ausstehend</p>
+                    <p className="text-2xl font-bold">{bankPendingCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-950">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Abgeschlossen</p>
+                    <p className="text-2xl font-bold">{bankCompletedCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950">
+                    <Euro className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Eingezahlt (Gesamt)</p>
+                    <p className="text-2xl font-bold">{formatCurrency(bankTotalAmount)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Bank Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Suche nach E-Mail, Name oder Referenz..."
+                    value={bankSearchTerm}
+                    onChange={(e) => setBankSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={bankStatusFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBankStatusFilter("all")}
+                  >
+                    Alle
+                  </Button>
+                  <Button
+                    variant={bankStatusFilter === "pending" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBankStatusFilter("pending")}
+                  >
+                    <Clock className="w-4 h-4 mr-1" />
+                    Ausstehend
+                  </Button>
+                  <Button
+                    variant={bankStatusFilter === "completed" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBankStatusFilter("completed")}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Abgeschlossen
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bank Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Bank-Einzahlungen</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {bankLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredBankDeposits.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Keine Bank-Einzahlungen gefunden.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Benutzer</TableHead>
+                      <TableHead>Betrag</TableHead>
+                      <TableHead>Referenz</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Erstellt</TableHead>
+                      <TableHead className="text-right">Aktionen</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredBankDeposits.map((deposit) => (
+                      <TableRow key={deposit.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{getUserName(deposit)}</p>
+                            <p className="text-sm text-muted-foreground">{deposit.profiles?.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold">
+                          {formatCurrency(deposit.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <code className="text-sm bg-muted px-2 py-1 rounded">{deposit.reference_code}</code>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handleCopy(deposit.reference_code, 'Referenz')}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getBankStatusBadge(deposit)}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p>{format(new Date(deposit.created_at), 'dd.MM.yyyy HH:mm', { locale: de })}</p>
+                            {deposit.user_confirmed_at && (
+                              <p className="text-xs text-muted-foreground">
+                                Bestätigt: {format(new Date(deposit.user_confirmed_at), 'dd.MM.yyyy HH:mm', { locale: de })}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {deposit.status === 'pending' && deposit.user_confirmed_at && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleMarkAsReceived(deposit)}
+                              disabled={processingId === deposit.id}
+                            >
+                              {processingId === deposit.id ? (
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <Check className="w-4 h-4 mr-1" />
+                              )}
+                              Als empfangen
+                            </Button>
+                          )}
+                          {deposit.status === 'completed' && (
+                            <Badge className="bg-green-100 text-green-700">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Verarbeitet
+                            </Badge>
+                          )}
+                          {deposit.status === 'pending' && !deposit.user_confirmed_at && (
+                            <span className="text-sm text-muted-foreground">Warte auf Bestätigung</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedDeposit} onOpenChange={() => setSelectedDeposit(null)}>

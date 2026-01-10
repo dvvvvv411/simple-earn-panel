@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus, Bitcoin, Clock, XCircle } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus, Bitcoin, Clock, XCircle, Landmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -134,7 +134,14 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
            description.toLowerCase().includes('crypto');
   };
 
+  const isBankDeposit = (description: string) => {
+    return description.toLowerCase().includes('banküberweisung');
+  };
+
   const getTransactionIcon = (type: string, description: string) => {
+    if (isBankDeposit(description)) {
+      return <Landmark className="h-4 w-4 text-blue-500" />;
+    }
     if (isCryptoDeposit(description)) {
       return <Bitcoin className="h-4 w-4 text-orange-500" />;
     }
@@ -155,6 +162,9 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
   };
 
   const getTransactionBadge = (type: string, description: string) => {
+    if (isBankDeposit(description)) {
+      return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400">Banküberweisung</Badge>;
+    }
     if (isCryptoDeposit(description)) {
       return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400">Krypto-Einzahlung</Badge>;
     }
