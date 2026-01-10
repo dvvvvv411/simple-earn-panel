@@ -276,9 +276,10 @@ export default function KYCVerification() {
         description: "Ihre KYC-Verifizierung wurde eingereicht und wird geprüft.",
       });
 
-      // Refresh status
-      setShowForm(false);
-      checkExistingSubmission();
+      // Hard refresh nach kurzer Verzögerung (damit Toast sichtbar ist)
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error: any) {
       console.error('Error submitting KYC:', error);
       toast({
