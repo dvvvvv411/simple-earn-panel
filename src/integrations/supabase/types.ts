@@ -845,6 +845,36 @@ export type Database = {
         }
         Relationships: []
       }
+      task_templates: {
+        Row: {
+          compensation: number
+          created_at: string
+          description: string
+          id: string
+          logo_path: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          compensation?: number
+          created_at?: string
+          description: string
+          id?: string
+          logo_path?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          compensation?: number
+          created_at?: string
+          description?: string
+          id?: string
+          logo_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       telegram_config: {
         Row: {
           bot_token: string | null
@@ -1117,6 +1147,133 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_task_enrollments: {
+        Row: {
+          created_at: string
+          deactivated_at: string | null
+          enrolled_at: string
+          enrolled_by: string | null
+          id: string
+          is_active: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deactivated_at?: string | null
+          enrolled_at?: string
+          enrolled_by?: string | null
+          id?: string
+          is_active?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deactivated_at?: string | null
+          enrolled_at?: string
+          enrolled_by?: string | null
+          id?: string
+          is_active?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_task_enrollments_enrolled_by_fkey"
+            columns: ["enrolled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_task_enrollments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_tasks: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          ident_code: string | null
+          ident_link: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          started_at: string | null
+          status: string
+          submitted_at: string | null
+          task_password: string | null
+          template_id: string
+          updated_at: string
+          user_id: string
+          verification_code: string | null
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          ident_code?: string | null
+          ident_link?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          task_password?: string | null
+          template_id: string
+          updated_at?: string
+          user_id: string
+          verification_code?: string | null
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          ident_code?: string | null
+          ident_link?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          task_password?: string | null
+          template_id?: string
+          updated_at?: string
+          user_id?: string
+          verification_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tasks_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "task_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_transactions: {
         Row: {
