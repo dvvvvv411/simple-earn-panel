@@ -93,6 +93,29 @@ export function TaskAssignDialog({ open, onOpenChange, userId, onSuccess }: Task
 
       if (error) throw error;
 
+      const template = templates.find(t => t.id === formData.template_id);
+
+      // Send email notification
+      await supabase.functions.invoke('send-task-assigned', {
+        body: { 
+          user_id: userId, 
+          task_title: template?.title || '',
+          compensation: template?.compensation || 0
+        }
+      });
+
+      // Send telegram notification
+      await supabase.functions.invoke('send-telegram-notification', {
+        body: { 
+          event_type: 'task_assigned', 
+          data: { 
+            user_id: userId,
+            task_title: template?.title || '',
+            compensation: template?.compensation || 0
+          } 
+        }
+      });
+
       toast.success('Auftrag wurde zugewiesen');
       onSuccess();
     } catch (error) {

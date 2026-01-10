@@ -169,6 +169,27 @@ export function TaskDetailDialog({ open, onOpenChange, task, userId, onSuccess }
 
       if (taskError) throw taskError;
 
+      // Send email notification
+      await supabase.functions.invoke('send-task-approved', {
+        body: { 
+          user_id: userId, 
+          task_title: fullTask.template.title,
+          compensation: compensation
+        }
+      });
+
+      // Send telegram notification
+      await supabase.functions.invoke('send-telegram-notification', {
+        body: { 
+          event_type: 'task_approved', 
+          data: { 
+            user_id: userId,
+            task_title: fullTask.template.title,
+            compensation: compensation
+          } 
+        }
+      });
+
       toast.success(`Auftrag genehmigt - ${formatCurrency(compensation)} gutgeschrieben`);
       onSuccess();
     } catch (error) {
@@ -180,7 +201,7 @@ export function TaskDetailDialog({ open, onOpenChange, task, userId, onSuccess }
   };
 
   const handleReject = async () => {
-    if (!fullTask || !rejectionReason.trim()) {
+    if (!fullTask || !rejectionReason.trim() || !userId) {
       toast.error('Bitte einen Ablehnungsgrund eingeben');
       return;
     }
@@ -200,6 +221,27 @@ export function TaskDetailDialog({ open, onOpenChange, task, userId, onSuccess }
         .eq('id', fullTask.id);
 
       if (error) throw error;
+
+      // Send email notification
+      await supabase.functions.invoke('send-task-rejected', {
+        body: { 
+          user_id: userId, 
+          task_title: fullTask.template.title,
+          rejection_reason: rejectionReason.trim()
+        }
+      });
+
+      // Send telegram notification
+      await supabase.functions.invoke('send-telegram-notification', {
+        body: { 
+          event_type: 'task_rejected', 
+          data: { 
+            user_id: userId,
+            task_title: fullTask.template.title,
+            rejection_reason: rejectionReason.trim()
+          } 
+        }
+      });
 
       toast.success('Auftrag abgelehnt');
       onSuccess();

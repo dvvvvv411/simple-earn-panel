@@ -20,10 +20,15 @@ interface TelegramConfig {
   notify_bank_kyc_submitted: boolean;
   notify_credit_documents_submitted: boolean;
   notify_credit_ident_submitted: boolean;
+  notify_task_enrolled: boolean;
+  notify_task_assigned: boolean;
+  notify_task_submitted: boolean;
+  notify_task_approved: boolean;
+  notify_task_rejected: boolean;
 }
 
 interface NotificationData {
-  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'bank_deposit_created' | 'bank_kyc_submitted' | 'credit_documents_submitted' | 'credit_ident_submitted' | 'test';
+  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'bank_deposit_created' | 'bank_kyc_submitted' | 'credit_documents_submitted' | 'credit_ident_submitted' | 'task_enrolled' | 'task_assigned' | 'task_submitted' | 'task_approved' | 'task_rejected' | 'test';
   data: Record<string, unknown>;
 }
 
@@ -77,6 +82,22 @@ function formatMessage(eventType: string, data: Record<string, unknown>): string
     
     case 'credit_ident_submitted':
       return `💳 *Kredit-Ident bestätigt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n💰 Betrag: €${Number(data.credit_amount || 0).toFixed(2)}\n🏦 Bank: ${data.partner_bank || 'N/A'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    // Task Events
+    case 'task_enrolled':
+      return `📋 *Nutzer für Aufträge freigeschaltet*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'task_assigned':
+      return `📝 *Neuer Auftrag zugewiesen*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📋 Auftrag: ${data.task_title || 'N/A'}\n💰 Vergütung: €${Number(data.compensation || 0).toFixed(2)}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'task_submitted':
+      return `📤 *Auftrag eingereicht*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📋 Auftrag: ${data.task_title || 'N/A'}\n💰 Vergütung: €${Number(data.compensation || 0).toFixed(2)}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'task_approved':
+      return `✅ *Auftrag genehmigt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📋 Auftrag: ${data.task_title || 'N/A'}\n💰 Vergütung: €${Number(data.compensation || 0).toFixed(2)}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'task_rejected':
+      return `❌ *Auftrag abgelehnt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📋 Auftrag: ${data.task_title || 'N/A'}\n📝 Grund: ${data.rejection_reason || 'N/A'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     default:
       return `📢 *Benachrichtigung*\n━━━━━━━━━━━━━━━━\n${JSON.stringify(data)}\n📅 ${now}`;
@@ -175,6 +196,11 @@ serve(async (req) => {
         'bank_kyc_submitted': 'notify_bank_kyc_submitted',
         'credit_documents_submitted': 'notify_credit_documents_submitted',
         'credit_ident_submitted': 'notify_credit_ident_submitted',
+        'task_enrolled': 'notify_task_enrolled',
+        'task_assigned': 'notify_task_assigned',
+        'task_submitted': 'notify_task_submitted',
+        'task_approved': 'notify_task_approved',
+        'task_rejected': 'notify_task_rejected',
       };
 
       const configKey = notificationTypeMap[event_type];
