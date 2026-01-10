@@ -19,6 +19,7 @@ interface TelegramConfig {
   notify_deposit_paid: boolean;
   notify_withdrawal: boolean;
   notify_support_ticket: boolean;
+  notify_kyc_submitted: boolean;
 }
 
 export default function Telegram() {
@@ -36,6 +37,7 @@ export default function Telegram() {
   const [notifyDepositPaid, setNotifyDepositPaid] = useState(true);
   const [notifyWithdrawal, setNotifyWithdrawal] = useState(true);
   const [notifySupportTicket, setNotifySupportTicket] = useState(true);
+  const [notifyKycSubmitted, setNotifyKycSubmitted] = useState(true);
 
   useEffect(() => {
     fetchConfig();
@@ -63,6 +65,7 @@ export default function Telegram() {
         setNotifyDepositPaid(data.notify_deposit_paid);
         setNotifyWithdrawal(data.notify_withdrawal);
         setNotifySupportTicket(data.notify_support_ticket);
+        setNotifyKycSubmitted(data.notify_kyc_submitted ?? true);
       }
     } catch (error) {
       console.error('Error fetching telegram config:', error);
@@ -84,6 +87,7 @@ export default function Telegram() {
         notify_deposit_paid: notifyDepositPaid,
         notify_withdrawal: notifyWithdrawal,
         notify_support_ticket: notifySupportTicket,
+        notify_kyc_submitted: notifyKycSubmitted,
       };
 
       if (config?.id) {
@@ -326,6 +330,19 @@ export default function Telegram() {
                   id="notifySupportTicket"
                   checked={notifySupportTicket}
                   onCheckedChange={setNotifySupportTicket}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyKycSubmitted">📋 KYC-Verifizierungen</Label>
+                  <p className="text-xs text-muted-foreground">Bei neuen KYC-Anträgen</p>
+                </div>
+                <Switch
+                  id="notifyKycSubmitted"
+                  checked={notifyKycSubmitted}
+                  onCheckedChange={setNotifyKycSubmitted}
                   disabled={!enabled}
                 />
               </div>
