@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -429,34 +429,45 @@ export default function TaskDetail() {
         </CardContent>
       </Card>
 
-      {/* SMS Verification Code - Dezent unter Auftragsbeschreibung */}
-      <Card className="border-dashed">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Smartphone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">SMS-Code</span>
+      {/* SMS Verification Code - Premium KYC-Style */}
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg overflow-hidden">
+        <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+              <Smartphone className="h-5 w-5 text-primary" />
             </div>
-            
-            {task.verification_code ? (
-              <div className="flex items-center gap-2">
-                <code className="text-lg font-mono font-semibold tracking-widest bg-muted px-3 py-1 rounded">
-                  {task.verification_code}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(task.verification_code!, "SMS-Code")}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <span className="text-sm text-muted-foreground italic">
-                Noch nicht verfügbar
-              </span>
-            )}
+            <div>
+              <CardTitle className="text-lg">SMS-Verifikationscode</CardTitle>
+              <CardDescription>Code für die App-Verifizierung</CardDescription>
+            </div>
           </div>
+        </CardHeader>
+        <CardContent className="pt-4 pb-4">
+          {task.verification_code ? (
+            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border">
+              <code className="text-xl md:text-2xl font-mono font-bold tracking-[0.2em]">
+                {task.verification_code}
+              </code>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(task.verification_code!, "SMS-Code")}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Kopieren
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-dashed border-border">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium text-muted-foreground">Noch nicht verfügbar</p>
+                <p className="text-sm text-muted-foreground/70">
+                  Der SMS-Code wird von deinem Berater bereitgestellt
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
