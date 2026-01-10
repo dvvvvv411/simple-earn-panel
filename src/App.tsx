@@ -42,7 +42,7 @@ const App: React.FC = () => {
             <Route path="berater" element={<Consultants />} />
             <Route path="aktive-bots" element={<ActiveBots />} />
             <Route path="einzahlungen" element={<Deposits />} />
-            <Route path="eur-einzahlungen" element={<EurDeposits />} />
+            <Route path="bank-kyc" element={<EurDeposits />} />
             <Route path="auszahlungen" element={<Withdrawals />} />
             <Route path="email-vorlagen" element={<EmailTemplates />} />
             <Route path="support" element={<AdminSupportPage />} />
