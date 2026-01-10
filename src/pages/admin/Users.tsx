@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { UserCreateDialog } from "@/components/admin/UserCreateDialog";
 import { UserEditDialog } from "@/components/admin/UserEditDialog";
 import { UserDetailDialog } from "@/components/admin/UserDetailDialog";
-import { UserTable } from "@/components/admin/UserTable";
+import { UserTable, SortField, SortDirection } from "@/components/admin/UserTable";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Search, RefreshCw, Loader2 } from "lucide-react";
 import type { User } from "@/types/user";
 
@@ -20,9 +22,33 @@ export default function UsersPage() {
   const [detailUser, setDetailUser] = useState<User | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
+  // Sorting
+  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Filters
+  const [brandingFilter, setBrandingFilter] = useState<string>('all');
+  const [balanceRange, setBalanceRange] = useState<number[]>([0, 100000]);
+  const [brandings, setBrandings] = useState<{ id: string; name: string }[]>([]);
+
   useEffect(() => {
     fetchUsers();
+    fetchBrandings();
   }, []);
+
+  const fetchBrandings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('brandings')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setBrandings(data || []);
+    } catch (error) {
+      console.error('Error fetching brandings:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -158,16 +184,71 @@ export default function UsersPage() {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const searchLower = searchTerm.toLowerCase();
-    const name = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
-    const email = user.email?.toLowerCase() || '';
-    const phone = user.phone?.toLowerCase() || '';
-    
-    return name.includes(searchLower) || 
-           email.includes(searchLower) || 
-           phone.includes(searchLower);
-  });
+  const handleSortChange = (field: SortField) => {
+    if (field === sortField) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const formatBalance = (balance: number) => {
+    return new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0
+    }).format(balance);
+  };
+
+  // Calculate max balance from users for dynamic slider
+  const maxBalance = useMemo(() => {
+    if (users.length === 0) return 100000;
+    const max = Math.max(...users.map(u => u.balance));
+    return Math.ceil(max / 1000) * 1000 || 100000;
+  }, [users]);
+
+  // Filter and sort users
+  const filteredAndSortedUsers = useMemo(() => {
+    // First filter
+    const filtered = users.filter((user) => {
+      const searchLower = searchTerm.toLowerCase();
+      const name = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
+      const email = user.email?.toLowerCase() || '';
+      const phone = user.phone?.toLowerCase() || '';
+      
+      const matchesSearch = name.includes(searchLower) || 
+             email.includes(searchLower) || 
+             phone.includes(searchLower);
+
+      const matchesBranding = brandingFilter === 'all' || user.branding?.id === brandingFilter;
+
+      const matchesBalance = user.balance >= balanceRange[0] && user.balance <= balanceRange[1];
+      
+      return matchesSearch && matchesBranding && matchesBalance;
+    });
+
+    // Then sort
+    return [...filtered].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'balance':
+          comparison = a.balance - b.balance;
+          break;
+        case 'last_activity':
+          const dateA = a.lastActivity?.lastActiveAt ? new Date(a.lastActivity.lastActiveAt).getTime() : 0;
+          const dateB = b.lastActivity?.lastActiveAt ? new Date(b.lastActivity.lastActiveAt).getTime() : 0;
+          comparison = dateA - dateB;
+          break;
+        case 'created_at':
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [users, searchTerm, brandingFilter, balanceRange, sortField, sortDirection]);
 
   return (
     <div className="space-y-8">
@@ -186,8 +267,10 @@ export default function UsersPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
+          {/* Filter Section */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Benutzer suchen..."
@@ -196,6 +279,36 @@ export default function UsersPage() {
                 className="pl-10 bg-background border-input"
               />
             </div>
+
+            {/* Branding Filter */}
+            <Select value={brandingFilter} onValueChange={setBrandingFilter}>
+              <SelectTrigger className="w-[180px] bg-background border-input">
+                <SelectValue placeholder="Alle Brandings" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle Brandings</SelectItem>
+                {brandings.map(b => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Balance Filter */}
+            <div className="flex items-center gap-3 min-w-[300px] bg-background border border-input rounded-md px-3 py-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Guthaben:</span>
+              <span className="text-sm font-medium text-foreground min-w-[60px]">{formatBalance(balanceRange[0])}</span>
+              <Slider
+                value={balanceRange}
+                min={0}
+                max={maxBalance}
+                step={100}
+                onValueChange={setBalanceRange}
+                className="flex-1"
+              />
+              <span className="text-sm font-medium text-foreground min-w-[60px] text-right">{formatBalance(balanceRange[1])}</span>
+            </div>
+
+            {/* Refresh Button */}
             <Button 
               variant="outline" 
               onClick={fetchUsers}
@@ -210,14 +323,17 @@ export default function UsersPage() {
             </Button>
           </div>
 
-            <UserTable 
-              users={filteredUsers} 
-              loading={loading}
-              onUserDeleted={fetchUsers}
-              onUserEdit={handleUserEdit}
-              onUserDetail={handleUserDetail}
-              onUnluckyStreakToggle={handleUnluckyStreakToggle}
-            />
+          <UserTable 
+            users={filteredAndSortedUsers} 
+            loading={loading}
+            onUserDeleted={fetchUsers}
+            onUserEdit={handleUserEdit}
+            onUserDetail={handleUserDetail}
+            onUnluckyStreakToggle={handleUnluckyStreakToggle}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSortChange={handleSortChange}
+          />
         </CardContent>
       </Card>
 
