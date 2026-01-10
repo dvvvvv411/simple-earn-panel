@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.send-credit-rejected]
 verify_jwt = false
+
+[functions.send-credit-activated]
+verify_jwt = false

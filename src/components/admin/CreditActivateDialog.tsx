@@ -136,6 +136,15 @@ export function CreditActivateDialog({ open, onOpenChange, onSuccess }: CreditAc
 
       if (error) throw error;
 
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-credit-activated', {
+          body: { user_id: selectedUserId }
+        });
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+
       toast.success('Kreditantrag wurde für den Nutzer aktiviert');
       resetForm();
       onOpenChange(false);

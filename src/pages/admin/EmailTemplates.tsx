@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle, Landmark, Bitcoin } from "lucide-react";
+import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle, Landmark, Bitcoin, CreditCard, Key, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Branding {
@@ -24,6 +24,10 @@ export default function EmailTemplates() {
   const [cryptoDepositPreviewOpen, setCryptoDepositPreviewOpen] = useState(false);
   const [bankKycApprovedPreviewOpen, setBankKycApprovedPreviewOpen] = useState(false);
   const [bankKycRejectedPreviewOpen, setBankKycRejectedPreviewOpen] = useState(false);
+  const [creditActivatedPreviewOpen, setCreditActivatedPreviewOpen] = useState(false);
+  const [creditIdentPreviewOpen, setCreditIdentPreviewOpen] = useState(false);
+  const [creditApprovedPreviewOpen, setCreditApprovedPreviewOpen] = useState(false);
+  const [creditRejectedPreviewOpen, setCreditRejectedPreviewOpen] = useState(false);
   const [previewProfit, setPreviewProfit] = useState(true);
   const [brandings, setBrandings] = useState<Branding[]>([]);
   const [selectedBranding, setSelectedBranding] = useState<Branding | null>(null);
@@ -33,6 +37,10 @@ export default function EmailTemplates() {
   const [selectedCryptoDepositBranding, setSelectedCryptoDepositBranding] = useState<Branding | null>(null);
   const [selectedBankKycApprovedBranding, setSelectedBankKycApprovedBranding] = useState<Branding | null>(null);
   const [selectedBankKycRejectedBranding, setSelectedBankKycRejectedBranding] = useState<Branding | null>(null);
+  const [selectedCreditActivatedBranding, setSelectedCreditActivatedBranding] = useState<Branding | null>(null);
+  const [selectedCreditIdentBranding, setSelectedCreditIdentBranding] = useState<Branding | null>(null);
+  const [selectedCreditApprovedBranding, setSelectedCreditApprovedBranding] = useState<Branding | null>(null);
+  const [selectedCreditRejectedBranding, setSelectedCreditRejectedBranding] = useState<Branding | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,6 +59,10 @@ export default function EmailTemplates() {
         setSelectedCryptoDepositBranding(data[0]);
         setSelectedBankKycApprovedBranding(data[0]);
         setSelectedBankKycRejectedBranding(data[0]);
+        setSelectedCreditActivatedBranding(data[0]);
+        setSelectedCreditIdentBranding(data[0]);
+        setSelectedCreditApprovedBranding(data[0]);
+        setSelectedCreditRejectedBranding(data[0]);
       }
       setLoading(false);
     };
@@ -119,6 +131,35 @@ export default function EmailTemplates() {
     { name: "{first_name}", description: "Vorname des Nutzers" },
     { name: "{rejection_reason}", description: "Ablehnungsgrund" },
     { name: "{branding_name}", description: "Name des Brandings" },
+  ];
+
+  const creditActivatedVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
+  ];
+
+  const creditIdentVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{credit_amount}", description: "Kreditbetrag in EUR" },
+    { name: "{partner_bank}", description: "Name der Partnerbank" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
+  ];
+
+  const creditApprovedVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{credit_amount}", description: "Kreditbetrag in EUR" },
+    { name: "{partner_bank}", description: "Name der Partnerbank" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
+  ];
+
+  const creditRejectedVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{rejection_reason}", description: "Ablehnungsgrund" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
   ];
 
   const generatePreviewHtml = (isProfit: boolean, branding: Branding | null) => {
@@ -971,6 +1012,238 @@ export default function EmailTemplates() {
               </p>
             </td>
           </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateCreditActivatedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    
+    const logoUrl = branding?.logo_path 
+      ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl
+      : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl 
+                ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">`
+                : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`
+              }
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Kreditantrag</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #dbeafe; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="font-size: 40px; line-height: 80px;">💳</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Kredit jetzt beantragen</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Sie können nun einen Kredit beantragen. Bitte reichen Sie Ihre Unterlagen ein.</p>
+              <div style="background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 12px 0; color: #1e40af; font-size: 14px; font-weight: 600;">Benötigte Unterlagen:</p>
+                <ul style="margin: 0; padding: 0 0 0 20px; color: #4b5563; font-size: 14px; line-height: 1.8;">
+                  <li>Kontoauszüge der letzten 3 Monate</li>
+                  <li>Gehaltsabrechnungen der letzten 3 Monate</li>
+                  <li>Angaben zur Krankenversicherung</li>
+                  <li>Steuernummer und Steuer-ID</li>
+                </ul>
+              </div>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 24px;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="https://${domain}/kryptotrading/kredit" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zum Kreditantrag</a>
+                  </td>
+                </tr>
+              </table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px; line-height: 1.6;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p>
+              <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">Diese E-Mail wurde automatisch erstellt.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateCreditIdentPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const logoUrl = branding?.logo_path ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">` : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`}
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Kreditantrag</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #f3e8ff; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="font-size: 40px; line-height: 80px;">🔐</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Identifizierung erforderlich</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Ihre Unterlagen wurden geprüft. Bitte führen Sie die Identitätsprüfung durch.</p>
+              <div style="background-color: #f3e8ff; border: 1px solid #d8b4fe; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 12px 0; color: #7c3aed; font-size: 14px; font-weight: 600;">Kreditdetails:</p>
+                <p style="margin: 0 0 8px 0; color: #5b21b6; font-size: 15px;"><strong>Betrag:</strong> €25.000,00</p>
+                <p style="margin: 0; color: #5b21b6; font-size: 15px;"><strong>Partnerbank:</strong> Commerzbank AG</p>
+              </div>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="text-align: center;"><a href="https://${domain}/kryptotrading/kredit" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zur Identifizierung</a></td></tr></table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr><td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;"><p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateCreditApprovedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const logoUrl = branding?.logo_path ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">` : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`}
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Kreditantrag</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #dcfce7; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #16a34a; font-size: 40px; line-height: 80px;">✓</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Kredit genehmigt!</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Ihr Kreditantrag wurde genehmigt. Der Betrag wurde Ihrem Konto gutgeschrieben.</p>
+              <div style="background-color: #dcfce7; border: 1px solid #86efac; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 12px 0; color: #16a34a; font-size: 14px; font-weight: 600;">Kreditdetails:</p>
+                <p style="margin: 0 0 8px 0; color: #15803d; font-size: 15px;"><strong>Betrag:</strong> €25.000,00</p>
+                <p style="margin: 0; color: #15803d; font-size: 15px;"><strong>Partnerbank:</strong> Commerzbank AG</p>
+              </div>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="text-align: center;"><a href="https://${domain}/kryptotrading" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zum Dashboard</a></td></tr></table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr><td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;"><p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateCreditRejectedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const logoUrl = branding?.logo_path ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl : null;
+    const exampleRejectionReason = "Leider erfüllen die eingereichten Unterlagen nicht unsere Anforderungen.";
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">` : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`}
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Kreditantrag</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #fef2f2; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #dc2626; font-size: 40px; line-height: 80px;">✗</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Kreditantrag abgelehnt</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Leider können wir Ihren Kreditantrag nicht genehmigen.</p>
+              <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 8px 0; color: #b91c1c; font-size: 14px; font-weight: 600;">Grund der Ablehnung:</p>
+                <p style="margin: 0; color: #991b1b; font-size: 15px; line-height: 1.6;">${exampleRejectionReason}</p>
+              </div>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="text-align: center;"><a href="https://${domain}/kryptotrading/support" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zum Support</a></td></tr></table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr><td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;"><p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p></td></tr>
         </table>
       </td>
     </tr>
