@@ -291,7 +291,55 @@ export default function TaskDetail() {
         Zurück zur Übersicht
       </Button>
 
-      {/* Info Card - Was ist das? - GANZ OBEN */}
+      {/* Status Messages - Ganz oben nach Back Button */}
+      {task.status === 'submitted' && (
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+          <CardContent className="p-4 flex items-start gap-3">
+            <Timer className="h-5 w-5 text-amber-600 animate-pulse mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium text-amber-800 dark:text-amber-200">
+                Auftrag wird geprüft
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                Dein Auftrag wurde eingereicht und wird von unserem Team überprüft. 
+                Die Vergütung wird nach Genehmigung automatisch gutgeschrieben.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {task.status === 'approved' && (
+        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+          <CardContent className="p-4 flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium text-green-800 dark:text-green-200">
+                Auftrag erfolgreich abgeschlossen!
+              </p>
+              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                Die Vergütung von {formatCurrency(task.template.compensation)} wurde deinem Guthaben gutgeschrieben.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {task.status === 'rejected' && task.rejection_reason && (
+        <Card className="border-destructive/50 bg-destructive/10">
+          <CardContent className="p-4 flex items-start gap-3">
+            <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium text-destructive">Auftrag abgelehnt</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Grund: {task.rejection_reason}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info Card - Was ist das? */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -365,54 +413,6 @@ export default function TaskDetail() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Status Messages */}
-      {task.status === 'approved' && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
-          <CardContent className="p-4 flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-medium text-green-800 dark:text-green-200">
-                Auftrag erfolgreich abgeschlossen!
-              </p>
-              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                Die Vergütung von {formatCurrency(task.template.compensation)} wurde deinem Guthaben gutgeschrieben.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {task.status === 'rejected' && task.rejection_reason && (
-        <Card className="border-destructive/50 bg-destructive/10">
-          <CardContent className="p-4 flex items-start gap-3">
-            <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
-            <div>
-              <p className="font-medium text-destructive">Auftrag abgelehnt</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Grund: {task.rejection_reason}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {task.status === 'submitted' && (
-        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
-          <CardContent className="p-4 flex items-start gap-3">
-            <Timer className="h-5 w-5 text-amber-600 animate-pulse mt-0.5 shrink-0" />
-            <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">
-                Auftrag wird geprüft
-              </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                Dein Auftrag wurde eingereicht und wird von unserem Team überprüft. 
-                Die Vergütung wird nach Genehmigung automatisch gutgeschrieben.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Task Description */}
       <Card>
