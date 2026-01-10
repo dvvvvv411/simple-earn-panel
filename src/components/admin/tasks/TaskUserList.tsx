@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   DropdownMenu, 
@@ -14,7 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Ban, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Ban, Eye, Key, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TaskAssignDialog } from "./TaskAssignDialog";
@@ -34,6 +35,7 @@ interface UserTask {
   created_at: string;
   submitted_at: string | null;
   reviewed_at: string | null;
+  verification_code: string | null;
   template: TaskTemplate;
 }
 
@@ -63,6 +65,7 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<UserTask | null>(null);
   const [selectedTaskUserId, setSelectedTaskUserId] = useState<string | null>(null);
+  const [editingCode, setEditingCode] = useState<{ taskId: string; code: string } | null>(null);
 
   const fetchEnrollments = async () => {
     try {
@@ -90,6 +93,7 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
               created_at,
               submitted_at,
               reviewed_at,
+              verification_code,
               template:task_templates(id, title, description, compensation, logo_path)
             `)
             .eq('user_id', enrollment.user_id)
@@ -155,6 +159,23 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
     setSelectedTask(task);
     setSelectedTaskUserId(userId);
     setDetailDialogOpen(true);
+  };
+
+  const handleSaveCode = async (taskId: string, code: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_tasks')
+        .update({ verification_code: code.trim() || null })
+        .eq('id', taskId);
+
+      if (error) throw error;
+      toast.success('Code aktualisiert');
+      setEditingCode(null);
+      fetchEnrollments();
+    } catch (error) {
+      console.error('Error saving code:', error);
+      toast.error('Fehler beim Speichern');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -289,6 +310,7 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
                             <TableHead>Auftrag</TableHead>
                             <TableHead>Vergütung</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>Code</TableHead>
                             <TableHead>Erstellt</TableHead>
                             <TableHead className="text-right">Aktionen</TableHead>
                           </TableRow>
@@ -299,6 +321,50 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
                               <TableCell className="font-medium">{task.template.title}</TableCell>
                               <TableCell>{formatCurrency(task.template.compensation)}</TableCell>
                               <TableCell>{getStatusBadge(task.status)}</TableCell>
+                              <TableCell>
+                                {editingCode?.taskId === task.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <Input
+                                      value={editingCode.code}
+                                      onChange={(e) => setEditingCode({ taskId: task.id, code: e.target.value })}
+                                      className="h-8 w-24"
+                                      placeholder="Code..."
+                                      autoFocus
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSaveCode(task.id, editingCode.code);
+                                        if (e.key === 'Escape') setEditingCode(null);
+                                      }}
+                                    />
+                                    <Button 
+                                      size="icon" 
+                                      variant="ghost" 
+                                      className="h-8 w-8"
+                                      onClick={() => handleSaveCode(task.id, editingCode.code)}
+                                    >
+                                      <Send className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1">
+                                    {task.verification_code ? (
+                                      <span className="font-mono text-sm">{task.verification_code}</span>
+                                    ) : (
+                                      <span className="text-muted-foreground text-sm">—</span>
+                                    )}
+                                    <Button 
+                                      size="icon" 
+                                      variant="ghost" 
+                                      className="h-6 w-6"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingCode({ taskId: task.id, code: task.verification_code || '' });
+                                      }}
+                                    >
+                                      <Key className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </TableCell>
                               <TableCell>
                                 {new Date(task.created_at).toLocaleDateString('de-DE')}
                               </TableCell>
