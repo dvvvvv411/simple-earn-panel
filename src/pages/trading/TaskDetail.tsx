@@ -20,12 +20,10 @@ import {
   Smartphone,
   Info,
   ListChecks,
-  Handshake,
   Shield,
   Timer,
   Euro,
-  Sparkles,
-  BadgeCheck
+  Sparkles
 } from "lucide-react";
 import check24Logo from "@/assets/check24-logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -293,6 +291,34 @@ export default function TaskDetail() {
         Zurück zur Übersicht
       </Button>
 
+      {/* Info Card - Was ist das? - GANZ OBEN */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Info className="h-5 w-5 text-primary" />
+            Was ist das?
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground leading-relaxed">
+            Du führst einen <span className="font-medium text-foreground">bezahlten App-Test</span> durch. 
+            Nach erfolgreichem Abschluss wird dir eine Vergütung von{" "}
+            <span className="font-semibold text-green-600">{formatCurrency(task.template.compensation)}</span>{" "}
+            auf dein Guthaben gutgeschrieben.
+          </p>
+          
+          {/* Partner Section - Elegant Inline */}
+          <div className="flex items-center gap-3 pt-4 mt-4 border-t border-border">
+            <span className="text-sm text-muted-foreground">In Partnerschaft mit</span>
+            <img 
+              src={check24Logo}
+              alt="CHECK24" 
+              className="h-5 object-contain"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Hero Header Card - Neutral Design */}
       <Card className="overflow-hidden border-2">
         <CardContent className="p-0">
@@ -388,102 +414,6 @@ export default function TaskDetail() {
         </Card>
       )}
 
-      {/* Info Card - Was ist das? */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Info className="h-5 w-5 text-primary" />
-            Was ist das?
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground leading-relaxed">
-            Du führst einen <span className="font-medium text-foreground">bezahlten App-Test</span> durch. 
-            Nach erfolgreichem Abschluss wird dir eine Vergütung von{" "}
-            <span className="font-semibold text-green-600">{formatCurrency(task.template.compensation)}</span>{" "}
-            auf dein Guthaben gutgeschrieben.
-          </p>
-          
-          {/* Partner Section - Premium Design */}
-          <div className="relative overflow-hidden rounded-2xl border-2 border-blue-100 bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-blue-950/30 dark:via-background dark:to-blue-950/20 dark:border-blue-900/50">
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-100/30 dark:bg-blue-900/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-            
-            <div className="relative p-5 sm:p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Handshake className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Offizieller Partner</span>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                {/* Logo Container */}
-                <div className="bg-white rounded-xl px-5 py-3 shadow-md border border-blue-100 dark:border-blue-800">
-                  <img 
-                    src={check24Logo}
-                    alt="CHECK24" 
-                    className="h-8 sm:h-10 object-contain"
-                  />
-                </div>
-                
-                {/* Info */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <BadgeCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    <span className="font-semibold text-foreground">CHECK24</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Deutschlands größtes Vergleichsportal
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* SMS Verification Code - Always Visible */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Smartphone className="h-5 w-5 text-primary" />
-            SMS-Verifikationscode
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {task.verification_code ? (
-            <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6 text-center space-y-3">
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-3xl md:text-4xl font-mono font-bold tracking-[0.3em] text-primary">
-                  {task.verification_code}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => copyToClipboard(task.verification_code!, "SMS-Code")}
-                  className="shrink-0"
-                >
-                  <Copy className="h-5 w-5" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Dieser Code wird für die Verifizierung in der App benötigt
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-6 text-center space-y-2">
-              <Clock className="h-10 w-10 text-muted-foreground/50 mx-auto" />
-              <p className="font-medium text-muted-foreground">
-                Derzeit nicht verfügbar
-              </p>
-              <p className="text-sm text-muted-foreground/80">
-                Der SMS-Code wird von deinem Berater bereitgestellt, sobald er verfügbar ist.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Task Description */}
       <Card>
         <CardHeader className="pb-3">
@@ -496,6 +426,37 @@ export default function TaskDetail() {
           <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
             {task.template.description}
           </p>
+        </CardContent>
+      </Card>
+
+      {/* SMS Verification Code - Dezent unter Auftragsbeschreibung */}
+      <Card className="border-dashed">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Smartphone className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">SMS-Code</span>
+            </div>
+            
+            {task.verification_code ? (
+              <div className="flex items-center gap-2">
+                <code className="text-lg font-mono font-semibold tracking-widest bg-muted px-3 py-1 rounded">
+                  {task.verification_code}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(task.verification_code!, "SMS-Code")}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <span className="text-sm text-muted-foreground italic">
+                Noch nicht verfügbar
+              </span>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -627,36 +588,6 @@ export default function TaskDetail() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* How it works - Step by Step (only for pending tasks) */}
-      {task.status === 'pending' && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <ListChecks className="h-5 w-5 text-primary" />
-              So funktioniert's
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[
-                "Starte den Auftrag über den Button unten",
-                "Verwende die bereitgestellten Zugangsdaten",
-                "Führe die Verifizierung in der App durch",
-                "Markiere den Auftrag als abgeschlossen",
-                "Nach Prüfung wird die Vergütung gutgeschrieben"
-              ].map((step, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                    {index + 1}
-                  </div>
-                  <p className="text-muted-foreground pt-0.5">{step}</p>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
       )}
