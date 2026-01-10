@@ -59,3 +59,12 @@ verify_jwt = false
 
 [functions.send-bank-kyc-rejection]
 verify_jwt = false
+
+[functions.send-credit-ident-approved]
+verify_jwt = false
+
+[functions.send-credit-approved]
+verify_jwt = false
+
+[functions.send-credit-rejected]
+verify_jwt = false

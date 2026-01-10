@@ -22,6 +22,8 @@ interface TelegramConfig {
   notify_kyc_submitted: boolean;
   notify_bank_deposit_created: boolean;
   notify_bank_kyc_submitted: boolean;
+  notify_credit_documents_submitted: boolean;
+  notify_credit_ident_submitted: boolean;
 }
 
 export default function Telegram() {
@@ -42,6 +44,8 @@ export default function Telegram() {
   const [notifyKycSubmitted, setNotifyKycSubmitted] = useState(true);
   const [notifyBankDepositCreated, setNotifyBankDepositCreated] = useState(true);
   const [notifyBankKycSubmitted, setNotifyBankKycSubmitted] = useState(true);
+  const [notifyCreditDocumentsSubmitted, setNotifyCreditDocumentsSubmitted] = useState(true);
+  const [notifyCreditIdentSubmitted, setNotifyCreditIdentSubmitted] = useState(true);
 
   useEffect(() => {
     fetchConfig();
@@ -72,6 +76,8 @@ export default function Telegram() {
         setNotifyKycSubmitted(data.notify_kyc_submitted ?? true);
         setNotifyBankDepositCreated(data.notify_bank_deposit_created ?? true);
         setNotifyBankKycSubmitted(data.notify_bank_kyc_submitted ?? true);
+        setNotifyCreditDocumentsSubmitted(data.notify_credit_documents_submitted ?? true);
+        setNotifyCreditIdentSubmitted(data.notify_credit_ident_submitted ?? true);
       }
     } catch (error) {
       console.error('Error fetching telegram config:', error);
@@ -96,6 +102,8 @@ export default function Telegram() {
         notify_kyc_submitted: notifyKycSubmitted,
         notify_bank_deposit_created: notifyBankDepositCreated,
         notify_bank_kyc_submitted: notifyBankKycSubmitted,
+        notify_credit_documents_submitted: notifyCreditDocumentsSubmitted,
+        notify_credit_ident_submitted: notifyCreditIdentSubmitted,
       };
 
       if (config?.id) {
@@ -377,6 +385,32 @@ export default function Telegram() {
                   id="notifyBankKycSubmitted"
                   checked={notifyBankKycSubmitted}
                   onCheckedChange={setNotifyBankKycSubmitted}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyCreditDocumentsSubmitted">📋 Kredit-Unterlagen eingereicht</Label>
+                  <p className="text-xs text-muted-foreground">Wenn Kredit-Unterlagen zur Prüfung eingereicht werden</p>
+                </div>
+                <Switch
+                  id="notifyCreditDocumentsSubmitted"
+                  checked={notifyCreditDocumentsSubmitted}
+                  onCheckedChange={setNotifyCreditDocumentsSubmitted}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyCreditIdentSubmitted">💳 Kredit-Ident bestätigt</Label>
+                  <p className="text-xs text-muted-foreground">Wenn die Kredit-Identifizierung bestätigt wurde</p>
+                </div>
+                <Switch
+                  id="notifyCreditIdentSubmitted"
+                  checked={notifyCreditIdentSubmitted}
+                  onCheckedChange={setNotifyCreditIdentSubmitted}
                   disabled={!enabled}
                 />
               </div>

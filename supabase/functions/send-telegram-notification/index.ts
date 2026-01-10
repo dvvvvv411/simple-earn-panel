@@ -18,10 +18,12 @@ interface TelegramConfig {
   notify_kyc_submitted: boolean;
   notify_bank_deposit_created: boolean;
   notify_bank_kyc_submitted: boolean;
+  notify_credit_documents_submitted: boolean;
+  notify_credit_ident_submitted: boolean;
 }
 
 interface NotificationData {
-  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'bank_deposit_created' | 'bank_kyc_submitted' | 'test';
+  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'bank_deposit_created' | 'bank_kyc_submitted' | 'credit_documents_submitted' | 'credit_ident_submitted' | 'test';
   data: Record<string, unknown>;
 }
 
@@ -69,6 +71,12 @@ function formatMessage(eventType: string, data: Record<string, unknown>): string
     
     case 'bank_kyc_submitted':
       return `🏦 *Bank-KYC eingereicht*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n🏦 Bank: ${data.partner_bank || 'N/A'}\n🔐 Verifizierung: ${data.verification_type || 'N/A'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'credit_documents_submitted':
+      return `📋 *Kredit-Unterlagen eingereicht*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'credit_ident_submitted':
+      return `💳 *Kredit-Ident bestätigt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n💰 Betrag: €${Number(data.credit_amount || 0).toFixed(2)}\n🏦 Bank: ${data.partner_bank || 'N/A'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     default:
       return `📢 *Benachrichtigung*\n━━━━━━━━━━━━━━━━\n${JSON.stringify(data)}\n📅 ${now}`;
@@ -165,6 +173,8 @@ serve(async (req) => {
         'kyc_submitted': 'notify_kyc_submitted',
         'bank_deposit_created': 'notify_bank_deposit_created',
         'bank_kyc_submitted': 'notify_bank_kyc_submitted',
+        'credit_documents_submitted': 'notify_credit_documents_submitted',
+        'credit_ident_submitted': 'notify_credit_ident_submitted',
       };
 
       const configKey = notificationTypeMap[event_type];
