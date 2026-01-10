@@ -36,6 +36,7 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const [currentFreeBots, setCurrentFreeBots] = useState(0);
   const [kycRequired, setKycRequired] = useState(false);
   const [kycLoading, setKycLoading] = useState(false);
+  const [kycStatus, setKycStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
 
   useEffect(() => {
     if (user && open) {
@@ -49,12 +50,24 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
   const fetchKycRequired = async () => {
     if (!user) return;
     try {
-      const { data } = await supabase
+      // Hole kyc_required aus profiles
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('kyc_required')
         .eq('id', user.id)
         .single();
-      setKycRequired(data?.kyc_required ?? false);
+      setKycRequired(profileData?.kyc_required ?? false);
+
+      // Hole KYC-Submission Status
+      const { data: submissionData } = await supabase
+        .from('kyc_submissions')
+        .select('status')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      setKycStatus((submissionData?.status as 'none' | 'pending' | 'approved' | 'rejected') ?? 'none');
     } catch (error) {
       console.error('Error fetching KYC status:', error);
     }
@@ -363,14 +376,33 @@ export function UserDetailDialog({ user, open, onOpenChange, onUserUpdated }: Us
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-blue-500" />
-                  <Label className="text-sm font-medium text-foreground">KYC erforderlich</Label>
+                  <Label className="text-sm font-medium text-foreground">KYC Status</Label>
                 </div>
-                <Switch 
-                  checked={kycRequired}
-                  onCheckedChange={handleKycRequiredToggle}
-                  disabled={kycLoading}
-                  className="data-[state=checked]:bg-blue-500"
-                />
+                {kycStatus === 'approved' ? (
+                  <Badge className="bg-green-500 text-white">
+                    <ShieldCheck className="h-3 w-3 mr-1" />
+                    Verifiziert
+                  </Badge>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {kycStatus === 'pending' && (
+                      <Badge variant="outline" className="border-blue-500 text-blue-500">
+                        In Prüfung
+                      </Badge>
+                    )}
+                    {kycStatus === 'rejected' && (
+                      <Badge variant="outline" className="border-red-500 text-red-500">
+                        Abgelehnt
+                      </Badge>
+                    )}
+                    <Switch 
+                      checked={kycRequired}
+                      onCheckedChange={handleKycRequiredToggle}
+                      disabled={kycLoading}
+                      className="data-[state=checked]:bg-blue-500"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-border">
