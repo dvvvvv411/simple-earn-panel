@@ -283,6 +283,7 @@ export type Database = {
           birth_date: string
           birth_place: string
           city: string
+          country: string | null
           created_at: string
           employment_status: string
           first_name: string
@@ -306,6 +307,7 @@ export type Database = {
           birth_date: string
           birth_place: string
           city: string
+          country?: string | null
           created_at?: string
           employment_status: string
           first_name: string
@@ -329,6 +331,7 @@ export type Database = {
           birth_date?: string
           birth_place?: string
           city?: string
+          country?: string | null
           created_at?: string
           employment_status?: string
           first_name?: string
