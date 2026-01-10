@@ -17,7 +17,8 @@ import {
   XCircle, 
   Eye,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Copy
 } from "lucide-react";
 
 interface KYCSubmission {
@@ -30,6 +31,7 @@ interface KYCSubmission {
   street: string;
   postal_code: string;
   city: string;
+  country: string | null;
   nationality: string;
   employment_status: string;
   monthly_income: string;
@@ -259,6 +261,28 @@ export default function KYCManagement() {
     });
   };
 
+  const handleQuickExport = () => {
+    if (!selectedSubmission) return;
+    
+    const birthDate = new Date(selectedSubmission.birth_date).toLocaleDateString('de-DE');
+    const country = selectedSubmission.country || 'Deutschland';
+    
+    const exportText = `${selectedSubmission.first_name} ${selectedSubmission.last_name}
+${selectedSubmission.street}
+${selectedSubmission.postal_code} ${selectedSubmission.city}
+${country}
+${birthDate} ${selectedSubmission.birth_place}
+${selectedSubmission.nationality}
+${selectedSubmission.employment_status}
+${selectedSubmission.monthly_income}`;
+
+    navigator.clipboard.writeText(exportText);
+    toast({
+      title: "Kopiert!",
+      description: "KYC-Daten wurden in die Zwischenablage kopiert.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -372,8 +396,10 @@ export default function KYCManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Benutzer</TableHead>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Vorname</TableHead>
+                  <TableHead>Nachname</TableHead>
+                  <TableHead>Staatsangehörigkeit</TableHead>
+                  <TableHead>Monatl. Einkommen</TableHead>
                   <TableHead>Eingereicht am</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Aktionen</TableHead>
@@ -382,8 +408,10 @@ export default function KYCManagement() {
               <TableBody>
                 {filteredSubmissions.map((submission) => (
                   <TableRow key={submission.id}>
-                    <TableCell className="font-medium">{submission.user_email}</TableCell>
-                    <TableCell>{submission.first_name} {submission.last_name}</TableCell>
+                    <TableCell className="font-medium">{submission.first_name}</TableCell>
+                    <TableCell>{submission.last_name}</TableCell>
+                    <TableCell>{submission.nationality}</TableCell>
+                    <TableCell>{submission.monthly_income}</TableCell>
                     <TableCell>{formatDate(submission.created_at)}</TableCell>
                     <TableCell>{getStatusBadge(submission.status)}</TableCell>
                     <TableCell className="text-right">
@@ -408,96 +436,106 @@ export default function KYCManagement() {
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5" />
-              KYC-Details - {selectedSubmission?.first_name} {selectedSubmission?.last_name}
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5" />
+                KYC-Details - {selectedSubmission?.first_name} {selectedSubmission?.last_name}
+              </DialogTitle>
+              <Button variant="outline" size="sm" onClick={handleQuickExport} className="mr-6">
+                <Copy className="h-4 w-4 mr-2" />
+                Quick-Export
+              </Button>
+            </div>
           </DialogHeader>
 
           {selectedSubmission && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Status Banner */}
-              <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                 <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <div className="mt-1">{getStatusBadge(selectedSubmission.status)}</div>
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <div className="mt-0.5">{getStatusBadge(selectedSubmission.status)}</div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Eingereicht am</p>
-                  <p className="font-medium">{formatDate(selectedSubmission.created_at)}</p>
+                  <p className="text-xs text-muted-foreground">Eingereicht am</p>
+                  <p className="font-medium text-sm">{formatDate(selectedSubmission.created_at)}</p>
                 </div>
               </div>
 
               {selectedSubmission.rejection_reason && (
-                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
-                  <p className="text-sm font-medium text-red-800 dark:text-red-200">Ablehnungsgrund:</p>
-                  <p className="text-red-700 dark:text-red-300">{selectedSubmission.rejection_reason}</p>
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
+                  <p className="text-xs font-medium text-red-800 dark:text-red-200">Ablehnungsgrund:</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">{selectedSubmission.rejection_reason}</p>
                 </div>
               )}
 
               {/* Personal Data */}
               <div>
-                <h3 className="font-semibold mb-3">Persönliche Daten</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <h3 className="text-sm font-semibold mb-2">Persönliche Daten</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
                   <div>
-                    <Label className="text-muted-foreground">Vorname</Label>
-                    <p className="font-medium">{selectedSubmission.first_name}</p>
+                    <Label className="text-xs text-muted-foreground">Vorname</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.first_name}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Nachname</Label>
-                    <p className="font-medium">{selectedSubmission.last_name}</p>
+                    <Label className="text-xs text-muted-foreground">Nachname</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.last_name}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Geburtsdatum</Label>
-                    <p className="font-medium">{new Date(selectedSubmission.birth_date).toLocaleDateString('de-DE')}</p>
+                    <Label className="text-xs text-muted-foreground">Geburtsdatum</Label>
+                    <p className="font-medium text-sm">{new Date(selectedSubmission.birth_date).toLocaleDateString('de-DE')}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Geburtsort</Label>
-                    <p className="font-medium">{selectedSubmission.birth_place}</p>
+                    <Label className="text-xs text-muted-foreground">Geburtsort</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.birth_place}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Staatsangehörigkeit</Label>
-                    <p className="font-medium">{selectedSubmission.nationality}</p>
+                    <Label className="text-xs text-muted-foreground">Staatsangehörigkeit</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.nationality}</p>
                   </div>
                 </div>
               </div>
 
               {/* Address */}
               <div>
-                <h3 className="font-semibold mb-3">Adresse</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <h3 className="text-sm font-semibold mb-2">Adresse</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2">
                   <div className="col-span-2">
-                    <Label className="text-muted-foreground">Straße</Label>
-                    <p className="font-medium">{selectedSubmission.street}</p>
+                    <Label className="text-xs text-muted-foreground">Straße</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.street}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">PLZ</Label>
-                    <p className="font-medium">{selectedSubmission.postal_code}</p>
+                    <Label className="text-xs text-muted-foreground">PLZ</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.postal_code}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Stadt</Label>
-                    <p className="font-medium">{selectedSubmission.city}</p>
+                    <Label className="text-xs text-muted-foreground">Stadt</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.city}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Land</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.country || 'Deutschland'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Employment & Income */}
               <div>
-                <h3 className="font-semibold mb-3">Beschäftigung & Finanzen</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <h3 className="text-sm font-semibold mb-2">Beschäftigung & Finanzen</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
                   <div>
-                    <Label className="text-muted-foreground">Beschäftigungsstatus</Label>
-                    <p className="font-medium">{selectedSubmission.employment_status}</p>
+                    <Label className="text-xs text-muted-foreground">Beschäftigungsstatus</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.employment_status}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Monatliches Einkommen</Label>
-                    <p className="font-medium">{selectedSubmission.monthly_income}</p>
+                    <Label className="text-xs text-muted-foreground">Monatliches Einkommen</Label>
+                    <p className="font-medium text-sm">{selectedSubmission.monthly_income}</p>
                   </div>
                   <div className="col-span-2 md:col-span-3">
-                    <Label className="text-muted-foreground">Herkunft der Einlagen</Label>
-                    <div className="flex flex-wrap gap-2 mt-1">
+                    <Label className="text-xs text-muted-foreground">Herkunft der Einlagen</Label>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
                       {selectedSubmission.source_of_funds.map((source, idx) => (
-                        <Badge key={idx} variant="secondary">{source}</Badge>
+                        <Badge key={idx} variant="secondary" className="text-xs">{source}</Badge>
                       ))}
                     </div>
                   </div>
@@ -506,33 +544,33 @@ export default function KYCManagement() {
 
               {/* Documents */}
               <div>
-                <h3 className="font-semibold mb-3">Dokumente</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h3 className="text-sm font-semibold mb-2">Dokumente</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-muted-foreground">Personalausweis Vorderseite</Label>
+                    <Label className="text-xs text-muted-foreground">Personalausweis Vorderseite</Label>
                     {idFrontUrl ? (
                       <img 
                         src={idFrontUrl} 
                         alt="ID Front" 
-                        className="mt-2 rounded-lg border max-h-64 object-contain w-full bg-muted"
+                        className="mt-1.5 rounded-lg border max-h-56 object-contain w-full bg-muted"
                       />
                     ) : (
-                      <div className="mt-2 h-48 rounded-lg border bg-muted flex items-center justify-center">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      <div className="mt-1.5 h-40 rounded-lg border bg-muted flex items-center justify-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                       </div>
                     )}
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Personalausweis Rückseite</Label>
+                    <Label className="text-xs text-muted-foreground">Personalausweis Rückseite</Label>
                     {idBackUrl ? (
                       <img 
                         src={idBackUrl} 
                         alt="ID Back" 
-                        className="mt-2 rounded-lg border max-h-64 object-contain w-full bg-muted"
+                        className="mt-1.5 rounded-lg border max-h-56 object-contain w-full bg-muted"
                       />
                     ) : (
-                      <div className="mt-2 h-48 rounded-lg border bg-muted flex items-center justify-center">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      <div className="mt-1.5 h-40 rounded-lg border bg-muted flex items-center justify-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                       </div>
                     )}
                   </div>
