@@ -27,7 +27,7 @@ const items = [
   { title: "Berater", url: "/admin/berater", icon: UserCheck },
   { title: "Aktive Bots", url: "/admin/aktive-bots", icon: Bot },
   { title: "Einzahlungen", url: "/admin/einzahlungen", icon: Download },
-  { title: "EUR-Einzahlungen", url: "/admin/eur-einzahlungen", icon: Landmark },
+  { title: "Bank-KYC", url: "/admin/bank-kyc", icon: Landmark },
   { title: "Auszahlungen", url: "/admin/auszahlungen", icon: Wallet },
   { title: "Email-Vorlagen", url: "/admin/email-vorlagen", icon: Mail },
   { title: "Support", url: "/admin/support", icon: Headphones },

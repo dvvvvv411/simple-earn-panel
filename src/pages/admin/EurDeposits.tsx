@@ -108,10 +108,10 @@ export default function EurDeposits() {
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
             <Landmark className="h-8 w-8 text-primary" />
-            EUR-Einzahlungen
+            Bank-KYC
           </h1>
           <p className="text-muted-foreground mt-1">
-            SEPA-Bankeinzahlungen für Nutzer verwalten
+            Bank-KYC Anfragen und Kontodaten verwalten
           </p>
         </div>
         <Button onClick={() => setActivateDialogOpen(true)} className="gap-2">
@@ -201,7 +201,7 @@ export default function EurDeposits() {
       <Card>
         <CardHeader>
           <CardTitle>Anfragen ({filteredRequests.length})</CardTitle>
-          <CardDescription>Alle EUR-Einzahlungsanfragen</CardDescription>
+          <CardDescription>Alle Bank-KYC Anfragen</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
