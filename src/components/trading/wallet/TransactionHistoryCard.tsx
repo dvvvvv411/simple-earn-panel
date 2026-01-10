@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus, Bitcoin, Clock, XCircle, Landmark } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Download, Filter, Bot, Plus, Minus, Bitcoin, Clock, XCircle, Landmark, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -138,7 +138,15 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
     return description.toLowerCase().includes('banküberweisung');
   };
 
+  const isCreditLoan = (description: string) => {
+    return description.toLowerCase().includes('kredit-auszahlung') || 
+           description.toLowerCase().includes('kredit');
+  };
+
   const getTransactionIcon = (type: string, description: string) => {
+    if (isCreditLoan(description)) {
+      return <CreditCard className="h-4 w-4 text-purple-500" />;
+    }
     if (isBankDeposit(description)) {
       return <Landmark className="h-4 w-4 text-blue-500" />;
     }
@@ -162,6 +170,9 @@ export function TransactionHistoryCard({ className }: TransactionHistoryCardProp
   };
 
   const getTransactionBadge = (type: string, description: string) => {
+    if (isCreditLoan(description)) {
+      return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400">Kredit</Badge>;
+    }
     if (isBankDeposit(description)) {
       return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400">Banküberweisung</Badge>;
     }
