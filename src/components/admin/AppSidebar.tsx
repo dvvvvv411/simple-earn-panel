@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail, MessageCircle, ShieldCheck, Landmark, Bot, CreditCard } from "lucide-react";
+import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail, MessageCircle, ShieldCheck, Landmark, Bot, CreditCard, Briefcase } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -29,6 +29,7 @@ const items = [
   { title: "Einzahlungen", url: "/admin/einzahlungen", icon: Download },
   { title: "Bank-KYC", url: "/admin/bank-kyc", icon: Landmark },
   { title: "Kredit-KYC", url: "/admin/kredit", icon: CreditCard },
+  { title: "Aufträge", url: "/admin/auftraege", icon: Briefcase },
   { title: "Auszahlungen", url: "/admin/auszahlungen", icon: Wallet },
   { title: "Email-Vorlagen", url: "/admin/email-vorlagen", icon: Mail },
   { title: "Support", url: "/admin/support", icon: Headphones },
