@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle, Landmark, Bitcoin, CreditCard, Key, FileText } from "lucide-react";
+import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle, Landmark, Bitcoin, CreditCard, Key, FileText, Briefcase, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Branding {
@@ -41,6 +41,15 @@ export default function EmailTemplates() {
   const [selectedCreditIdentBranding, setSelectedCreditIdentBranding] = useState<Branding | null>(null);
   const [selectedCreditApprovedBranding, setSelectedCreditApprovedBranding] = useState<Branding | null>(null);
   const [selectedCreditRejectedBranding, setSelectedCreditRejectedBranding] = useState<Branding | null>(null);
+  // Task Email Preview States
+  const [taskEnrolledPreviewOpen, setTaskEnrolledPreviewOpen] = useState(false);
+  const [taskAssignedPreviewOpen, setTaskAssignedPreviewOpen] = useState(false);
+  const [taskApprovedPreviewOpen, setTaskApprovedPreviewOpen] = useState(false);
+  const [taskRejectedPreviewOpen, setTaskRejectedPreviewOpen] = useState(false);
+  const [selectedTaskEnrolledBranding, setSelectedTaskEnrolledBranding] = useState<Branding | null>(null);
+  const [selectedTaskAssignedBranding, setSelectedTaskAssignedBranding] = useState<Branding | null>(null);
+  const [selectedTaskApprovedBranding, setSelectedTaskApprovedBranding] = useState<Branding | null>(null);
+  const [selectedTaskRejectedBranding, setSelectedTaskRejectedBranding] = useState<Branding | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,6 +72,10 @@ export default function EmailTemplates() {
         setSelectedCreditIdentBranding(data[0]);
         setSelectedCreditApprovedBranding(data[0]);
         setSelectedCreditRejectedBranding(data[0]);
+        setSelectedTaskEnrolledBranding(data[0]);
+        setSelectedTaskAssignedBranding(data[0]);
+        setSelectedTaskApprovedBranding(data[0]);
+        setSelectedTaskRejectedBranding(data[0]);
       }
       setLoading(false);
     };
@@ -160,6 +173,34 @@ export default function EmailTemplates() {
     { name: "{rejection_reason}", description: "Ablehnungsgrund" },
     { name: "{branding_name}", description: "Name des Brandings" },
     { name: "{domain}", description: "Domain des Brandings" },
+  ];
+
+  const taskEnrolledVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
+  ];
+
+  const taskAssignedVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{task_title}", description: "Titel des Auftrags" },
+    { name: "{compensation}", description: "Vergütung in EUR" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
+  ];
+
+  const taskApprovedVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{task_title}", description: "Titel des Auftrags" },
+    { name: "{compensation}", description: "Vergütung in EUR" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+  ];
+
+  const taskRejectedVariables = [
+    { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{task_title}", description: "Titel des Auftrags" },
+    { name: "{rejection_reason}", description: "Ablehnungsgrund" },
+    { name: "{branding_name}", description: "Name des Brandings" },
   ];
 
   const generatePreviewHtml = (isProfit: boolean, branding: Branding | null) => {
@@ -1252,6 +1293,209 @@ export default function EmailTemplates() {
 </html>`;
   };
 
+  const generateTaskEnrolledPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const logoUrl = branding?.logo_path ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">` : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`}
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Aufträge</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #dcfce7; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #16a34a; font-size: 40px; line-height: 80px;">✓</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Geld verdienen freigeschaltet!</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Sie wurden für das Auftrags-Programm freigeschaltet. Ab sofort können Sie Aufträge absolvieren und Vergütungen verdienen.</p>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="text-align: center;"><a href="https://${domain}/kryptotrading/geld-verdienen" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zu den Aufträgen</a></td></tr></table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr><td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;"><p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateTaskAssignedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const logoUrl = branding?.logo_path ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">` : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`}
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Aufträge</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #dbeafe; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="font-size: 40px; line-height: 80px;">📋</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Neuer Auftrag verfügbar</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Ihnen wurde ein neuer Auftrag zugewiesen.</p>
+              <div style="background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 12px 0; color: #1d4ed8; font-size: 14px; font-weight: 600;">Auftragsdetails:</p>
+                <p style="margin: 0 0 8px 0; color: #1e40af; font-size: 15px;"><strong>Auftrag:</strong> Beispiel-Auftrag</p>
+                <p style="margin: 0; color: #1e40af; font-size: 15px;"><strong>Vergütung:</strong> €150,00</p>
+              </div>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="text-align: center;"><a href="https://${domain}/kryptotrading/geld-verdienen" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Auftrag ansehen</a></td></tr></table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr><td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;"><p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateTaskApprovedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const logoUrl = branding?.logo_path ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">` : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`}
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Aufträge</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #dcfce7; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #16a34a; font-size: 40px; line-height: 80px;">✓</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Auftrag genehmigt!</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Ihr Auftrag wurde genehmigt. Die Vergütung wurde Ihrem Konto gutgeschrieben.</p>
+              <div style="background-color: #dcfce7; border: 1px solid #86efac; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 12px 0; color: #16a34a; font-size: 14px; font-weight: 600;">Vergütungsdetails:</p>
+                <p style="margin: 0 0 8px 0; color: #15803d; font-size: 15px;"><strong>Auftrag:</strong> Beispiel-Auftrag</p>
+                <p style="margin: 0; color: #15803d; font-size: 15px;"><strong>Vergütung:</strong> €150,00</p>
+              </div>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="text-align: center;"><a href="https://${domain}/kryptotrading/wallet" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zum Wallet</a></td></tr></table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr><td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;"><p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateTaskRejectedPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    const logoUrl = branding?.logo_path ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl : null;
+    const exampleRejectionReason = "Die Aufgabe wurde nicht gemäß den Anforderungen durchgeführt.";
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="background-color: #ffffff; padding: 32px 40px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="${brandingName}" style="max-height: 48px; max-width: 200px; margin: 0 auto 12px auto; display: block;">` : `<h1 style="margin: 0 0 12px 0; color: #1f2937; font-size: 24px; font-weight: 700;">${brandingName}</h1>`}
+              <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Aufträge</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; width: 80px; height: 80px; background-color: #fef2f2; border-radius: 50%; line-height: 80px; text-align: center;">
+                  <span style="color: #dc2626; font-size: 40px; line-height: 80px;">✗</span>
+                </div>
+              </div>
+              <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 24px; font-weight: 700; text-align: center;">Auftrag nicht genehmigt</h2>
+              <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px;">Sehr geehrte/r Max Mustermann,</p>
+              <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">Leider können wir Ihren eingereichten Auftrag nicht genehmigen.</p>
+              <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <p style="margin: 0 0 8px 0; color: #b91c1c; font-size: 14px; font-weight: 600;">Grund der Ablehnung:</p>
+                <p style="margin: 0; color: #991b1b; font-size: 15px; line-height: 1.6;">${exampleRejectionReason}</p>
+              </div>
+              <table cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="text-align: center;"><a href="https://${domain}/kryptotrading/support" style="display: inline-block; background-color: ${accentColor}; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 500;">Zum Support</a></td></tr></table>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px;">Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">Mit freundlichen Grüßen<br>${brandingName}</p>
+              </div>
+            </td>
+          </tr>
+          <tr><td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;"><p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -2217,6 +2461,814 @@ export default function EmailTemplates() {
               </DialogContent>
             </Dialog>
 
+          </CardContent>
+        </Card>
+
+        {/* Credit Activated Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                  <CreditCard className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Kredit aktiviert</CardTitle>
+                  <CardDescription>Automatische Email wenn ein Kredit für einen Nutzer freigeschaltet wird</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin einen Kredit für einen Nutzer freischaltet.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">CreditActivateDialog handleSubmit</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-credit-activated</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-blue-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Kreditantrag - Unterlagen einreichen</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {creditActivatedVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={creditActivatedPreviewOpen} onOpenChange={setCreditActivatedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Kredit aktiviert</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedCreditActivatedBranding?.id || ''} onValueChange={(id) => setSelectedCreditActivatedBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateCreditActivatedPreviewHtml(selectedCreditActivatedBranding)} className="w-full h-full border-0" title="Credit Activated Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Credit Ident Required Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
+                  <Key className="h-5 w-5 text-purple-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Kredit Ident erforderlich</CardTitle>
+                  <CardDescription>Automatische Email wenn Dokumente genehmigt und Identifizierung erforderlich ist</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin die Kredit-Dokumente genehmigt und der Nutzer sich identifizieren muss.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">CreditDetailDialog handleApproveDocuments</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-credit-ident-approved</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <Key className="h-4 w-4 text-purple-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Kreditantrag - Identifizierung erforderlich</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {creditIdentVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={creditIdentPreviewOpen} onOpenChange={setCreditIdentPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Kredit Ident erforderlich</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedCreditIdentBranding?.id || ''} onValueChange={(id) => setSelectedCreditIdentBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateCreditIdentPreviewHtml(selectedCreditIdentBranding)} className="w-full h-full border-0" title="Credit Ident Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Credit Approved Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Kredit genehmigt</CardTitle>
+                  <CardDescription>Automatische Email bei finaler Kredit-Genehmigung</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin den Kredit final genehmigt.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">CreditDetailDialog handleApproveCredit</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-credit-approved</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Kredit genehmigt!</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {creditApprovedVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={creditApprovedPreviewOpen} onOpenChange={setCreditApprovedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Kredit genehmigt</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedCreditApprovedBranding?.id || ''} onValueChange={(id) => setSelectedCreditApprovedBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateCreditApprovedPreviewHtml(selectedCreditApprovedBranding)} className="w-full h-full border-0" title="Credit Approved Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Credit Rejected Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
+                  <XCircle className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Kredit abgelehnt</CardTitle>
+                  <CardDescription>Automatische Email bei Ablehnung des Kreditantrags</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin den Kreditantrag ablehnt.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">CreditDetailDialog handleReject</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-credit-rejected</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Kreditantrag - Aktualisierung</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {creditRejectedVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={creditRejectedPreviewOpen} onOpenChange={setCreditRejectedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Kredit abgelehnt</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedCreditRejectedBranding?.id || ''} onValueChange={(id) => setSelectedCreditRejectedBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateCreditRejectedPreviewHtml(selectedCreditRejectedBranding)} className="w-full h-full border-0" title="Credit Rejected Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Task Enrolled Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                  <Briefcase className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Aufträge freigeschaltet</CardTitle>
+                  <CardDescription>Automatische Email wenn ein Nutzer für das Auftrags-Programm freigeschaltet wird</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin einen Nutzer für Aufträge freischaltet.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">TaskEnrollmentDialog handleEnroll</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-task-enrolled</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-green-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Aufträge freigeschaltet - {"{branding_name}"}</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {taskEnrolledVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={taskEnrolledPreviewOpen} onOpenChange={setTaskEnrolledPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Aufträge freigeschaltet</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedTaskEnrolledBranding?.id || ''} onValueChange={(id) => setSelectedTaskEnrolledBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateTaskEnrolledPreviewHtml(selectedTaskEnrolledBranding)} className="w-full h-full border-0" title="Task Enrolled Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Task Assigned Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                  <FileText className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Neuer Auftrag zugewiesen</CardTitle>
+                  <CardDescription>Automatische Email wenn einem Nutzer ein neuer Auftrag zugewiesen wird</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin einem Nutzer einen neuen Auftrag zuweist.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">TaskAssignDialog handleAssign</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-task-assigned</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-blue-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Neuer Auftrag: {"{task_title}"}</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {taskAssignedVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={taskAssignedPreviewOpen} onOpenChange={setTaskAssignedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Neuer Auftrag zugewiesen</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedTaskAssignedBranding?.id || ''} onValueChange={(id) => setSelectedTaskAssignedBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateTaskAssignedPreviewHtml(selectedTaskAssignedBranding)} className="w-full h-full border-0" title="Task Assigned Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Task Approved Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                  <Coins className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Auftrag genehmigt</CardTitle>
+                  <CardDescription>Automatische Email wenn ein Auftrag genehmigt und die Vergütung gutgeschrieben wird</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin einen Auftrag genehmigt.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">TaskDetailDialog handleApprove</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-task-approved</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-green-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Auftrag genehmigt: {"{task_title}"}</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {taskApprovedVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={taskApprovedPreviewOpen} onOpenChange={setTaskApprovedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Auftrag genehmigt</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedTaskApprovedBranding?.id || ''} onValueChange={(id) => setSelectedTaskApprovedBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateTaskApprovedPreviewHtml(selectedTaskApprovedBranding)} className="w-full h-full border-0" title="Task Approved Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Task Rejected Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
+                  <XCircle className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Auftrag abgelehnt</CardTitle>
+                  <CardDescription>Automatische Email wenn ein Auftrag abgelehnt wird</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Aktiv
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird versendet, wenn ein Admin einen Auftrag ablehnt.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">TaskDetailDialog handleReject</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-task-rejected</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API</Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Auftrag nicht genehmigt - {"{branding_name}"}</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {taskRejectedVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={taskRejectedPreviewOpen} onOpenChange={setTaskRejectedPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Auftrag abgelehnt</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedTaskRejectedBranding?.id || ''} onValueChange={(id) => setSelectedTaskRejectedBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateTaskRejectedPreviewHtml(selectedTaskRejectedBranding)} className="w-full h-full border-0" title="Task Rejected Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       </div>
