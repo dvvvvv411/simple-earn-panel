@@ -11,6 +11,7 @@ export interface User {
   updated_at: string;
   unlucky_streak?: boolean;
   free_bots?: number;
+  kyc_required?: boolean;
   branding?: {
     id: string;
     name: string;
@@ -18,6 +19,12 @@ export interface User {
   roles?: Array<{
     role: string;
   }>;
+  // Extended data for admin table
+  kycStatus?: 'nicht_angefordert' | 'offen' | 'in_pruefung' | 'verifiziert' | 'abgelehnt';
+  lastActivity?: {
+    isOnline: boolean;
+    lastActiveAt: string | null;
+  };
 }
 
 export interface CreateUserData {

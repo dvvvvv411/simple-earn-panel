@@ -39,18 +39,75 @@ export default function UsersPage() {
 
       // Fetch user roles separately
       const userIds = data?.map(user => user.id) || [];
-      const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('user_id', userIds);
+      
+      const [rolesResult, kycResult, activityResult] = await Promise.all([
+        supabase
+          .from('user_roles')
+          .select('user_id, role')
+          .in('user_id', userIds),
+        supabase
+          .from('kyc_submissions')
+          .select('user_id, status')
+          .in('user_id', userIds),
+        supabase
+          .from('user_activity_sessions')
+          .select('user_id, last_active_at, is_active')
+          .in('user_id', userIds)
+          .order('last_active_at', { ascending: false })
+      ]);
 
-      // Combine data with roles
-      const usersWithRoles = data?.map(user => ({
-        ...user,
-        roles: rolesData?.filter(role => role.user_id === user.id).map(role => ({ role: role.role })) || []
-      })) || [];
+      const rolesData = rolesResult.data || [];
+      const kycData = kycResult.data || [];
+      const activityData = activityResult.data || [];
 
-      setUsers(usersWithRoles);
+      // Create maps for quick lookup
+      const kycMap = new Map<string, string>();
+      kycData.forEach(k => {
+        // Keep the most relevant status (approved > rejected > pending)
+        const existing = kycMap.get(k.user_id);
+        if (!existing || k.status === 'approved' || (k.status === 'rejected' && existing === 'pending')) {
+          kycMap.set(k.user_id, k.status);
+        }
+      });
+
+      const activityMap = new Map<string, { last_active_at: string; is_active: boolean }>();
+      activityData.forEach(a => {
+        if (!activityMap.has(a.user_id)) {
+          activityMap.set(a.user_id, { last_active_at: a.last_active_at, is_active: a.is_active || false });
+        }
+      });
+
+      // Combine data with roles, KYC status, and activity
+      const usersWithExtendedData = data?.map(user => {
+        const kycSubmissionStatus = kycMap.get(user.id);
+        let kycStatus: User['kycStatus'] = 'nicht_angefordert';
+        
+        if (kycSubmissionStatus === 'approved') {
+          kycStatus = 'verifiziert';
+        } else if (kycSubmissionStatus === 'rejected') {
+          kycStatus = 'abgelehnt';
+        } else if (kycSubmissionStatus === 'pending') {
+          kycStatus = 'in_pruefung';
+        } else if (user.kyc_required) {
+          kycStatus = 'offen';
+        }
+
+        const activity = activityMap.get(user.id);
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const isOnline = activity && new Date(activity.last_active_at) > fiveMinutesAgo;
+
+        return {
+          ...user,
+          roles: rolesData.filter(role => role.user_id === user.id).map(role => ({ role: role.role })),
+          kycStatus,
+          lastActivity: {
+            isOnline: isOnline || false,
+            lastActiveAt: activity?.last_active_at || null
+          }
+        };
+      }) || [];
+
+      setUsers(usersWithExtendedData);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({

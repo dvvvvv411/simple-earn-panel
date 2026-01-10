@@ -5,7 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Loader2, Eye } from "lucide-react";
+import { Edit, Trash2, Loader2, Eye, ShieldCheck, ShieldX, ShieldAlert, Clock, CheckCircle2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { de } from "date-fns/locale";
 import type { User } from "@/types/user";
 
 interface UserTableProps {
@@ -69,6 +71,70 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
     }).format(balance);
   };
 
+  const getKYCStatusBadge = (status: User['kycStatus']) => {
+    switch (status) {
+      case 'verifiziert':
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Verifiziert
+          </Badge>
+        );
+      case 'abgelehnt':
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+            <ShieldX className="h-3 w-3 mr-1" />
+            Abgelehnt
+          </Badge>
+        );
+      case 'in_pruefung':
+        return (
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+            <Clock className="h-3 w-3 mr-1" />
+            In Prüfung
+          </Badge>
+        );
+      case 'offen':
+        return (
+          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+            <ShieldAlert className="h-3 w-3 mr-1" />
+            Offen
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="text-muted-foreground">
+            <ShieldCheck className="h-3 w-3 mr-1" />
+            Nicht erforderlich
+          </Badge>
+        );
+    }
+  };
+
+  const getLastActivityDisplay = (user: User) => {
+    if (!user.lastActivity?.lastActiveAt) {
+      return <span className="text-muted-foreground">Noch nie</span>;
+    }
+
+    if (user.lastActivity.isOnline) {
+      return (
+        <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+          <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+          Online
+        </span>
+      );
+    }
+
+    return (
+      <span className="text-muted-foreground">
+        {formatDistanceToNow(new Date(user.lastActivity.lastActiveAt), { 
+          addSuffix: true,
+          locale: de 
+        })}
+      </span>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -93,11 +159,11 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
           <TableRow>
             <TableHead className="text-foreground">Name</TableHead>
             <TableHead className="text-foreground">E-Mail</TableHead>
-            <TableHead className="text-foreground">Telefon</TableHead>
             <TableHead className="text-foreground">Branding</TableHead>
             <TableHead className="text-foreground">Guthaben</TableHead>
+            <TableHead className="text-foreground">KYC-Status</TableHead>
+            <TableHead className="text-foreground">Letzte Aktivität</TableHead>
             <TableHead className="text-foreground">Rolle</TableHead>
-            <TableHead className="text-foreground">Erstellt</TableHead>
             <TableHead className="text-right text-foreground">Aktionen</TableHead>
           </TableRow>
         </TableHeader>
@@ -109,9 +175,6 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {user.email || '-'}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {user.phone || '-'}
               </TableCell>
               <TableCell>
                 {user.branding ? (
@@ -128,15 +191,18 @@ export function UserTable({ users, loading, onUserDeleted, onUserEdit, onUserDet
                 </span>
               </TableCell>
               <TableCell>
+                {getKYCStatusBadge(user.kycStatus)}
+              </TableCell>
+              <TableCell>
+                {getLastActivityDisplay(user)}
+              </TableCell>
+              <TableCell>
                 <Badge 
                   variant={getUserRole(user) === 'admin' ? 'default' : 'outline'}
                   className={getUserRole(user) === 'admin' ? 'bg-primary text-primary-foreground' : 'border-border text-muted-foreground'}
                 >
                   {getUserRole(user) === 'admin' ? 'Admin' : 'Benutzer'}
                 </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {new Date(user.created_at).toLocaleDateString('de-DE')}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">

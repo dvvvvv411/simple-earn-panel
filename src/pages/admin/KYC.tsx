@@ -18,8 +18,10 @@ import {
   Eye,
   Loader2,
   RefreshCw,
-  Copy
+  Copy,
+  UserPlus
 } from "lucide-react";
+import { KYCRequestDialog } from "@/components/admin/KYCRequestDialog";
 
 interface KYCSubmission {
   id: string;
@@ -59,6 +61,7 @@ export default function KYCManagement() {
   const [processing, setProcessing] = useState(false);
   const [idFrontUrl, setIdFrontUrl] = useState<string | null>(null);
   const [idBackUrl, setIdBackUrl] = useState<string | null>(null);
+  const [kycRequestDialogOpen, setKycRequestDialogOpen] = useState(false);
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -290,10 +293,16 @@ ${selectedSubmission.monthly_income}`;
           <h1 className="text-3xl font-bold text-foreground">KYC-Verwaltung</h1>
           <p className="text-muted-foreground">Überprüfen und verwalten Sie Identitätsverifizierungen</p>
         </div>
-        <Button onClick={fetchSubmissions} variant="outline" disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Aktualisieren
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setKycRequestDialogOpen(true)} variant="outline">
+            <UserPlus className="h-4 w-4 mr-2" />
+            KYC anfordern
+          </Button>
+          <Button onClick={fetchSubmissions} variant="outline" disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Aktualisieren
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -643,6 +652,12 @@ ${selectedSubmission.monthly_income}`;
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <KYCRequestDialog
+        open={kycRequestDialogOpen}
+        onOpenChange={setKycRequestDialogOpen}
+        onUsersUpdated={fetchSubmissions}
+      />
     </div>
   );
 }
