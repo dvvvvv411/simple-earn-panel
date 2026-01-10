@@ -471,7 +471,10 @@ const selectedCryptoData = currencies.find(c => c.code === selectedCrypto);
 
   return (
     <ResponsiveDialog open={open} onOpenChange={handleClose}>
-      <ResponsiveDialogContent className="sm:max-w-2xl sm:max-h-[90vh] sm:overflow-y-auto">
+      <ResponsiveDialogContent className={cn(
+        "sm:max-h-[90vh] sm:overflow-y-auto",
+        bankPaymentData ? "sm:max-w-md" : "sm:max-w-2xl"
+      )}>
         <div className="flex flex-col h-full lg:block">
           <div className="flex-1 px-6 sm:px-0 overflow-y-auto flex items-center lg:block py-1">
             <div className="w-full">
