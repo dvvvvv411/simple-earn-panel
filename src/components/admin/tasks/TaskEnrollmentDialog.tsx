@@ -102,6 +102,16 @@ export function TaskEnrollmentDialog({ open, onOpenChange, onSuccess }: TaskEnro
 
       if (error) throw error;
 
+      // Send email notification
+      await supabase.functions.invoke('send-task-enrolled', {
+        body: { user_id: selectedUserId }
+      });
+
+      // Send telegram notification
+      await supabase.functions.invoke('send-telegram-notification', {
+        body: { event_type: 'task_enrolled', data: { user_id: selectedUserId } }
+      });
+
       toast.success('Nutzer wurde für Aufträge freigeschaltet');
       setSelectedUserId(null);
       setSearchQuery("");

@@ -891,6 +891,11 @@ export type Database = {
           notify_kyc_submitted: boolean | null
           notify_new_user: boolean
           notify_support_ticket: boolean
+          notify_task_approved: boolean | null
+          notify_task_assigned: boolean | null
+          notify_task_enrolled: boolean | null
+          notify_task_rejected: boolean | null
+          notify_task_submitted: boolean | null
           notify_withdrawal: boolean
           updated_at: string
         }
@@ -909,6 +914,11 @@ export type Database = {
           notify_kyc_submitted?: boolean | null
           notify_new_user?: boolean
           notify_support_ticket?: boolean
+          notify_task_approved?: boolean | null
+          notify_task_assigned?: boolean | null
+          notify_task_enrolled?: boolean | null
+          notify_task_rejected?: boolean | null
+          notify_task_submitted?: boolean | null
           notify_withdrawal?: boolean
           updated_at?: string
         }
@@ -927,6 +937,11 @@ export type Database = {
           notify_kyc_submitted?: boolean | null
           notify_new_user?: boolean
           notify_support_ticket?: boolean
+          notify_task_approved?: boolean | null
+          notify_task_assigned?: boolean | null
+          notify_task_enrolled?: boolean | null
+          notify_task_rejected?: boolean | null
+          notify_task_submitted?: boolean | null
           notify_withdrawal?: boolean
           updated_at?: string
         }

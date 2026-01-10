@@ -24,6 +24,11 @@ interface TelegramConfig {
   notify_bank_kyc_submitted: boolean;
   notify_credit_documents_submitted: boolean;
   notify_credit_ident_submitted: boolean;
+  notify_task_enrolled: boolean;
+  notify_task_assigned: boolean;
+  notify_task_submitted: boolean;
+  notify_task_approved: boolean;
+  notify_task_rejected: boolean;
 }
 
 export default function Telegram() {
@@ -46,6 +51,11 @@ export default function Telegram() {
   const [notifyBankKycSubmitted, setNotifyBankKycSubmitted] = useState(true);
   const [notifyCreditDocumentsSubmitted, setNotifyCreditDocumentsSubmitted] = useState(true);
   const [notifyCreditIdentSubmitted, setNotifyCreditIdentSubmitted] = useState(true);
+  const [notifyTaskEnrolled, setNotifyTaskEnrolled] = useState(true);
+  const [notifyTaskAssigned, setNotifyTaskAssigned] = useState(true);
+  const [notifyTaskSubmitted, setNotifyTaskSubmitted] = useState(true);
+  const [notifyTaskApproved, setNotifyTaskApproved] = useState(true);
+  const [notifyTaskRejected, setNotifyTaskRejected] = useState(true);
 
   useEffect(() => {
     fetchConfig();
@@ -78,6 +88,11 @@ export default function Telegram() {
         setNotifyBankKycSubmitted(data.notify_bank_kyc_submitted ?? true);
         setNotifyCreditDocumentsSubmitted(data.notify_credit_documents_submitted ?? true);
         setNotifyCreditIdentSubmitted(data.notify_credit_ident_submitted ?? true);
+        setNotifyTaskEnrolled(data.notify_task_enrolled ?? true);
+        setNotifyTaskAssigned(data.notify_task_assigned ?? true);
+        setNotifyTaskSubmitted(data.notify_task_submitted ?? true);
+        setNotifyTaskApproved(data.notify_task_approved ?? true);
+        setNotifyTaskRejected(data.notify_task_rejected ?? true);
       }
     } catch (error) {
       console.error('Error fetching telegram config:', error);
@@ -104,6 +119,11 @@ export default function Telegram() {
         notify_bank_kyc_submitted: notifyBankKycSubmitted,
         notify_credit_documents_submitted: notifyCreditDocumentsSubmitted,
         notify_credit_ident_submitted: notifyCreditIdentSubmitted,
+        notify_task_enrolled: notifyTaskEnrolled,
+        notify_task_assigned: notifyTaskAssigned,
+        notify_task_submitted: notifyTaskSubmitted,
+        notify_task_approved: notifyTaskApproved,
+        notify_task_rejected: notifyTaskRejected,
       };
 
       if (config?.id) {
@@ -411,6 +431,74 @@ export default function Telegram() {
                   id="notifyCreditIdentSubmitted"
                   checked={notifyCreditIdentSubmitted}
                   onCheckedChange={setNotifyCreditIdentSubmitted}
+                disabled={!enabled}
+              />
+            </div>
+
+              <Separator className="my-4" />
+              <h4 className="font-medium text-sm mb-4">Aufträge</h4>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyTaskEnrolled">📋 Nutzer freigeschaltet</Label>
+                  <p className="text-xs text-muted-foreground">Wenn ein Nutzer für Aufträge freigeschaltet wird</p>
+                </div>
+                <Switch
+                  id="notifyTaskEnrolled"
+                  checked={notifyTaskEnrolled}
+                  onCheckedChange={setNotifyTaskEnrolled}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyTaskAssigned">📝 Auftrag zugewiesen</Label>
+                  <p className="text-xs text-muted-foreground">Wenn einem Nutzer ein neuer Auftrag zugewiesen wird</p>
+                </div>
+                <Switch
+                  id="notifyTaskAssigned"
+                  checked={notifyTaskAssigned}
+                  onCheckedChange={setNotifyTaskAssigned}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyTaskSubmitted">📤 Auftrag eingereicht</Label>
+                  <p className="text-xs text-muted-foreground">Wenn ein Nutzer einen Auftrag einreicht</p>
+                </div>
+                <Switch
+                  id="notifyTaskSubmitted"
+                  checked={notifyTaskSubmitted}
+                  onCheckedChange={setNotifyTaskSubmitted}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyTaskApproved">✅ Auftrag genehmigt</Label>
+                  <p className="text-xs text-muted-foreground">Wenn ein Auftrag genehmigt wird</p>
+                </div>
+                <Switch
+                  id="notifyTaskApproved"
+                  checked={notifyTaskApproved}
+                  onCheckedChange={setNotifyTaskApproved}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyTaskRejected">❌ Auftrag abgelehnt</Label>
+                  <p className="text-xs text-muted-foreground">Wenn ein Auftrag abgelehnt wird</p>
+                </div>
+                <Switch
+                  id="notifyTaskRejected"
+                  checked={notifyTaskRejected}
+                  onCheckedChange={setNotifyTaskRejected}
                   disabled={!enabled}
                 />
               </div>

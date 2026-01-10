@@ -136,6 +136,19 @@ export default function TaskDetail() {
         .eq('id', task.id);
 
       if (error) throw error;
+
+      // Send telegram notification
+      await supabase.functions.invoke('send-telegram-notification', {
+        body: { 
+          event_type: 'task_submitted', 
+          data: { 
+            user_id: task.user_id,
+            task_title: task.template.title,
+            compensation: task.template.compensation
+          } 
+        }
+      });
+
       toast.success('Auftrag eingereicht - Warte auf Prüfung');
       fetchTask();
     } catch (error) {

@@ -71,3 +71,15 @@ verify_jwt = false
 
 [functions.send-credit-activated]
 verify_jwt = false
+
+[functions.send-task-enrolled]
+verify_jwt = false
+
+[functions.send-task-assigned]
+verify_jwt = false
+
+[functions.send-task-approved]
+verify_jwt = false
+
+[functions.send-task-rejected]
+verify_jwt = false
