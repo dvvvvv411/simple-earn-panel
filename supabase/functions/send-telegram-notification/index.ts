@@ -15,10 +15,11 @@ interface TelegramConfig {
   notify_deposit_paid: boolean;
   notify_withdrawal: boolean;
   notify_support_ticket: boolean;
+  notify_kyc_submitted: boolean;
 }
 
 interface NotificationData {
-  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'test';
+  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'test';
   data: Record<string, unknown>;
 }
 
@@ -57,6 +58,9 @@ function formatMessage(eventType: string, data: Record<string, unknown>): string
       const priorityEmoji = data.priority === 'high' ? '🔴' : data.priority === 'medium' ? '🟡' : '🟢';
       const action = data.is_reply ? 'Antwort auf' : 'Neues';
       return `🎫 *${action} Support-Ticket*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📝 Betreff: ${data.subject || 'Kein Betreff'}\n${priorityEmoji} Priorität: ${data.priority || 'Normal'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'kyc_submitted':
+      return `📋 *Neue KYC-Verifizierung*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n👤 Name: ${data.name || 'Nicht angegeben'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     default:
       return `📢 *Benachrichtigung*\n━━━━━━━━━━━━━━━━\n${JSON.stringify(data)}\n📅 ${now}`;
@@ -150,6 +154,7 @@ serve(async (req) => {
         'deposit_paid': 'notify_deposit_paid',
         'withdrawal_created': 'notify_withdrawal',
         'support_ticket': 'notify_support_ticket',
+        'kyc_submitted': 'notify_kyc_submitted',
       };
 
       const configKey = notificationTypeMap[event_type];
