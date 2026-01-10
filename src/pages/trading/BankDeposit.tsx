@@ -249,21 +249,21 @@ export default function BankDeposit() {
                 <div className="p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-sm">
                   <div className="flex items-center gap-2 mb-3">
                     <Smartphone className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">Ihr Verifizierungscode</span>
+                    <span className="text-sm font-medium text-primary">Ihr SMS-Code</span>
                   </div>
-                  {eurDepositRequest.verification_code ? (
+                  {eurDepositRequest.sms_code ? (
                     <p className="text-3xl font-mono font-bold tracking-widest text-foreground">
-                      {eurDepositRequest.verification_code}
+                      {eurDepositRequest.sms_code}
                     </p>
                   ) : (
                     <p className="text-lg font-medium text-muted-foreground italic">
-                      Kein Code verfügbar
+                      Noch nicht verfügbar
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-3">
-                    {eurDepositRequest.verification_code 
-                      ? `Geben Sie diesen Code am Ende der ${eurDepositRequest.verification_type}-Verifizierung ein.`
-                      : 'Ihr Berater wird Ihnen den Code in Kürze mitteilen.'}
+                    {eurDepositRequest.sms_code 
+                      ? `Geben Sie diesen SMS-Code am Ende der ${eurDepositRequest.verification_type}-Verifizierung ein.`
+                      : 'Ihr Berater wird Ihnen den SMS-Code in Kürze mitteilen.'}
                   </p>
                 </div>
               </div>
@@ -307,8 +307,17 @@ export default function BankDeposit() {
                   <Hash className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium text-primary">Identcode</span>
                 </div>
-                {eurDepositRequest.verification_code ? (
-                  <p className="text-xl font-mono font-bold tracking-wider">{eurDepositRequest.verification_code}</p>
+                <p className="text-xl font-mono font-bold tracking-wider">{eurDepositRequest.identcode}</p>
+              </div>
+              
+              {/* SMS-Code */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-muted">
+                <div className="flex items-center gap-2 mb-2">
+                  <Smartphone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">SMS-Code</span>
+                </div>
+                {eurDepositRequest.sms_code ? (
+                  <p className="text-xl font-mono font-bold tracking-wider">{eurDepositRequest.sms_code}</p>
                 ) : (
                   <p className="text-sm text-muted-foreground italic">Noch nicht verfügbar</p>
                 )}

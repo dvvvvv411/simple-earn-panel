@@ -18,7 +18,8 @@ interface EurDepositRequest {
   verification_type: string;
   contact_email: string;
   contact_phone: string;
-  verification_code: string | null;
+  identcode: string;
+  sms_code: string | null;
   verification_link: string;
   status: string;
   user_confirmed_at: string | null;
@@ -245,8 +246,8 @@ export default function EurDeposits() {
                           {new Date(request.created_at).toLocaleDateString('de-DE')}
                         </p>
                       </div>
-                      {/* Show "Code senden" button if pending and no code */}
-                      {request.status === 'pending' && !request.verification_code && (
+                      {/* Show "SMS-Code senden" button if no sms_code yet */}
+                      {!request.sms_code && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -254,7 +255,7 @@ export default function EurDeposits() {
                           className="gap-1"
                         >
                           <Key className="h-3 w-3" />
-                          Code
+                          SMS-Code
                         </Button>
                       )}
                       <Button
