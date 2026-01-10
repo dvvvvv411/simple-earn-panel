@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,11 +10,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ShieldCheck, 
   Clock, 
-  XCircle, 
   CheckCircle2,
   Upload,
   Loader2,
-  AlertCircle
+  AlertTriangle,
+  User,
+  MapPin,
+  Briefcase,
+  CreditCard,
+  Lock,
+  Calendar
 } from "lucide-react";
 
 // Countries list with Germany first
@@ -54,13 +59,13 @@ const INCOME_RANGES = [
 ];
 
 const SOURCE_OF_FUNDS = [
-  "Gehalt/Einkommen",
-  "Ersparnisse",
-  "Investitionen/Aktien",
-  "Erbschaft",
-  "Immobilienverkauf",
-  "Krypto-Gewinne",
-  "Sonstiges"
+  { id: "salary", label: "Gehalt/Einkommen" },
+  { id: "savings", label: "Ersparnisse" },
+  { id: "investments", label: "Investitionen/Aktien" },
+  { id: "inheritance", label: "Erbschaft" },
+  { id: "realestate", label: "Immobilienverkauf" },
+  { id: "crypto", label: "Krypto-Gewinne" },
+  { id: "other", label: "Sonstiges" }
 ];
 
 interface KYCSubmission {
@@ -69,6 +74,21 @@ interface KYCSubmission {
   rejection_reason: string | null;
   created_at: string;
 }
+
+const animationStyles = `
+  @keyframes floating {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+  }
+  @keyframes floating-delayed {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(-3deg); }
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) skewX(-12deg); }
+    100% { transform: translateX(100%) skewX(-12deg); }
+  }
+`;
 
 export default function KYCVerification() {
   const [loading, setLoading] = useState(true);
@@ -90,6 +110,9 @@ export default function KYCVerification() {
   const [sourceOfFunds, setSourceOfFunds] = useState<string[]>([]);
   const [idFront, setIdFront] = useState<File | null>(null);
   const [idBack, setIdBack] = useState<File | null>(null);
+
+  const frontInputRef = useRef<HTMLInputElement>(null);
+  const backInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     checkExistingSubmission();
@@ -144,11 +167,11 @@ export default function KYCVerification() {
     }
   };
 
-  const handleSourceOfFundsChange = (source: string, checked: boolean) => {
+  const handleSourceOfFundsChange = (id: string, checked: boolean) => {
     if (checked) {
-      setSourceOfFunds([...sourceOfFunds, source]);
+      setSourceOfFunds([...sourceOfFunds, id]);
     } else {
-      setSourceOfFunds(sourceOfFunds.filter(s => s !== source));
+      setSourceOfFunds(sourceOfFunds.filter(s => s !== id));
     }
   };
 
@@ -251,10 +274,57 @@ export default function KYCVerification() {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Premium Header Component
+  const PremiumHeader = ({ subtitle }: { subtitle: string }) => (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-6 md:p-8 mb-8">
+      <div 
+        className="absolute top-6 left-12 w-24 h-24 bg-white/10 rounded-full blur-sm"
+        style={{ animation: '6s ease-in-out infinite floating' }} 
+      />
+      <div 
+        className="absolute bottom-8 right-16 w-20 h-20 bg-white/15 rounded-full blur-sm"
+        style={{ animation: '8s ease-in-out infinite 2s floating-delayed' }} 
+      />
+      <div 
+        className="absolute top-1/2 left-1/3 w-16 h-16 bg-white/5 rounded-full blur-sm"
+        style={{ animation: '7s ease-in-out infinite 1s floating' }} 
+      />
+      <div className="absolute inset-0 overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+          style={{ animation: '3s linear infinite shimmer' }} 
+        />
+      </div>
+      <div className="relative z-10 flex items-center gap-4 md:gap-6">
+        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20">
+          <ShieldCheck className="w-7 h-7 md:w-8 md:h-8 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Identitätsverifizierung</h1>
+          <p className="text-white/80 mt-1 text-sm md:text-base">{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Lade KYC-Status...</p>
+        </div>
+        <style>{animationStyles}</style>
       </div>
     );
   }
@@ -262,20 +332,31 @@ export default function KYCVerification() {
   // Status: Pending
   if (existingSubmission?.status === 'pending' && !showForm) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <Card className="border-amber-500/50 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
-          <CardContent className="text-center py-12">
-            <Clock className="h-20 w-20 text-amber-500 mx-auto mb-6" />
+      <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
+        <PremiumHeader subtitle="Ihr KYC-Antrag wird bearbeitet" />
+
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          
+          <CardContent className="text-center py-12 relative z-10">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/30 
+                            flex items-center justify-center shadow-lg border border-primary/20">
+              <Clock className="h-10 w-10 text-primary animate-pulse" />
+            </div>
             <h2 className="text-2xl font-bold text-foreground mb-3">Verifizierung wird geprüft</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Wir prüfen Ihre Unterlagen. Dies kann bis zu 24 Stunden dauern. 
-              Sie werden benachrichtigt, sobald die Prüfung abgeschlossen ist.
+            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+              Unsere Experten prüfen Ihre eingereichten Unterlagen sorgfältig. 
+              Sie erhalten eine Benachrichtigung, sobald die Prüfung abgeschlossen ist.
             </p>
-            <p className="text-sm text-muted-foreground mt-4">
-              Eingereicht am: {new Date(existingSubmission.created_at).toLocaleDateString('de-DE')}
-            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm text-primary border border-primary/20">
+              <Calendar className="h-4 w-4" />
+              Eingereicht am {formatDate(existingSubmission.created_at)}
+            </div>
           </CardContent>
         </Card>
+
+        <style>{animationStyles}</style>
       </div>
     );
   }
@@ -283,112 +364,158 @@ export default function KYCVerification() {
   // Status: Approved
   if (existingSubmission?.status === 'approved') {
     return (
-      <div className="max-w-2xl mx-auto">
-        <Card className="border-green-500/50 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-          <CardContent className="text-center py-12">
-            <CheckCircle2 className="h-20 w-20 text-green-500 mx-auto mb-6" />
+      <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
+        <PremiumHeader subtitle="Ihre Identität wurde bestätigt" />
+
+        <Card className="border-green-500/30 bg-gradient-to-br from-green-50/50 via-emerald-50/50 to-green-50/50 
+                        dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/20 overflow-hidden relative">
+          <div className="absolute top-4 left-8 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <div className="absolute top-12 right-12 w-3 h-3 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+          <div className="absolute bottom-8 left-16 w-2.5 h-2.5 bg-green-300 rounded-full animate-pulse" style={{ animationDelay: '500ms' }} />
+          <div className="absolute bottom-16 right-8 w-2 h-2 bg-emerald-300 rounded-full animate-pulse" style={{ animationDelay: '700ms' }} />
+          
+          <CardContent className="text-center py-12 relative z-10">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 
+                            flex items-center justify-center shadow-lg">
+              <CheckCircle2 className="h-10 w-10 text-white" />
+            </div>
             <h2 className="text-2xl font-bold text-foreground mb-3">Verifizierung erfolgreich</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Ihre Identität wurde erfolgreich verifiziert. 
-              Sie können alle Funktionen der Plattform uneingeschränkt nutzen.
+              Ihre Identität wurde erfolgreich bestätigt. Sie haben nun Zugriff auf alle 
+              Premium-Funktionen unserer Trading-Plattform.
             </p>
           </CardContent>
         </Card>
+
+        <style>{animationStyles}</style>
       </div>
     );
   }
 
-  // Status: Rejected (show rejection message + form)
-  const rejectionBanner = existingSubmission?.status === 'rejected' && (
-    <Card className="border-red-500/50 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 mb-6">
-      <CardContent className="py-6">
-        <div className="flex items-start gap-4">
-          <XCircle className="h-8 w-8 text-red-500 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="font-semibold text-foreground mb-1">Verifizierung abgelehnt</h3>
-            <p className="text-red-600 dark:text-red-400 mb-2">
-              <strong>Grund:</strong> {existingSubmission.rejection_reason}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Bitte korrigieren Sie die Angaben und reichen Sie die Verifizierung erneut ein.
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  // Show Form
+  // Show Form (new submission or rejected resubmission)
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <ShieldCheck className="h-16 w-16 text-primary mx-auto mb-4" />
-        <h1 className="text-3xl font-bold text-foreground">KYC-Verifizierung</h1>
-        <p className="text-muted-foreground mt-2">
-          Bitte vervollständigen Sie Ihre Identitätsverifizierung, um alle Funktionen freizuschalten.
-        </p>
+    <div className="container max-w-4xl mx-auto py-4 md:py-8 px-4">
+      <PremiumHeader subtitle="Verifizieren Sie Ihre Identität, um alle Funktionen freizuschalten" />
+
+      {/* Rejected Banner */}
+      {existingSubmission?.status === 'rejected' && (
+        <Card className="border-red-500/40 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30 overflow-hidden mb-8">
+          <CardContent className="py-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-6 w-6 text-red-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg text-foreground mb-2">Verifizierung abgelehnt</h3>
+                <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 mb-3 border border-red-200 dark:border-red-800">
+                  <p className="text-red-700 dark:text-red-300 font-medium">
+                    {existingSubmission.rejection_reason || "Bitte überprüfen Sie Ihre Angaben."}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Bitte überprüfen Sie Ihre Angaben und reichen Sie die Verifizierung erneut ein.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Progress Indicator */}
+      <div className="flex items-center justify-between mb-8 px-2 md:px-4">
+        {[
+          { icon: User, label: 'Persönliche Daten' },
+          { icon: MapPin, label: 'Adresse' },
+          { icon: Briefcase, label: 'Finanzen' },
+          { icon: CreditCard, label: 'Dokumente' }
+        ].map((step, index) => (
+          <div key={step.label} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary">
+                <step.icon className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs mt-1 text-muted-foreground hidden md:block text-center max-w-[80px]">{step.label}</span>
+            </div>
+            {index < 3 && <div className="w-6 sm:w-8 lg:w-16 h-0.5 mx-1 sm:mx-2 bg-primary/30" />}
+          </div>
+        ))}
       </div>
 
-      {rejectionBanner}
-
-      <form onSubmit={handleSubmit}>
-        <Card className="bg-card border-border mb-6">
-          <CardHeader>
-            <CardTitle>Persönliche Daten</CardTitle>
-            <CardDescription>Geben Sie Ihre persönlichen Informationen ein.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Personal Data Card */}
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <User className="h-5 w-5 text-primary" />
+              </div>
               <div>
-                <Label htmlFor="firstName">Vorname *</Label>
+                <CardTitle className="text-lg">Persönliche Daten</CardTitle>
+                <CardDescription>Ihre grundlegenden Informationen</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-sm font-medium flex items-center gap-1">
+                  Vorname <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="firstName"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Max"
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="lastName">Nachname *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-sm font-medium flex items-center gap-1">
+                  Nachname <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="lastName"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Mustermann"
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="birthDate">Geburtsdatum *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="birthDate" className="text-sm font-medium flex items-center gap-1">
+                  Geburtsdatum <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="birthDate"
                   type="date"
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="birthPlace">Geburtsort *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="birthPlace" className="text-sm font-medium flex items-center gap-1">
+                  Geburtsort <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="birthPlace"
                   value={birthPlace}
                   onChange={(e) => setBirthPlace(e.target.value)}
-                  placeholder="Berlin"
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
               </div>
             </div>
-
-            <div>
-              <Label htmlFor="nationality">Staatsangehörigkeit *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="nationality" className="text-sm font-medium flex items-center gap-1">
+                Staatsangehörigkeit <span className="text-red-500">*</span>
+              </Label>
               <Select value={nationality} onValueChange={setNationality}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Wählen Sie Ihre Staatsangehörigkeit" />
+                <SelectTrigger className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  <SelectValue placeholder="Bitte wählen" />
                 </SelectTrigger>
                 <SelectContent>
                   {COUNTRIES.map((country) => (
@@ -400,40 +527,54 @@ export default function KYCVerification() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border mb-6">
-          <CardHeader>
-            <CardTitle>Adresse</CardTitle>
-            <CardDescription>Ihre aktuelle Meldeadresse.</CardDescription>
+        {/* Address Card */}
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <MapPin className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Adresse</CardTitle>
+                <CardDescription>Ihre aktuelle Wohnanschrift</CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="street">Straße und Hausnummer *</Label>
+          <CardContent className="pt-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="street" className="text-sm font-medium flex items-center gap-1">
+                Straße und Hausnummer <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="street"
                 value={street}
                 onChange={(e) => setStreet(e.target.value)}
-                placeholder="Musterstraße 123"
+                className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 required
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="postalCode">PLZ *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="postalCode" className="text-sm font-medium flex items-center gap-1">
+                  Postleitzahl <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="postalCode"
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value)}
-                  placeholder="12345"
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="city">Stadt *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="city" className="text-sm font-medium flex items-center gap-1">
+                  Stadt <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="city"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="Berlin"
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
               </div>
@@ -441,18 +582,28 @@ export default function KYCVerification() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border mb-6">
-          <CardHeader>
-            <CardTitle>Beschäftigung & Finanzen</CardTitle>
-            <CardDescription>Informationen zu Ihrer beruflichen Situation.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Employment & Finances Card */}
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Briefcase className="h-5 w-5 text-primary" />
+              </div>
               <div>
-                <Label htmlFor="employmentStatus">Beschäftigungsstatus *</Label>
+                <CardTitle className="text-lg">Beschäftigung & Finanzen</CardTitle>
+                <CardDescription>Informationen zu Ihrer beruflichen Situation</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="employmentStatus" className="text-sm font-medium flex items-center gap-1">
+                  Beschäftigungsstatus <span className="text-red-500">*</span>
+                </Label>
                 <Select value={employmentStatus} onValueChange={setEmploymentStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie Ihren Status" />
+                  <SelectTrigger className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    <SelectValue placeholder="Bitte wählen" />
                   </SelectTrigger>
                   <SelectContent>
                     {EMPLOYMENT_STATUS.map((status) => (
@@ -461,11 +612,13 @@ export default function KYCVerification() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="monthlyIncome">Monatliches Nettoeinkommen *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="monthlyIncome" className="text-sm font-medium flex items-center gap-1">
+                  Monatliches Nettoeinkommen <span className="text-red-500">*</span>
+                </Label>
                 <Select value={monthlyIncome} onValueChange={setMonthlyIncome}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie einen Bereich" />
+                  <SelectTrigger className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    <SelectValue placeholder="Bitte wählen" />
                   </SelectTrigger>
                   <SelectContent>
                     {INCOME_RANGES.map((range) => (
@@ -475,23 +628,25 @@ export default function KYCVerification() {
                 </Select>
               </div>
             </div>
-
-            <div>
-              <Label className="mb-3 block">Herkunft der Einlagen *</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium flex items-center gap-1">
+                Herkunft der Einlagen <span className="text-red-500">*</span>
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {SOURCE_OF_FUNDS.map((source) => (
-                  <div key={source} className="flex items-center space-x-2">
+                  <div 
+                    key={source.id} 
+                    className="flex items-center space-x-3 p-3 rounded-lg bg-background/50 border border-border/50 hover:border-primary/30 transition-colors"
+                  >
                     <Checkbox
-                      id={`source-${source}`}
-                      checked={sourceOfFunds.includes(source)}
-                      onCheckedChange={(checked) => handleSourceOfFundsChange(source, checked as boolean)}
+                      id={source.id}
+                      checked={sourceOfFunds.includes(source.id)}
+                      onCheckedChange={(checked) => handleSourceOfFundsChange(source.id, !!checked)}
+                      className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
-                    <label 
-                      htmlFor={`source-${source}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {source}
-                    </label>
+                    <Label htmlFor={source.id} className="text-sm font-normal cursor-pointer flex-1">
+                      {source.label}
+                    </Label>
                   </div>
                 ))}
               </div>
@@ -499,96 +654,154 @@ export default function KYCVerification() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border mb-6">
-          <CardHeader>
-            <CardTitle>Identitätsnachweis</CardTitle>
-            <CardDescription>Laden Sie Vorder- und Rückseite Ihres Personalausweises hoch.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="idFront" className="mb-2 block">Personalausweis Vorderseite *</Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                  <input
-                    id="idFront"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setIdFront(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                  <label htmlFor="idFront" className="cursor-pointer">
-                    {idFront ? (
-                      <div className="space-y-2">
-                        <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto" />
-                        <p className="text-sm text-foreground font-medium">{idFront.name}</p>
-                        <p className="text-xs text-muted-foreground">Klicken zum Ändern</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Upload className="h-8 w-8 text-muted-foreground mx-auto" />
-                        <p className="text-sm text-muted-foreground">Bild hochladen</p>
-                        <p className="text-xs text-muted-foreground">JPG, PNG (max. 5MB)</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+        {/* Document Upload Card */}
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <CreditCard className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <Label htmlFor="idBack" className="mb-2 block">Personalausweis Rückseite *</Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                  <input
-                    id="idBack"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setIdBack(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                  <label htmlFor="idBack" className="cursor-pointer">
-                    {idBack ? (
-                      <div className="space-y-2">
-                        <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto" />
-                        <p className="text-sm text-foreground font-medium">{idBack.name}</p>
-                        <p className="text-xs text-muted-foreground">Klicken zum Ändern</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Upload className="h-8 w-8 text-muted-foreground mx-auto" />
-                        <p className="text-sm text-muted-foreground">Bild hochladen</p>
-                        <p className="text-xs text-muted-foreground">JPG, PNG (max. 5MB)</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                <CardTitle className="text-lg">Identitätsnachweis</CardTitle>
+                <CardDescription>Bitte laden Sie Ihren Personalausweis oder Reisepass hoch</CardDescription>
               </div>
             </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Front */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-1">
+                  Vorderseite <span className="text-red-500">*</span>
+                </Label>
+                <div
+                  onClick={() => frontInputRef.current?.click()}
+                  className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer
+                    ${idFront 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    }
+                  `}
+                >
+                  <input 
+                    ref={frontInputRef}
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={(e) => setIdFront(e.target.files?.[0] || null)} 
+                  />
+                  
+                  {idFront ? (
+                    <div className="space-y-3">
+                      <div className="w-full h-32 rounded-lg overflow-hidden bg-muted">
+                        <img 
+                          src={URL.createObjectURL(idFront)} 
+                          alt="ID Vorderseite"
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-primary text-sm font-medium">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span className="truncate max-w-[150px]">{idFront.name}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Klicken zum Ändern</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 py-4">
+                      <div className="w-14 h-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <Upload className="h-7 w-7 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Vorderseite hochladen</p>
+                        <p className="text-sm text-muted-foreground mt-1">PNG, JPG bis 5MB</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-            <div className="flex items-start gap-2 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800 dark:text-amber-200">
-                Stellen Sie sicher, dass alle Angaben auf dem Ausweis gut lesbar sind und das Bild nicht unscharf ist.
-              </p>
+              {/* Back */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-1">
+                  Rückseite <span className="text-red-500">*</span>
+                </Label>
+                <div
+                  onClick={() => backInputRef.current?.click()}
+                  className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer
+                    ${idBack 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    }
+                  `}
+                >
+                  <input 
+                    ref={backInputRef}
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={(e) => setIdBack(e.target.files?.[0] || null)} 
+                  />
+                  
+                  {idBack ? (
+                    <div className="space-y-3">
+                      <div className="w-full h-32 rounded-lg overflow-hidden bg-muted">
+                        <img 
+                          src={URL.createObjectURL(idBack)} 
+                          alt="ID Rückseite"
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-primary text-sm font-medium">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span className="truncate max-w-[150px]">{idBack.name}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Klicken zum Ändern</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 py-4">
+                      <div className="w-14 h-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <Upload className="h-7 w-7 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Rückseite hochladen</p>
+                        <p className="text-sm text-muted-foreground mt-1">PNG, JPG bis 5MB</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Submit Button */}
         <Button 
           type="submit" 
-          className="w-full py-6 text-lg"
           disabled={submitting}
+          className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 
+                     text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
         >
           {submitting ? (
             <>
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Wird eingereicht...
             </>
           ) : (
             <>
-              <ShieldCheck className="h-5 w-5 mr-2" />
-              KYC-Verifizierung einreichen
+              <ShieldCheck className="mr-2 h-5 w-5" />
+              Verifizierung einreichen
             </>
           )}
         </Button>
+
+        {/* Security Footer */}
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground pb-4">
+          <Lock className="h-4 w-4 text-primary" />
+          <span>Ihre Daten werden verschlüsselt übertragen und sicher gespeichert</span>
+        </div>
       </form>
+
+      <style>{animationStyles}</style>
     </div>
   );
 }
