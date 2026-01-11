@@ -125,6 +125,19 @@ export default function TaskDetail() {
         .eq('id', task.id);
 
       if (error) throw error;
+
+      // Send Telegram notification
+      await supabase.functions.invoke('send-telegram-notification', {
+        body: { 
+          event_type: 'task_started', 
+          data: { 
+            user_id: task.user_id,
+            task_title: task.template.title,
+            compensation: task.template.compensation
+          } 
+        }
+      });
+
       toast({
         title: "Auftrag gestartet",
         description: "Du kannst jetzt mit dem App-Test beginnen",
