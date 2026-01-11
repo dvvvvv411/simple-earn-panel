@@ -25,10 +25,11 @@ interface TelegramConfig {
   notify_task_submitted: boolean;
   notify_task_approved: boolean;
   notify_task_rejected: boolean;
+  notify_task_started: boolean;
 }
 
 interface NotificationData {
-  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'bank_deposit_created' | 'bank_kyc_submitted' | 'credit_documents_submitted' | 'credit_ident_submitted' | 'task_enrolled' | 'task_assigned' | 'task_submitted' | 'task_approved' | 'task_rejected' | 'test';
+  event_type: 'new_user' | 'deposit_created' | 'deposit_paid' | 'withdrawal_created' | 'support_ticket' | 'kyc_submitted' | 'bank_deposit_created' | 'bank_kyc_submitted' | 'credit_documents_submitted' | 'credit_ident_submitted' | 'task_enrolled' | 'task_assigned' | 'task_submitted' | 'task_approved' | 'task_rejected' | 'task_started' | 'test';
   data: Record<string, unknown>;
 }
 
@@ -98,6 +99,9 @@ function formatMessage(eventType: string, data: Record<string, unknown>): string
     
     case 'task_rejected':
       return `❌ *Auftrag abgelehnt*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📋 Auftrag: ${data.task_title || 'N/A'}\n📝 Grund: ${data.rejection_reason || 'N/A'}\n🏷️ Branding: ${branding}\n📅 ${now}`;
+    
+    case 'task_started':
+      return `▶️ *Auftrag gestartet*\n━━━━━━━━━━━━━━━━\n📧 ${data.email || 'Unbekannt'}\n📋 Auftrag: ${data.task_title || 'N/A'}\n💰 Vergütung: €${Number(data.compensation || 0).toFixed(2)}\n🏷️ Branding: ${branding}\n📅 ${now}`;
     
     default:
       return `📢 *Benachrichtigung*\n━━━━━━━━━━━━━━━━\n${JSON.stringify(data)}\n📅 ${now}`;
@@ -201,6 +205,7 @@ serve(async (req) => {
         'task_submitted': 'notify_task_submitted',
         'task_approved': 'notify_task_approved',
         'task_rejected': 'notify_task_rejected',
+        'task_started': 'notify_task_started',
       };
 
       const configKey = notificationTypeMap[event_type];

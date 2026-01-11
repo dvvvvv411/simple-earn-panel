@@ -895,6 +895,7 @@ export type Database = {
           notify_task_assigned: boolean | null
           notify_task_enrolled: boolean | null
           notify_task_rejected: boolean | null
+          notify_task_started: boolean | null
           notify_task_submitted: boolean | null
           notify_withdrawal: boolean
           updated_at: string
@@ -918,6 +919,7 @@ export type Database = {
           notify_task_assigned?: boolean | null
           notify_task_enrolled?: boolean | null
           notify_task_rejected?: boolean | null
+          notify_task_started?: boolean | null
           notify_task_submitted?: boolean | null
           notify_withdrawal?: boolean
           updated_at?: string
@@ -941,6 +943,7 @@ export type Database = {
           notify_task_assigned?: boolean | null
           notify_task_enrolled?: boolean | null
           notify_task_rejected?: boolean | null
+          notify_task_started?: boolean | null
           notify_task_submitted?: boolean | null
           notify_withdrawal?: boolean
           updated_at?: string

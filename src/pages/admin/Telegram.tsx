@@ -29,6 +29,7 @@ interface TelegramConfig {
   notify_task_submitted: boolean;
   notify_task_approved: boolean;
   notify_task_rejected: boolean;
+  notify_task_started: boolean;
 }
 
 export default function Telegram() {
@@ -56,7 +57,7 @@ export default function Telegram() {
   const [notifyTaskSubmitted, setNotifyTaskSubmitted] = useState(true);
   const [notifyTaskApproved, setNotifyTaskApproved] = useState(true);
   const [notifyTaskRejected, setNotifyTaskRejected] = useState(true);
-
+  const [notifyTaskStarted, setNotifyTaskStarted] = useState(true);
   useEffect(() => {
     fetchConfig();
   }, []);
@@ -93,6 +94,7 @@ export default function Telegram() {
         setNotifyTaskSubmitted(data.notify_task_submitted ?? true);
         setNotifyTaskApproved(data.notify_task_approved ?? true);
         setNotifyTaskRejected(data.notify_task_rejected ?? true);
+        setNotifyTaskStarted(data.notify_task_started ?? true);
       }
     } catch (error) {
       console.error('Error fetching telegram config:', error);
@@ -124,6 +126,7 @@ export default function Telegram() {
         notify_task_submitted: notifyTaskSubmitted,
         notify_task_approved: notifyTaskApproved,
         notify_task_rejected: notifyTaskRejected,
+        notify_task_started: notifyTaskStarted,
       };
 
       if (config?.id) {
@@ -460,6 +463,19 @@ export default function Telegram() {
                   id="notifyTaskAssigned"
                   checked={notifyTaskAssigned}
                   onCheckedChange={setNotifyTaskAssigned}
+                  disabled={!enabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyTaskStarted">▶️ Auftrag gestartet</Label>
+                  <p className="text-xs text-muted-foreground">Wenn ein Nutzer einen Auftrag startet</p>
+                </div>
+                <Switch
+                  id="notifyTaskStarted"
+                  checked={notifyTaskStarted}
+                  onCheckedChange={setNotifyTaskStarted}
                   disabled={!enabled}
                 />
               </div>
