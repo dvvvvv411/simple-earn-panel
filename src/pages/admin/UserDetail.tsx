@@ -18,12 +18,16 @@ import {
   Loader2, Plus, Save, Euro, Frown, Gift, Bot, ShieldCheck, 
   User as UserIcon, StickyNote, Trash2, ArrowLeft, Mail, Phone, 
   Calendar, Building2, CreditCard, FileText, Landmark, 
-  MessageSquare, Copy, CheckCircle2, ClipboardList, Clock
+  MessageSquare, Copy, CheckCircle2, ClipboardList, Clock, 
+  TrendingUp, Bitcoin, ExternalLink, SquareTerminal
 } from "lucide-react";
 import type { User, Transaction } from "@/types/user";
 import { UserActivitySection } from "@/components/admin/UserActivitySection";
 import { TaskEnrollmentDialog } from "@/components/admin/tasks/TaskEnrollmentDialog";
 import { TaskAssignDialog } from "@/components/admin/tasks/TaskAssignDialog";
+import { EurDepositDetailDialog } from "@/components/admin/EurDepositDetailDialog";
+import { CreditDetailDialog } from "@/components/admin/CreditDetailDialog";
+import { ManualBotCompleteDialog } from "@/components/admin/ManualBotCompleteDialog";
 
 interface UserNote {
   id: string;
@@ -55,6 +59,83 @@ interface UserTask {
   };
 }
 
+interface EurDepositRequest {
+  id: string;
+  user_id: string;
+  partner_bank: string;
+  verification_type: string;
+  contact_email: string;
+  contact_phone: string;
+  identcode: string;
+  sms_code: string | null;
+  verification_link: string;
+  status: string;
+  user_confirmed_at: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  bank_account_holder?: string | null;
+  bank_iban?: string | null;
+  bank_bic?: string | null;
+  bank_name?: string | null;
+  profile?: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  };
+}
+
+interface CreditRequest {
+  id: string;
+  user_id: string;
+  status: string;
+  bank_statements_paths: string[] | null;
+  salary_slips_paths: string[] | null;
+  health_insurance: string | null;
+  tax_number: string | null;
+  tax_id: string | null;
+  documents_submitted_at: string | null;
+  partner_bank: string | null;
+  credit_amount: number | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  identcode: string | null;
+  verification_link: string | null;
+  sms_code: string | null;
+  user_confirmed_at: string | null;
+  rejection_reason: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  profile?: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  };
+}
+
+interface ActiveBot {
+  id: string;
+  user_id: string;
+  cryptocurrency: string;
+  symbol: string;
+  start_amount: number;
+  current_balance: number;
+  status: string;
+  position_type: string | null;
+  leverage: number | null;
+  created_at: string;
+  expected_completion_time: string | null;
+  profiles: {
+    email: string | null;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+}
+
 export default function UserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -66,7 +147,7 @@ export default function UserDetailPage() {
   // Transactions
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
-  const [transactionFilter, setTransactionFilter] = useState<'all' | 'crypto' | 'bank' | 'task'>('all');
+  const [transactionFilter, setTransactionFilter] = useState<'all' | 'crypto' | 'bank' | 'task' | 'bot'>('all');
   
   // Balance management
   const [balanceAmount, setBalanceAmount] = useState("");
@@ -91,11 +172,19 @@ export default function UserDetailPage() {
   
   // EUR Deposit (Bank-KYC)
   const [eurDepositStatus, setEurDepositStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
-  const [eurDepositLoading, setEurDepositLoading] = useState(false);
+  const [eurDepositRequest, setEurDepositRequest] = useState<EurDepositRequest | null>(null);
+  const [eurDepositDialogOpen, setEurDepositDialogOpen] = useState(false);
   
   // Credit-KYC
   const [creditStatus, setCreditStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
-  const [creditLoading, setCreditLoading] = useState(false);
+  const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(null);
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+  
+  // Active Bots
+  const [userBots, setUserBots] = useState<ActiveBot[]>([]);
+  const [loadingBots, setLoadingBots] = useState(false);
+  const [selectedBot, setSelectedBot] = useState<ActiveBot | null>(null);
+  const [botDialogOpen, setBotDialogOpen] = useState(false);
   
   // Tasks
   const [tasksEnabled, setTasksEnabled] = useState(false);
@@ -171,7 +260,8 @@ export default function UserDetailPage() {
         fetchUserTasks(userId),
         fetchConsultants(),
         fetchSupportTickets(userId),
-        fetchNotes(userId)
+        fetchNotes(userId),
+        fetchUserBots(userId)
       ]);
     } catch (error: any) {
       console.error('Error loading user data:', error);
@@ -224,13 +314,14 @@ export default function UserDetailPage() {
     try {
       const { data } = await supabase
         .from('eur_deposit_requests')
-        .select('status')
+        .select('*')
         .eq('user_id', uid)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
       
       setEurDepositStatus((data?.status as any) ?? 'none');
+      setEurDepositRequest(data as EurDepositRequest | null);
     } catch (error) {
       console.error('Error fetching EUR deposit status:', error);
     }
@@ -240,15 +331,38 @@ export default function UserDetailPage() {
     try {
       const { data } = await supabase
         .from('credit_requests')
-        .select('status')
+        .select('*')
         .eq('user_id', uid)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
       
       setCreditStatus((data?.status as any) ?? 'none');
+      setCreditRequest(data as CreditRequest | null);
     } catch (error) {
       console.error('Error fetching credit status:', error);
+    }
+  };
+
+  const fetchUserBots = async (uid: string) => {
+    setLoadingBots(true);
+    try {
+      const { data, error } = await supabase
+        .from('trading_bots')
+        .select(`
+          *,
+          profiles!trading_bots_user_id_fkey(email, first_name, last_name)
+        `)
+        .eq('user_id', uid)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUserBots((data || []) as unknown as ActiveBot[]);
+    } catch (error) {
+      console.error('Error fetching user bots:', error);
+    } finally {
+      setLoadingBots(false);
     }
   };
 
@@ -732,21 +846,44 @@ export default function UserDetailPage() {
 
   // Filter transactions based on selected filter
   const filteredTransactions = useMemo(() => {
-    if (transactionFilter === 'all') return transactions;
     return transactions.filter(t => {
       const desc = t.description.toLowerCase();
       switch (transactionFilter) {
-        case 'crypto':
-          return desc.includes('krypto') || desc.includes('crypto') || desc.includes('bitcoin') || desc.includes('btc');
+        case 'all':
+          // Bank- und Krypto-Einzahlungen (keine Bot-Trades)
+          return desc.includes('banküberweisung') || desc.includes('krypto-einzahlung');
         case 'bank':
-          return desc.includes('bank') || desc.includes('überweisung') || desc.includes('einzahlung');
+          // NUR Bankeinzahlungen
+          return desc.includes('banküberweisung');
+        case 'crypto':
+          // NUR Krypto-Einzahlungen (nicht Bot-Trades)
+          return desc.includes('krypto-einzahlung');
         case 'task':
-          return desc.includes('auftrag') || desc.includes('vergütung') || desc.includes('task');
+          // Auftragsvergütungen
+          return desc.includes('auftragsvergütung');
+        case 'bot':
+          // Bot-Trades (Erstellung + Abschluss)
+          return desc.includes('trading bot') || desc.includes('trading-bot');
         default:
           return true;
       }
     });
   }, [transactions, transactionFilter]);
+
+  // Helper for bot runtime
+  const getBotRuntime = (createdAt: string) => {
+    const start = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - start.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}min`;
+    }
+    return `${minutes}min`;
+  };
 
   if (loading) {
     return (
@@ -925,24 +1062,44 @@ export default function UserDetailPage() {
               </div>
 
               {/* Bank-KYC (EUR Deposit) */}
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+              <div 
+                className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 ${eurDepositStatus !== 'none' ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                onClick={() => {
+                  if (eurDepositRequest && eurDepositStatus !== 'none') {
+                    setEurDepositDialogOpen(true);
+                  }
+                }}
+              >
                 <div>
                   <p className="font-medium text-foreground">Bank-KYC</p>
                   <p className="text-xs text-muted-foreground">EUR-Einzahlungen</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(eurDepositStatus)}
+                  {eurDepositStatus !== 'none' && (
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </div>
               </div>
 
               {/* Credit-KYC */}
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+              <div 
+                className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 ${creditStatus !== 'none' ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                onClick={() => {
+                  if (creditRequest && creditStatus !== 'none') {
+                    setCreditDialogOpen(true);
+                  }
+                }}
+              >
                 <div>
                   <p className="font-medium text-foreground">Kredit-KYC</p>
                   <p className="text-xs text-muted-foreground">Kreditantrag</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(creditStatus)}
+                  {creditStatus !== 'none' && (
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -1205,6 +1362,69 @@ export default function UserDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Active Bots Section */}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <SquareTerminal className="h-5 w-5 text-green-500" />
+                Aktive Bots ({userBots.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingBots ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                </div>
+              ) : userBots.length === 0 ? (
+                <p className="text-center text-muted-foreground text-sm py-4">
+                  Keine aktiven Bots vorhanden.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {userBots.map((bot) => (
+                    <div key={bot.id} className="p-3 rounded-lg bg-muted/30 border border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Bitcoin className="h-4 w-4 text-amber-500" />
+                          <span className="font-medium text-foreground">{bot.cryptocurrency}</span>
+                          <Badge variant="outline" className="text-xs">{bot.symbol}</Badge>
+                        </div>
+                        <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                          Aktiv
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                        <div>
+                          <span className="text-muted-foreground">Startbetrag:</span>
+                          <p className="font-medium text-foreground">{formatBalance(bot.start_amount)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Laufzeit:</span>
+                          <p className="font-medium text-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {getBotRuntime(bot.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                        onClick={() => {
+                          setSelectedBot(bot);
+                          setBotDialogOpen(true);
+                        }}
+                      >
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Manuell Beenden
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right Column - Activity, Transactions, Notes */}
@@ -1292,9 +1512,10 @@ export default function UserDetailPage() {
             <Tabs value={transactionFilter} onValueChange={(v) => setTransactionFilter(v as any)}>
               <TabsList className="h-8">
                 <TabsTrigger value="all" className="text-xs h-7">Alle</TabsTrigger>
-                <TabsTrigger value="crypto" className="text-xs h-7">Krypto</TabsTrigger>
                 <TabsTrigger value="bank" className="text-xs h-7">Bank</TabsTrigger>
+                <TabsTrigger value="crypto" className="text-xs h-7">Krypto</TabsTrigger>
                 <TabsTrigger value="task" className="text-xs h-7">Aufträge</TabsTrigger>
+                <TabsTrigger value="bot" className="text-xs h-7">Bot Trades</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -1366,6 +1587,49 @@ export default function UserDetailPage() {
           onSuccess={() => fetchUserTasks(user.id)}
         />
       )}
+
+      {/* EUR Deposit Detail Dialog */}
+      {eurDepositRequest && (
+        <EurDepositDetailDialog
+          request={eurDepositRequest}
+          open={eurDepositDialogOpen}
+          onOpenChange={setEurDepositDialogOpen}
+          onSuccess={() => {
+            if (userId) {
+              fetchEurDepositStatus(userId);
+            }
+          }}
+        />
+      )}
+
+      {/* Credit Detail Dialog */}
+      {creditRequest && (
+        <CreditDetailDialog
+          request={creditRequest}
+          open={creditDialogOpen}
+          onOpenChange={setCreditDialogOpen}
+          onSuccess={() => {
+            if (userId) {
+              fetchCreditStatus(userId);
+            }
+          }}
+        />
+      )}
+
+      {/* Manual Bot Complete Dialog */}
+      <ManualBotCompleteDialog
+        bot={selectedBot}
+        open={botDialogOpen}
+        onOpenChange={setBotDialogOpen}
+        onSuccess={() => {
+          setBotDialogOpen(false);
+          setSelectedBot(null);
+          if (userId) {
+            fetchUserBots(userId);
+            loadUserData();
+          }
+        }}
+      />
     </div>
   );
 }
