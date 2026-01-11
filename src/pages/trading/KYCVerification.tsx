@@ -393,15 +393,15 @@ export default function KYCVerification() {
       <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
         <PremiumHeader subtitle="Ihre Identität wurde bestätigt" />
 
-        <Card className="border-green-500/30 bg-gradient-to-br from-green-50/50 via-emerald-50/50 to-green-50/50 
-                        dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/20 overflow-hidden relative">
-          <div className="absolute top-4 left-8 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          <div className="absolute top-12 right-12 w-3 h-3 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-          <div className="absolute bottom-8 left-16 w-2.5 h-2.5 bg-green-300 rounded-full animate-pulse" style={{ animationDelay: '500ms' }} />
-          <div className="absolute bottom-16 right-8 w-2 h-2 bg-emerald-300 rounded-full animate-pulse" style={{ animationDelay: '700ms' }} />
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 
+                        dark:from-primary/10 dark:via-primary/15 dark:to-primary/10 overflow-hidden relative">
+          <div className="absolute top-4 left-8 w-2 h-2 bg-primary rounded-full animate-pulse" />
+          <div className="absolute top-12 right-12 w-3 h-3 bg-primary/80 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+          <div className="absolute bottom-8 left-16 w-2.5 h-2.5 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '500ms' }} />
+          <div className="absolute bottom-16 right-8 w-2 h-2 bg-primary/70 rounded-full animate-pulse" style={{ animationDelay: '700ms' }} />
           
           <CardContent className="text-center py-12 relative z-10">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 
                             flex items-center justify-center shadow-lg">
               <CheckCircle2 className="h-10 w-10 text-white" />
             </div>
