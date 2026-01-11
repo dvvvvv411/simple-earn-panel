@@ -5,6 +5,26 @@ import { Coins, Clock, CheckCircle, XCircle, ArrowRight, Briefcase } from "lucid
 import { useTaskEnrollment } from "@/hooks/useTaskEnrollment";
 import { supabase } from "@/integrations/supabase/client";
 
+const animationStyles = `
+  @keyframes floating {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+  }
+  @keyframes floating-delayed {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(-3deg); }
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) skewX(-12deg); }
+    100% { transform: translateX(100%) skewX(-12deg); }
+  }
+  @keyframes particle-float {
+    0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+    25% { transform: translateY(-10px) translateX(5px); opacity: 0.6; }
+    75% { transform: translateY(-5px) translateX(-3px); opacity: 0.4; }
+  }
+`;
+
 export default function EarnMoney() {
   const navigate = useNavigate();
   const { pendingTasks, submittedTasks, completedTasks, loading } = useTaskEnrollment();
@@ -55,19 +75,61 @@ export default function EarnMoney() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-6 text-white">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Coins className="h-6 w-6" />
+      <style>{animationStyles}</style>
+      
+      {/* Header mit animiertem Hintergrund */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-6 md:p-8 text-white">
+        {/* Floating Bubbles */}
+        <div 
+          className="absolute top-6 left-12 w-24 h-24 bg-white/10 rounded-full blur-sm"
+          style={{ animation: 'floating 6s ease-in-out infinite' }} 
+        />
+        <div 
+          className="absolute bottom-8 right-16 w-20 h-20 bg-white/15 rounded-full blur-sm"
+          style={{ animation: 'floating-delayed 8s ease-in-out 2s infinite' }} 
+        />
+        <div 
+          className="absolute top-1/2 left-1/3 w-16 h-16 bg-white/5 rounded-full blur-sm"
+          style={{ animation: 'floating 7s ease-in-out 1s infinite' }} 
+        />
+        
+        {/* Shimmer Overlay */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+            style={{ animation: 'shimmer 3s linear infinite' }} 
+          />
+        </div>
+        
+        {/* Particle Dots */}
+        <div className="absolute inset-0 opacity-40">
+          <div 
+            className="absolute top-1/4 left-[16%] w-2 h-2 bg-white/60 rounded-full"
+            style={{ animation: 'particle-float 5s ease-in-out infinite' }}
+          />
+          <div 
+            className="absolute top-3/4 left-3/4 w-1.5 h-1.5 bg-white/50 rounded-full"
+            style={{ animation: 'particle-float 7s ease-in-out 1s infinite' }}
+          />
+          <div 
+            className="absolute bottom-1/4 left-1/2 w-1 h-1 bg-white/70 rounded-full"
+            style={{ animation: 'particle-float 5s ease-in-out infinite' }}
+          />
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20">
+              <Coins className="w-7 h-7 md:w-8 md:h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold">Geld verdienen</h1>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white">Geld verdienen</h1>
+              <p className="text-white/80 mt-1 text-sm md:text-base max-w-xl">
+                Führe Aufträge aus und verdiene Geld. Die Vergütung wird nach erfolgreicher Prüfung deinem Guthaben gutgeschrieben.
+              </p>
+            </div>
           </div>
-          <p className="text-white/80 max-w-xl">
-            Führe Aufträge aus und verdiene Geld. Die Vergütung wird nach erfolgreicher Prüfung deinem Guthaben gutgeschrieben.
-          </p>
         </div>
       </div>
 
