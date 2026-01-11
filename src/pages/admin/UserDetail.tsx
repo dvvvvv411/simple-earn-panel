@@ -1363,7 +1363,7 @@ export default function UserDetailPage() {
           open={assignDialogOpen}
           onOpenChange={setAssignDialogOpen}
           userId={user.id}
-          onAssigned={() => fetchUserTasks(user.id)}
+          onSuccess={() => fetchUserTasks(user.id)}
         />
       )}
     </div>
