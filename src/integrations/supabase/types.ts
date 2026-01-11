@@ -581,6 +581,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           balance: number
@@ -1404,6 +1437,25 @@ export type Database = {
         Args: { bot_investments?: number; user_balance: number }
         Returns: string
       }
+      create_admin_notification: {
+        Args: {
+          p_data?: Json
+          p_message: string
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
+      }
+      create_notification: {
+        Args: {
+          p_data?: Json
+          p_message: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       create_trading_bot_atomic: {
         Args: {
           p_cryptocurrency: string
@@ -1430,6 +1482,7 @@ export type Database = {
         Returns: boolean
       }
       initialize_user_rankings: { Args: never; Returns: undefined }
+      mark_all_notifications_read: { Args: never; Returns: number }
       process_bank_deposit: {
         Args: { p_admin_id: string; p_request_id: string }
         Returns: boolean
