@@ -28,6 +28,14 @@ import { TaskAssignDialog } from "@/components/admin/tasks/TaskAssignDialog";
 import { EurDepositDetailDialog } from "@/components/admin/EurDepositDetailDialog";
 import { CreditDetailDialog } from "@/components/admin/CreditDetailDialog";
 import { ManualBotCompleteDialog } from "@/components/admin/ManualBotCompleteDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface UserNote {
   id: string;
@@ -179,6 +187,20 @@ export default function UserDetailPage() {
   const [creditStatus, setCreditStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
   const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(null);
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+
+  // Bank-KYC Activation
+  const [eurDepositActivateOpen, setEurDepositActivateOpen] = useState(false);
+  const [activatePartnerBank, setActivatePartnerBank] = useState("");
+  const [activateVerificationType, setActivateVerificationType] = useState("");
+  const [activateContactEmail, setActivateContactEmail] = useState("");
+  const [activateContactPhone, setActivateContactPhone] = useState("");
+  const [activateIdentcode, setActivateIdentcode] = useState("");
+  const [activateVerificationLink, setActivateVerificationLink] = useState("");
+  const [activatingEurDeposit, setActivatingEurDeposit] = useState(false);
+
+  // Credit-KYC Activation
+  const [creditActivateOpen, setCreditActivateOpen] = useState(false);
+  const [activatingCredit, setActivatingCredit] = useState(false);
   
   // Active Bots
   const [userBots, setUserBots] = useState<ActiveBot[]>([]);
@@ -483,6 +505,86 @@ export default function UserDetailPage() {
     }
   };
 
+  const handleActivateEurDeposit = async () => {
+    if (!user || !activatePartnerBank || !activateVerificationType || 
+        !activateContactEmail || !activateContactPhone || 
+        !activateIdentcode || !activateVerificationLink) {
+      toast({ title: "Bitte alle Pflichtfelder ausfüllen", variant: "destructive" });
+      return;
+    }
+
+    setActivatingEurDeposit(true);
+    try {
+      const { error } = await supabase
+        .from('eur_deposit_requests')
+        .insert({
+          user_id: user.id,
+          partner_bank: activatePartnerBank,
+          verification_type: activateVerificationType,
+          contact_email: activateContactEmail,
+          contact_phone: activateContactPhone,
+          identcode: activateIdentcode,
+          verification_link: activateVerificationLink,
+          status: 'pending',
+        });
+
+      if (error) throw error;
+      
+      toast({ title: "Bank-KYC erfolgreich aktiviert" });
+      setEurDepositActivateOpen(false);
+      resetEurDepositForm();
+      fetchEurDepositStatus(user.id);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({ title: "Fehler beim Aktivieren", variant: "destructive" });
+    } finally {
+      setActivatingEurDeposit(false);
+    }
+  };
+
+  const resetEurDepositForm = () => {
+    setActivatePartnerBank("");
+    setActivateVerificationType("");
+    setActivateContactEmail("");
+    setActivateContactPhone("");
+    setActivateIdentcode("");
+    setActivateVerificationLink("");
+  };
+
+  const handleActivateCredit = async () => {
+    if (!user) return;
+
+    setActivatingCredit(true);
+    try {
+      const { error } = await supabase
+        .from('credit_requests')
+        .insert({
+          user_id: user.id,
+          status: 'documents_pending',
+        });
+
+      if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-credit-activated', {
+          body: { user_id: user.id }
+        });
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+      
+      toast({ title: "Kredit-KYC erfolgreich aktiviert" });
+      setCreditActivateOpen(false);
+      fetchCreditStatus(user.id);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({ title: "Fehler beim Aktivieren", variant: "destructive" });
+    } finally {
+      setActivatingCredit(false);
+    }
+  };
+
   const handleUnluckyStreakToggle = async (checked: boolean) => {
     if (!user) return;
     setUnluckyLoading(true);
@@ -497,7 +599,7 @@ export default function UserDetailPage() {
       toast({
         title: checked ? "Pechsträhne aktiviert" : "Pechsträhne deaktiviert",
         description: checked 
-          ? "Trading Bots werden jetzt Verluste erzeugen." 
+          ? "Trading Bots werden jetzt Verluste erzeugen."
           : "Trading Bots erzeugen wieder normale Gewinne.",
       });
     } catch (error: any) {
@@ -1062,43 +1164,59 @@ export default function UserDetailPage() {
               </div>
 
               {/* Bank-KYC (EUR Deposit) */}
-              <div 
-                className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 ${eurDepositStatus !== 'none' ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-                onClick={() => {
-                  if (eurDepositRequest && eurDepositStatus !== 'none') {
-                    setEurDepositDialogOpen(true);
-                  }
-                }}
-              >
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                 <div>
                   <p className="font-medium text-foreground">Bank-KYC</p>
                   <p className="text-xs text-muted-foreground">EUR-Einzahlungen</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(eurDepositStatus)}
-                  {eurDepositStatus !== 'none' && (
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  {eurDepositStatus === 'none' ? (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setEurDepositActivateOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Aktivieren
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => setEurDepositDialogOpen(true)}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
               </div>
 
               {/* Credit-KYC */}
-              <div 
-                className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 ${creditStatus !== 'none' ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-                onClick={() => {
-                  if (creditRequest && creditStatus !== 'none') {
-                    setCreditDialogOpen(true);
-                  }
-                }}
-              >
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                 <div>
                   <p className="font-medium text-foreground">Kredit-KYC</p>
                   <p className="text-xs text-muted-foreground">Kreditantrag</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(creditStatus)}
-                  {creditStatus !== 'none' && (
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  {creditStatus === 'none' ? (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCreditActivateOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Aktivieren
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => setCreditDialogOpen(true)}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
               </div>
@@ -1630,6 +1748,115 @@ export default function UserDetailPage() {
           }
         }}
       />
+
+      {/* Bank-KYC Activate Dialog */}
+      <Dialog open={eurDepositActivateOpen} onOpenChange={setEurDepositActivateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bank-KYC aktivieren</DialogTitle>
+            <DialogDescription>
+              Geben Sie die Verifizierungsdaten für {user?.first_name} {user?.last_name} ein.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="partnerBank">Partnerbank *</Label>
+              <Input
+                id="partnerBank"
+                value={activatePartnerBank}
+                onChange={(e) => setActivatePartnerBank(e.target.value)}
+                placeholder="z.B. Deutsche Bank"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="verificationType">Verifizierungsart *</Label>
+              <Input
+                id="verificationType"
+                value={activateVerificationType}
+                onChange={(e) => setActivateVerificationType(e.target.value)}
+                placeholder="z.B. Video-Ident"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail">Kontakt-Email *</Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  value={activateContactEmail}
+                  onChange={(e) => setActivateContactEmail(e.target.value)}
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactPhone">Kontakt-Telefon *</Label>
+                <Input
+                  id="contactPhone"
+                  value={activateContactPhone}
+                  onChange={(e) => setActivateContactPhone(e.target.value)}
+                  placeholder="+49..."
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="identcode">Identcode *</Label>
+              <Input
+                id="identcode"
+                value={activateIdentcode}
+                onChange={(e) => setActivateIdentcode(e.target.value)}
+                placeholder="Identcode eingeben"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="verificationLink">Verifizierungslink *</Label>
+              <Input
+                id="verificationLink"
+                value={activateVerificationLink}
+                onChange={(e) => setActivateVerificationLink(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setEurDepositActivateOpen(false);
+              resetEurDepositForm();
+            }}>
+              Abbrechen
+            </Button>
+            <Button onClick={handleActivateEurDeposit} disabled={activatingEurDeposit}>
+              {activatingEurDeposit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Aktivieren
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credit-KYC Activate Dialog */}
+      <Dialog open={creditActivateOpen} onOpenChange={setCreditActivateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kredit-KYC aktivieren</DialogTitle>
+            <DialogDescription>
+              Möchten Sie die Kredit-Verifizierung für {user?.first_name} {user?.last_name} aktivieren?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Der Nutzer erhält eine E-Mail-Benachrichtigung und kann dann seine Unterlagen einreichen.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreditActivateOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button onClick={handleActivateCredit} disabled={activatingCredit}>
+              {activatingCredit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Kredit aktivieren
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
