@@ -74,6 +74,7 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
   const [selectedTaskUserId, setSelectedTaskUserId] = useState<string | null>(null);
   const [editingCode, setEditingCode] = useState<{ taskId: string; code: string } | null>(null);
   const [editingPendingCode, setEditingPendingCode] = useState<{ taskId: string; code: string } | null>(null);
+  const [editingActiveCode, setEditingActiveCode] = useState<{ taskId: string; code: string } | null>(null);
 
   const fetchEnrollments = async () => {
     try {
@@ -231,6 +232,20 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
     );
   }, [enrollments]);
 
+  // Alle aktiven Aufträge sammeln (in_progress)
+  const activeInProgressTasks = useMemo((): PendingReviewTask[] => {
+    return enrollments.flatMap(enrollment => 
+      enrollment.tasks
+        .filter(task => task.status === 'in_progress')
+        .map(task => ({
+          task,
+          userId: enrollment.user_id,
+          userName: getUserDisplayName(enrollment.profile),
+          userEmail: enrollment.profile.email
+        }))
+    );
+  }, [enrollments]);
+
   if (loading) {
     return (
       <Card>
@@ -344,6 +359,115 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
                         ? new Date(item.task.submitted_at).toLocaleDateString('de-DE')
                         : '—'
                       }
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewTask(item.task, item.userId)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Aktive Aufträge Card */}
+      <Card className="border-blue-500/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-blue-500" />
+            Aktive Aufträge
+            <span className="text-sm font-normal text-muted-foreground">
+              (In Bearbeitung - noch nicht eingereicht)
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {activeInProgressTasks.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Keine aktiven Aufträge
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nutzer</TableHead>
+                  <TableHead>Auftrag</TableHead>
+                  <TableHead>Vergütung</TableHead>
+                  <TableHead>SMS-Code</TableHead>
+                  <TableHead>Gestartet</TableHead>
+                  <TableHead className="text-right">Aktionen</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeInProgressTasks.map((item) => (
+                  <TableRow key={item.task.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{item.userName}</div>
+                        <div className="text-sm text-muted-foreground">{item.userEmail}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{item.task.template.title}</TableCell>
+                    <TableCell>{formatCurrency(item.task.template.compensation)}</TableCell>
+                    <TableCell>
+                      {editingActiveCode?.taskId === item.task.id ? (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={editingActiveCode.code}
+                            onChange={(e) => setEditingActiveCode({ taskId: item.task.id, code: e.target.value })}
+                            className="h-8 w-24"
+                            placeholder="Code..."
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveCode(item.task.id, editingActiveCode.code);
+                                setEditingActiveCode(null);
+                              }
+                              if (e.key === 'Escape') setEditingActiveCode(null);
+                            }}
+                          />
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-8 w-8"
+                            onClick={() => {
+                              handleSaveCode(item.task.id, editingActiveCode.code);
+                              setEditingActiveCode(null);
+                            }}
+                          >
+                            <Send className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          {item.task.verification_code ? (
+                            <span className="font-mono text-sm">{item.task.verification_code}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingActiveCode({ taskId: item.task.id, code: item.task.verification_code || '' });
+                            }}
+                          >
+                            <Key className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(item.task.created_at).toLocaleDateString('de-DE')}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
