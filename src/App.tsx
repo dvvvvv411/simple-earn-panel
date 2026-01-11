@@ -20,6 +20,7 @@ import EurDeposits from "./pages/admin/EurDeposits";
 import Credits from "./pages/admin/Credits";
 import ActiveBots from "./pages/admin/ActiveBots";
 import Tasks from "./pages/admin/Tasks";
+import Referrals from "./pages/admin/Referrals";
 import TradingDashboard from "./pages/trading/Dashboard";
 import TradingHistory from "./pages/trading/TradingHistory";
 import Wallet from "./pages/trading/Wallet";
@@ -53,6 +54,7 @@ const App: React.FC = () => {
             <Route path="bank-kyc" element={<EurDeposits />} />
             <Route path="kredit" element={<Credits />} />
             <Route path="auftraege" element={<Tasks />} />
+            <Route path="referrals" element={<Referrals />} />
             <Route path="auszahlungen" element={<Withdrawals />} />
             <Route path="email-vorlagen" element={<EmailTemplates />} />
             <Route path="support" element={<AdminSupportPage />} />
