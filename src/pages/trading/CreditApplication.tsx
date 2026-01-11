@@ -643,12 +643,12 @@ export default function CreditApplication() {
       <div className="container max-w-3xl mx-auto py-4 md:py-8 px-4">
         <PremiumHeader subtitle="Kredit erfolgreich genehmigt" />
         
-        <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-transparent">
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="py-12 text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-500/10 flex items-center justify-center">
-              <CheckCircle2 className="h-10 w-10 text-green-500" />
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <CheckCircle2 className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold mb-2 text-green-600">Kredit genehmigt!</h2>
+            <h2 className="text-2xl font-bold mb-2 text-primary">Kredit genehmigt!</h2>
             <p className="text-3xl font-bold text-foreground mb-4">
               {formatCurrency(creditRequest.credit_amount)}
             </p>

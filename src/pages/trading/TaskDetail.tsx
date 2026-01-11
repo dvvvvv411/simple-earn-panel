@@ -247,7 +247,7 @@ export default function TaskDetail() {
           label: "Genehmigt",
           variant: "default" as const,
           icon: CheckCircle2,
-          color: "text-green-500"
+          color: "text-primary"
         };
       case "rejected":
         return {
@@ -323,14 +323,14 @@ export default function TaskDetail() {
       )}
 
       {task.status === 'approved' && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+        <Card className="border-primary/30 bg-primary/5 dark:bg-primary/10 dark:border-primary/40">
           <CardContent className="p-4 flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+            <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-green-800 dark:text-green-200">
+              <p className="font-medium text-primary dark:text-primary">
                 Auftrag erfolgreich abgeschlossen!
               </p>
-              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+              <p className="text-sm text-primary/80 dark:text-primary/70 mt-1">
                 Die Vergütung von {formatCurrency(task.template.compensation)} wurde deinem Guthaben gutgeschrieben.
               </p>
             </div>
@@ -364,7 +364,7 @@ export default function TaskDetail() {
           <p className="text-muted-foreground leading-relaxed">
             Du führst einen <span className="font-medium text-foreground">bezahlten App-Test</span> durch. 
             Nach erfolgreichem Abschluss wird dir eine Vergütung von{" "}
-            <span className="font-semibold text-green-600">{formatCurrency(task.template.compensation)}</span>{" "}
+            <span className="font-semibold text-primary">{formatCurrency(task.template.compensation)}</span>{" "}
             auf dein Guthaben gutgeschrieben.
           </p>
           
@@ -417,7 +417,7 @@ export default function TaskDetail() {
                   <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
                   {statusConfig.label}
                 </Badge>
-                <div className="flex items-center gap-1.5 text-lg font-semibold text-green-600">
+                <div className="flex items-center gap-1.5 text-lg font-semibold text-primary">
                   <Euro className="h-5 w-5" />
                   {formatCurrency(task.template.compensation)}
                 </div>
@@ -645,7 +645,7 @@ export default function TaskDetail() {
               <Button
                 onClick={handleSubmitTask}
                 disabled={submitting}
-                className="w-full h-12 text-lg bg-green-600 hover:bg-green-700"
+                className="w-full h-12 text-lg bg-primary hover:bg-primary/90"
                 size="lg"
               >
                 {submitting ? (

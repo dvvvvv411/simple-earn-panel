@@ -56,7 +56,7 @@ export default function EarnMoney() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-600 via-green-500 to-emerald-500 p-6 text-white">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-6 text-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative">
           <div className="flex items-center gap-3 mb-2">
@@ -94,7 +94,7 @@ export default function EarnMoney() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Verdient</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalEarned)}</div>
+            <div className="text-2xl font-bold text-primary">{formatCurrency(totalEarned)}</div>
           </CardContent>
         </Card>
       </div>
@@ -126,7 +126,7 @@ export default function EarnMoney() {
                         className="h-12 w-12 object-contain rounded-lg bg-muted p-1"
                       />
                     ) : (
-                      <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                      <div className="h-12 w-12 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
                         <Briefcase className="h-6 w-6 text-white" />
                       </div>
                     )}
@@ -144,7 +144,7 @@ export default function EarnMoney() {
                       {getStatusBadge(task.status)}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-green-600 text-lg">
+                      <span className="font-bold text-primary text-lg">
                         {formatCurrency(task.template.compensation)}
                       </span>
                       <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
@@ -207,12 +207,12 @@ export default function EarnMoney() {
       {completedTasks.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-500" />
+            <CheckCircle className="h-5 w-5 text-primary" />
             Abgeschlossen ({completedTasks.length})
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             {completedTasks.map((task) => (
-              <Card key={task.id} className={`overflow-hidden cursor-pointer hover:shadow-lg transition-shadow ${task.status === 'approved' ? 'border-green-200' : 'border-red-200'}`}
+              <Card key={task.id} className={`overflow-hidden cursor-pointer hover:shadow-lg transition-shadow ${task.status === 'approved' ? 'border-primary/30' : 'border-red-200'}`}
                 onClick={() => navigate(`/kryptotrading/geld-verdienen/${task.id}`)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-4">
@@ -225,7 +225,7 @@ export default function EarnMoney() {
                     ) : (
                       <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${
                         task.status === 'approved' 
-                          ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
+                          ? 'bg-gradient-to-br from-primary to-primary/80' 
                           : 'bg-gradient-to-br from-red-500 to-rose-500'
                       }`}>
                         {task.status === 'approved' ? (
@@ -248,7 +248,7 @@ export default function EarnMoney() {
                   <div className="flex items-center justify-between">
                     {getStatusBadge(task.status)}
                     <span className={`font-bold text-lg ${
-                      task.status === 'approved' ? 'text-green-600' : 'text-muted-foreground line-through'
+                      task.status === 'approved' ? 'text-primary' : 'text-muted-foreground line-through'
                     }`}>
                       {formatCurrency(task.template.compensation)}
                     </span>
