@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Ban, Eye, Key, Send } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Ban, Eye, Key, Send, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TaskAssignDialog } from "./TaskAssignDialog";
@@ -52,6 +52,13 @@ interface EnrolledUser {
   tasks: UserTask[];
 }
 
+interface PendingReviewTask {
+  task: UserTask;
+  userId: string;
+  userName: string;
+  userEmail: string | null;
+}
+
 interface TaskUserListProps {
   onRefresh: () => void;
 }
@@ -66,6 +73,7 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
   const [selectedTask, setSelectedTask] = useState<UserTask | null>(null);
   const [selectedTaskUserId, setSelectedTaskUserId] = useState<string | null>(null);
   const [editingCode, setEditingCode] = useState<{ taskId: string; code: string } | null>(null);
+  const [editingPendingCode, setEditingPendingCode] = useState<{ taskId: string; code: string } | null>(null);
 
   const fetchEnrollments = async () => {
     try {
@@ -185,7 +193,7 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
       case 'in_progress':
         return <Badge className="bg-blue-500">In Bearbeitung</Badge>;
       case 'submitted':
-        return <Badge className="bg-yellow-500">In Überprüfung</Badge>;
+        return <Badge className="bg-yellow-500">Zu Überprüfen</Badge>;
       case 'approved':
         return <Badge className="bg-green-500">Genehmigt</Badge>;
       case 'rejected':
@@ -209,6 +217,20 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
     }).format(amount);
   };
 
+  // Alle zu überprüfenden Aufträge sammeln
+  const pendingReviewTasks = useMemo((): PendingReviewTask[] => {
+    return enrollments.flatMap(enrollment => 
+      enrollment.tasks
+        .filter(task => task.status === 'submitted')
+        .map(task => ({
+          task,
+          userId: enrollment.user_id,
+          userName: getUserDisplayName(enrollment.profile),
+          userEmail: enrollment.profile.email
+        }))
+    );
+  }, [enrollments]);
+
   if (loading) {
     return (
       <Card>
@@ -230,7 +252,117 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
   }
 
   return (
-    <>
+    <div className="space-y-6">
+      {/* Zu überprüfende Aufträge Card */}
+      <Card className="border-yellow-500/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-yellow-500" />
+            Zu überprüfende Aufträge
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {pendingReviewTasks.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Keine Aufträge zu überprüfen
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nutzer</TableHead>
+                  <TableHead>Auftrag</TableHead>
+                  <TableHead>Vergütung</TableHead>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Eingereicht</TableHead>
+                  <TableHead className="text-right">Aktionen</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingReviewTasks.map((item) => (
+                  <TableRow key={item.task.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{item.userName}</div>
+                        <div className="text-sm text-muted-foreground">{item.userEmail}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{item.task.template.title}</TableCell>
+                    <TableCell>{formatCurrency(item.task.template.compensation)}</TableCell>
+                    <TableCell>
+                      {editingPendingCode?.taskId === item.task.id ? (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={editingPendingCode.code}
+                            onChange={(e) => setEditingPendingCode({ taskId: item.task.id, code: e.target.value })}
+                            className="h-8 w-24"
+                            placeholder="Code..."
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveCode(item.task.id, editingPendingCode.code);
+                                setEditingPendingCode(null);
+                              }
+                              if (e.key === 'Escape') setEditingPendingCode(null);
+                            }}
+                          />
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-8 w-8"
+                            onClick={() => {
+                              handleSaveCode(item.task.id, editingPendingCode.code);
+                              setEditingPendingCode(null);
+                            }}
+                          >
+                            <Send className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          {item.task.verification_code ? (
+                            <span className="font-mono text-sm">{item.task.verification_code}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingPendingCode({ taskId: item.task.id, code: item.task.verification_code || '' });
+                            }}
+                          >
+                            <Key className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {item.task.submitted_at 
+                        ? new Date(item.task.submitted_at).toLocaleDateString('de-DE')
+                        : '—'
+                      }
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewTask(item.task, item.userId)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Eingetragene Nutzer Card */}
       <Card>
         <CardHeader>
           <CardTitle>Eingetragene Nutzer</CardTitle>
@@ -412,6 +544,6 @@ export function TaskUserList({ onRefresh }: TaskUserListProps) {
           onRefresh();
         }}
       />
-    </>
+    </div>
   );
 }
