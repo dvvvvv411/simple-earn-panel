@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail, MessageCircle, ShieldCheck, Landmark, Bot, CreditCard, Briefcase } from "lucide-react";
+import { Package, Users, LogOut, Building, Headphones, UserCheck, Wallet, Download, Mail, MessageCircle, ShieldCheck, Landmark, Bot, CreditCard, Briefcase, Users2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -50,6 +50,7 @@ const menuGroups = [
     label: "Einstellungen",
     items: [
       { title: "Brandings", url: "/admin/brandings", icon: Package },
+      { title: "Referrals", url: "/admin/referrals", icon: Users2 },
       { title: "Berater", url: "/admin/berater", icon: UserCheck },
       { title: "Email-Vorlagen", url: "/admin/email-vorlagen", icon: Mail },
       { title: "Telegram", url: "/admin/telegram", icon: MessageCircle },
