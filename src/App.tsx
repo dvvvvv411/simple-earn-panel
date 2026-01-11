@@ -8,6 +8,7 @@ import { TradingLayout } from "./components/trading/TradingLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Brandings from "./pages/admin/Brandings";
 import UsersPage from "./pages/admin/Users";
+import UserDetailPage from "./pages/admin/UserDetail";
 import Consultants from "./pages/admin/Consultants";
 import AdminSupportPage from "./pages/admin/Support";
 import Withdrawals from "./pages/admin/Withdrawals";
@@ -44,6 +45,7 @@ const App: React.FC = () => {
             <Route index element={<Navigate to="/admin/brandings" replace />} />
             <Route path="brandings" element={<Brandings />} />
             <Route path="benutzer" element={<UsersPage />} />
+            <Route path="benutzer/:userId" element={<UserDetailPage />} />
             <Route path="kyc" element={<KYCManagement />} />
             <Route path="berater" element={<Consultants />} />
             <Route path="aktive-bots" element={<ActiveBots />} />
