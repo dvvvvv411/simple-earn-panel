@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight, AlertTriangle, Crown, Gift } from "lucide-react";
+import { Bot, TrendingUp, Euro, Sparkles, Shield, Clock, Zap, Bitcoin, ArrowRight, AlertTriangle, Crown, Gift, Wallet } from "lucide-react";
 import { useCoinMarketCap } from "@/contexts/CoinMarketCapContext";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyTradeLimit } from "@/hooks/useDailyTradeLimit";
@@ -31,7 +32,10 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
   const [isCreating, setIsCreating] = useState(false);
   const { coins, loading } = useCoinMarketCap();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { dailyLimit, usedToday, canCreateBot, remainingTrades, rankName, freeBots, hasFreeBots, loading: limitLoading, refetch: refetchLimit } = useDailyTradeLimit();
+  
+  const isNewUser = rankName === 'New';
 
   const selectedCoin = coins.find(coin => coin.id === selectedCrypto);
 
@@ -371,8 +375,40 @@ export function CreateBotDialog({ userBalance, onBotCreated, open, onOpenChange 
                         </div>
                       )}
                       
-                      {/* Warnung bei erreichtem Limit ohne Bonus */}
-                      {remainingTrades === 0 && !hasFreeBots && (
+                      {/* Info-Box für neue Nutzer (Rang "New") */}
+                      {isNewUser && (
+                        <div className="space-y-3 mt-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                          <div className="flex items-start gap-2">
+                            <Wallet className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                            <div className="space-y-2">
+                              <p className="font-medium text-blue-600 dark:text-blue-400 text-sm">
+                                Trading-Funktion freischalten
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Um den Trading-Bot nutzen zu können, benötigen Sie mindestens 
+                                <span className="font-semibold text-foreground"> 200€ Guthaben</span> auf Ihrem Konto. 
+                                Mit dem <span className="font-medium text-foreground">Starter-Rang</span> erhalten 
+                                Sie täglich 1 kostenlosen Trade.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full border-blue-500/50 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
+                                onClick={() => {
+                                  setDialogOpen(false);
+                                  navigate('/kryptotrading/wallet');
+                                }}
+                              >
+                                <Wallet className="w-4 h-4 mr-2" />
+                                Zur Wallet - Guthaben aufladen
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Warnung bei erreichtem Limit ohne Bonus (nur für Nicht-Neue-Nutzer) */}
+                      {remainingTrades === 0 && !hasFreeBots && !isNewUser && (
                         <div className="flex items-start gap-2 mt-2 p-2 rounded bg-destructive/5">
                           <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                           <div className="text-xs text-destructive">
