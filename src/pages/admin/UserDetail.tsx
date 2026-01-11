@@ -19,7 +19,7 @@ import {
   User as UserIcon, StickyNote, Trash2, ArrowLeft, Mail, Phone, 
   Calendar, Building2, CreditCard, FileText, Landmark, 
   MessageSquare, Copy, CheckCircle2, ClipboardList, Clock, 
-  TrendingUp, Bitcoin, ExternalLink, SquareTerminal
+  TrendingUp, Bitcoin, ExternalLink, SquareTerminal, MapPin, Briefcase, CheckCircle
 } from "lucide-react";
 import type { User, Transaction } from "@/types/user";
 import { UserActivitySection } from "@/components/admin/UserActivitySection";
@@ -144,6 +144,30 @@ interface ActiveBot {
   } | null;
 }
 
+interface KYCSubmission {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  birth_date: string;
+  birth_place: string;
+  street: string;
+  postal_code: string;
+  city: string;
+  country: string | null;
+  nationality: string;
+  employment_status: string;
+  monthly_income: string;
+  source_of_funds: string[];
+  id_front_path: string;
+  id_back_path: string;
+  status: string;
+  rejection_reason: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
 export default function UserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -201,6 +225,13 @@ export default function UserDetailPage() {
   // Credit-KYC Activation
   const [creditActivateOpen, setCreditActivateOpen] = useState(false);
   const [activatingCredit, setActivatingCredit] = useState(false);
+
+  // KYC Detail Dialog
+  const [kycDetailDialogOpen, setKycDetailDialogOpen] = useState(false);
+  const [kycSubmission, setKycSubmission] = useState<KYCSubmission | null>(null);
+  const [idFrontUrl, setIdFrontUrl] = useState<string | null>(null);
+  const [idBackUrl, setIdBackUrl] = useState<string | null>(null);
+  const [loadingKycSubmission, setLoadingKycSubmission] = useState(false);
   
   // Active Bots
   const [userBots, setUserBots] = useState<ActiveBot[]>([]);
@@ -329,6 +360,40 @@ export default function UserDetailPage() {
       setKycStatus((data?.status as any) ?? 'none');
     } catch (error) {
       console.error('Error fetching KYC status:', error);
+    }
+  };
+
+  const fetchKycSubmission = async (uid: string) => {
+    setLoadingKycSubmission(true);
+    setIdFrontUrl(null);
+    setIdBackUrl(null);
+    try {
+      const { data } = await supabase
+        .from('kyc_submissions')
+        .select('*')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      setKycSubmission(data as KYCSubmission | null);
+      
+      // Load document URLs
+      if (data) {
+        const { data: frontData } = await supabase.storage
+          .from('kyc-documents')
+          .createSignedUrl(data.id_front_path, 3600);
+        const { data: backData } = await supabase.storage
+          .from('kyc-documents')
+          .createSignedUrl(data.id_back_path, 3600);
+        
+        setIdFrontUrl(frontData?.signedUrl || null);
+        setIdBackUrl(backData?.signedUrl || null);
+      }
+    } catch (error) {
+      console.error('Error fetching KYC submission:', error);
+    } finally {
+      setLoadingKycSubmission(false);
     }
   };
 
@@ -1153,6 +1218,18 @@ export default function UserDetailPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(kycStatus)}
+                  {kycStatus !== 'none' && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => {
+                        fetchKycSubmission(user.id);
+                        setKycDetailDialogOpen(true);
+                      }}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  )}
                   {kycStatus !== 'approved' && (
                     <Switch 
                       checked={kycRequired}
@@ -1855,6 +1932,169 @@ export default function UserDetailPage() {
               Kredit aktivieren
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* KYC Detail Dialog */}
+      <Dialog open={kycDetailDialogOpen} onOpenChange={setKycDetailDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              KYC-Verifizierung Details
+            </DialogTitle>
+          </DialogHeader>
+
+          {loadingKycSubmission ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : kycSubmission ? (
+            <div className="space-y-6">
+              {/* Status Badge */}
+              <div className="flex items-center gap-2">
+                {getStatusBadge(kycSubmission.status)}
+              </div>
+
+              {/* Persönliche Daten */}
+              <div className="space-y-4">
+                <h4 className="font-medium flex items-center gap-2 text-sm border-b pb-2">
+                  <UserIcon className="h-4 w-4" />
+                  Persönliche Daten
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Name</p>
+                    <p className="font-medium">{kycSubmission.first_name} {kycSubmission.last_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Geburtsdatum</p>
+                    <p className="font-medium">{formatDate(kycSubmission.birth_date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Geburtsort</p>
+                    <p className="font-medium">{kycSubmission.birth_place}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Nationalität</p>
+                    <p className="font-medium">{kycSubmission.nationality}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Adresse */}
+              <div className="space-y-4">
+                <h4 className="font-medium flex items-center gap-2 text-sm border-b pb-2">
+                  <MapPin className="h-4 w-4" />
+                  Adresse
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground">Straße</p>
+                    <p className="font-medium">{kycSubmission.street}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">PLZ</p>
+                    <p className="font-medium">{kycSubmission.postal_code}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Stadt</p>
+                    <p className="font-medium">{kycSubmission.city}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Land</p>
+                    <p className="font-medium">{kycSubmission.country || 'Deutschland'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Finanzielle Angaben */}
+              <div className="space-y-4">
+                <h4 className="font-medium flex items-center gap-2 text-sm border-b pb-2">
+                  <Briefcase className="h-4 w-4" />
+                  Finanzielle Angaben
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Beschäftigungsstatus</p>
+                    <p className="font-medium">{kycSubmission.employment_status}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Monatliches Einkommen</p>
+                    <p className="font-medium">{kycSubmission.monthly_income}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground">Herkunft der Mittel</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {kycSubmission.source_of_funds.map((source, idx) => (
+                        <Badge key={idx} variant="secondary">{source}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ausweisdokumente */}
+              <div className="space-y-4">
+                <h4 className="font-medium flex items-center gap-2 text-sm border-b pb-2">
+                  <CreditCard className="h-4 w-4" />
+                  Ausweisdokumente
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Vorderseite</p>
+                    {idFrontUrl ? (
+                      <a href={idFrontUrl} target="_blank" rel="noopener noreferrer">
+                        <img src={idFrontUrl} alt="ID Front" className="rounded-lg border max-h-40 object-cover cursor-pointer hover:opacity-80 transition-opacity" />
+                      </a>
+                    ) : (
+                      <div className="h-40 bg-muted rounded-lg flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Rückseite</p>
+                    {idBackUrl ? (
+                      <a href={idBackUrl} target="_blank" rel="noopener noreferrer">
+                        <img src={idBackUrl} alt="ID Back" className="rounded-lg border max-h-40 object-cover cursor-pointer hover:opacity-80 transition-opacity" />
+                      </a>
+                    ) : (
+                      <div className="h-40 bg-muted rounded-lg flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Rejection Reason */}
+              {kycSubmission.status === 'rejected' && kycSubmission.rejection_reason && (
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <p className="text-sm font-medium text-red-600">Ablehnungsgrund:</p>
+                  <p className="text-sm mt-1">{kycSubmission.rejection_reason}</p>
+                </div>
+              )}
+
+              {/* Zeitstempel */}
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Eingereicht am: {formatDateTime(kycSubmission.created_at)}
+                </div>
+                {kycSubmission.reviewed_at && (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Geprüft am: {formatDateTime(kycSubmission.reviewed_at)}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              Keine KYC-Daten gefunden.
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
