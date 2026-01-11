@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserCreateDialog } from "@/components/admin/UserCreateDialog";
 import { UserEditDialog } from "@/components/admin/UserEditDialog";
-import { UserDetailDialog } from "@/components/admin/UserDetailDialog";
 import { UserTable, SortField, SortDirection } from "@/components/admin/UserTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -14,13 +14,12 @@ import { Search, RefreshCw, Loader2 } from "lucide-react";
 import type { User } from "@/types/user";
 
 export default function UsersPage() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [detailUser, setDetailUser] = useState<User | null>(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -169,8 +168,7 @@ export default function UsersPage() {
   };
 
   const handleUserDetail = (user: User) => {
-    setDetailUser(user);
-    setDetailDialogOpen(true);
+    navigate(`/admin/benutzer/${user.id}`);
   };
 
   const handleUnluckyStreakToggle = async (userId: string, value: boolean) => {
@@ -389,13 +387,6 @@ export default function UsersPage() {
         user={editingUser}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
-        onUserUpdated={fetchUsers}
-      />
-
-      <UserDetailDialog 
-        user={detailUser}
-        open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
         onUserUpdated={fetchUsers}
       />
     </div>
