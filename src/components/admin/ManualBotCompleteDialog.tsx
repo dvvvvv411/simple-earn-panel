@@ -25,7 +25,8 @@ import {
   Loader2,
   CheckCircle,
   Info,
-  Skull
+  Skull,
+  Zap
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -91,6 +92,7 @@ export function ManualBotCompleteDialog({
   const [tradeType, setTradeType] = useState<'long' | 'short'>('long');
   const [targetProfit, setTargetProfit] = useState<number>(1.5);
   const [isUnlucky, setIsUnlucky] = useState(false);
+  const [isExtremeEvent, setIsExtremeEvent] = useState(false);
   const [preview, setPreview] = useState<TradePreview | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [executing, setExecuting] = useState(false);
@@ -104,6 +106,7 @@ export function ManualBotCompleteDialog({
       setTradeType('long');
       setTargetProfit(1.5);
       setIsUnlucky(false);
+      setIsExtremeEvent(false);
       setPreview(null);
       fetchPriceMovement();
     }
@@ -179,6 +182,7 @@ export function ManualBotCompleteDialog({
           trade_type: tradeType,
           target_profit_percent: targetProfit,
           is_unlucky: isUnlucky,
+          is_extreme: isExtremeEvent,
           preview: true
         }
       });
@@ -215,6 +219,7 @@ export function ManualBotCompleteDialog({
           trade_type: tradeType,
           target_profit_percent: targetProfit,
           is_unlucky: isUnlucky,
+          is_extreme: isExtremeEvent,
           preview: false
         }
       });
@@ -376,6 +381,41 @@ export function ManualBotCompleteDialog({
                 />
               </div>
 
+              {/* Extreme Event Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-900">
+                <div className="space-y-0.5">
+                  <Label htmlFor="extreme-mode" className="flex items-center gap-2 cursor-pointer">
+                    <Zap className="w-4 h-4 text-red-500" />
+                    Extremes Ereignis
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Erlaubt Gewinn/Verlust bis 100%
+                  </p>
+                </div>
+                <Switch
+                  id="extreme-mode"
+                  checked={isExtremeEvent}
+                  onCheckedChange={(checked) => {
+                    setIsExtremeEvent(checked);
+                    // Reset targetProfit wenn aus extremem Modus gewechselt wird
+                    if (!checked && targetProfit > 3) {
+                      setTargetProfit(3);
+                    }
+                    setPreview(null);
+                  }}
+                />
+              </div>
+
+              {/* Warning for Extreme Loss */}
+              {isExtremeEvent && isUnlucky && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-100 dark:bg-red-950/50 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-400">
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">
+                    Achtung: Extremer Verlust bis -{targetProfit.toFixed(1)}% möglich!
+                  </span>
+                </div>
+              )}
+
               {/* Profit/Loss Target */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -391,14 +431,14 @@ export function ManualBotCompleteDialog({
                     setPreview(null);
                   }}
                   min={1.0}
-                  max={3.0}
-                  step={0.1}
+                  max={isExtremeEvent ? 100.0 : 3.0}
+                  step={isExtremeEvent ? 1.0 : 0.1}
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>1.0%</span>
-                  <span>2.0%</span>
-                  <span>3.0%</span>
+                  <span>1%</span>
+                  <span>{isExtremeEvent ? '50%' : '2%'}</span>
+                  <span>{isExtremeEvent ? '100%' : '3%'}</span>
                 </div>
                 <div className={`p-3 rounded-lg flex items-center justify-between ${
                   isUnlucky ? 'bg-red-100/50 dark:bg-red-950/30' : 'bg-primary/10'
