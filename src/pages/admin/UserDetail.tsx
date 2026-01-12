@@ -438,16 +438,19 @@ export default function UserDetailPage() {
     try {
       const { data, error } = await supabase
         .from('trading_bots')
-        .select(`
-          *,
-          profiles!trading_bots_user_id_fkey(email, first_name, last_name)
-        `)
+        .select('*')
         .eq('user_id', uid)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUserBots((data || []) as unknown as ActiveBot[]);
+      
+      // Set profiles to null since we're on user detail page and already have user data
+      const botsWithProfiles = (data || []).map(bot => ({
+        ...bot,
+        profiles: null
+      }));
+      setUserBots(botsWithProfiles as ActiveBot[]);
     } catch (error) {
       console.error('Error fetching user bots:', error);
     } finally {
