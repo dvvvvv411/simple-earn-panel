@@ -803,6 +803,33 @@ export type Database = {
           },
         ]
       }
+      streak_bot_rewards: {
+        Row: {
+          created_at: string | null
+          granted_at: string | null
+          id: string
+          reward_date: string
+          streak_day: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          granted_at?: string | null
+          id?: string
+          reward_date: string
+          streak_day: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          granted_at?: string | null
+          id?: string
+          reward_date?: string
+          streak_day?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_ticket_messages: {
         Row: {
           created_at: string

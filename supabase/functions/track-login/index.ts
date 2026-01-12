@@ -119,37 +119,59 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Check if this is every 3rd consecutive day = free bot day!
-    // Day 3, 6, 9, 12, 15... get a free bot
-    const isFreeBotDay = currentStreak > 0 && currentStreak % 3 === 0;
+    // Calculate cycle position (day in the 7-day cycle, 1-7)
+    const cyclePosition = currentStreak > 0 ? ((currentStreak - 1) % 7) + 1 : 0;
+
+    // Check if this is a free bot day (day 3 or 6 in the cycle)
+    const isFreeBotDay = currentStreak > 0 && (cyclePosition === 3 || cyclePosition === 6);
     let newFreeBotEarned = false;
 
     if (isFreeBotDay) {
-      console.log(`🎁 Free Bot day! User ${user.id} is on cycle position ${cyclePosition}`);
+      console.log(`🎁 Free Bot day! User ${user.id} at streak ${currentStreak}, cycle position ${cyclePosition}`);
       
-      // Use service role client to update free_bots
+      // Use service role client to update free_bots and document the reward
       const serviceClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
 
-      const { error: updateError } = await serviceClient
-        .from('profiles')
-        .update({ free_bots: serviceClient.rpc('increment', { x: 1 }) })
-        .eq('id', user.id);
+      // Check if a reward was already granted for today (prevent duplicates)
+      const { data: existingReward } = await serviceClient
+        .from('streak_bot_rewards')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('reward_date', todayStr)
+        .maybeSingle();
 
-      // Alternative: direct increment using raw SQL
-      const { error: rpcError } = await serviceClient.rpc('update_user_free_bots', {
-        target_user_id: user.id,
-        amount_change: 1,
-        operation_type: 'add'
-      });
+      if (!existingReward) {
+        // Grant free bot using the RPC function
+        const { error: rpcError } = await serviceClient.rpc('update_user_free_bots', {
+          target_user_id: user.id,
+          amount_change: 1,
+          operation_type: 'add'
+        });
 
-      if (rpcError) {
-        console.error('Error granting free bot:', rpcError);
+        if (rpcError) {
+          console.error('Error granting free bot:', rpcError);
+        } else {
+          // Document the reward in streak_bot_rewards table
+          const { error: insertError } = await serviceClient
+            .from('streak_bot_rewards')
+            .insert({
+              user_id: user.id,
+              streak_day: currentStreak,
+              reward_date: todayStr
+            });
+
+          if (insertError) {
+            console.error('Error documenting reward:', insertError);
+          } else {
+            newFreeBotEarned = true;
+            console.log(`✅ Free bot granted and documented for user ${user.id} (streak day ${currentStreak})`);
+          }
+        }
       } else {
-        newFreeBotEarned = true;
-        console.log(`✅ Free bot granted to user ${user.id}`);
+        console.log(`⚠️ Reward already granted for user ${user.id} on ${todayStr}`);
       }
     }
 
