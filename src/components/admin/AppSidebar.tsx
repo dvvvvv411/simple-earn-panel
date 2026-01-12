@@ -58,6 +58,10 @@ const menuGroups = [
   },
 ];
 
+// Benutzer mit eingeschränkten Sidebar-Rechten
+const RESTRICTED_USER_EMAIL = "x852@caller.de";
+const ALLOWED_GROUPS_FOR_RESTRICTED_USER = ["Benutzer & Finanzen", "Support & Trading"];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -65,6 +69,8 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
   const [userEmail, setUserEmail] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [filteredMenuGroups, setFilteredMenuGroups] = useState<typeof menuGroups>([]);
 
   const isActive = (path: string) => currentPath === path;
 
@@ -73,7 +79,22 @@ export function AppSidebar() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.email) {
         setUserEmail(session.user.email);
+        
+        // Filter für x852@caller.de - nur bestimmte Gruppen anzeigen
+        if (session.user.email === RESTRICTED_USER_EMAIL) {
+          setFilteredMenuGroups(
+            menuGroups.filter(group => 
+              ALLOWED_GROUPS_FOR_RESTRICTED_USER.includes(group.label)
+            )
+          );
+        } else {
+          // Alle anderen Admins sehen alles
+          setFilteredMenuGroups(menuGroups);
+        }
+      } else {
+        setFilteredMenuGroups(menuGroups);
       }
+      setIsLoading(false);
     };
     getUserInfo();
   }, []);
@@ -104,7 +125,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="bg-sidebar overflow-hidden">
-        {menuGroups.map((group, groupIndex) => (
+        {isLoading ? null : filteredMenuGroups.map((group, groupIndex) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/60 px-4 py-2 mt-2">
               {!collapsed && group.label}
@@ -140,7 +161,7 @@ export function AppSidebar() {
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
-            {groupIndex < menuGroups.length - 1 && (
+            {groupIndex < filteredMenuGroups.length - 1 && (
               <Separator className="my-3 mx-4 bg-sidebar-border" />
             )}
           </SidebarGroup>
