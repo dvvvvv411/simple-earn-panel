@@ -50,10 +50,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Parse request body
-    const { bot_id, trade_type, target_profit_percent, is_unlucky, preview } = await req.json();
+    const { bot_id, trade_type, target_profit_percent, is_unlucky, is_extreme, preview } = await req.json();
     const isUnlucky = is_unlucky === true;
+    const isExtreme = is_extreme === true;
 
-    console.log(`📋 Request: bot_id=${bot_id}, trade_type=${trade_type}, target=${target_profit_percent}%, unlucky=${isUnlucky}, preview=${preview}`);
+    console.log(`📋 Request: bot_id=${bot_id}, trade_type=${trade_type}, target=${target_profit_percent}%, unlucky=${isUnlucky}, extreme=${isExtreme}, preview=${preview}`);
 
     // Validate inputs
     if (!bot_id || !trade_type || target_profit_percent === undefined) {
@@ -70,9 +71,11 @@ serve(async (req) => {
       );
     }
 
-    if (target_profit_percent < 1.0 || target_profit_percent > 3.0) {
+    // Validate profit range based on extreme mode
+    const maxProfit = isExtreme ? 100.0 : 3.0;
+    if (target_profit_percent < 1.0 || target_profit_percent > maxProfit) {
       return new Response(
-        JSON.stringify({ success: false, error: 'target_profit_percent must be between 1.0 and 3.0' }),
+        JSON.stringify({ success: false, error: `target_profit_percent must be between 1.0 and ${maxProfit}` }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
