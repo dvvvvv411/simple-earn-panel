@@ -384,15 +384,15 @@ const Auth = () => {
       <div className="flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-6">
-            <div>
+            <div className="text-center">
               {brandingLogoUrl ? (
                 <img 
                   src={brandingLogoUrl} 
                   alt={brandingName || "Logo"} 
-                  className="h-10 object-contain mb-2" 
+                  className="h-16 md:h-20 object-contain mb-4 mx-auto" 
                 />
               ) : (
-                <h1 className="text-2xl font-bold text-primary mb-2">Panel</h1>
+                <h1 className="text-2xl font-bold text-primary mb-4">Panel</h1>
               )}
               <h2 className="text-3xl font-bold text-text-headline mb-2">
                 {isResetPassword ? "Passwort zurücksetzen" : isLogin ? "Anmeldung im Dashboard" : "Registrierung im Dashboard"}
