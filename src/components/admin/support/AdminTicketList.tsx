@@ -12,16 +12,18 @@ import {
 } from "@/components/ui/select";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
 import { AdminTicketDetail } from "./AdminTicketDetail";
+import { AdminSupportTicketDialog } from "./AdminSupportTicketDialog";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
-import { Search, Filter, Eye } from "lucide-react";
+import { Search, Filter, Eye, Plus } from "lucide-react";
 
 export const AdminTicketList: React.FC = () => {
-  const { tickets, loading } = useSupportTickets();
+  const { tickets, loading, refetch } = useSupportTickets();
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,12 +67,19 @@ export const AdminTicketList: React.FC = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Filter className="h-5 w-5" />
-          <span>Support-Tickets verwalten</span>
-        </CardTitle>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2">
+              <Filter className="h-5 w-5" />
+              <span>Support-Tickets verwalten</span>
+            </CardTitle>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Neues Ticket
+            </Button>
+          </div>
         
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
@@ -172,5 +181,12 @@ export const AdminTicketList: React.FC = () => {
         )}
       </CardContent>
     </Card>
+
+      <AdminSupportTicketDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={refetch}
+      />
+    </>
   );
 };
