@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.coinmarketcap]
 verify_jwt = false
+
+[functions.delete-users-bulk]
+verify_jwt = false
