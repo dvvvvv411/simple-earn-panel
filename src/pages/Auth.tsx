@@ -71,7 +71,7 @@ const Auth = () => {
       try {
         const hostname = window.location.hostname;
         
-        // Fallback for Lovable preview domains and localhost - use default pink
+        // Fallback for preview/development domains - use default colors
         if (hostname.includes('lovable.app') || hostname.includes('localhost')) {
           setBrandingLoading(false);
           return;
