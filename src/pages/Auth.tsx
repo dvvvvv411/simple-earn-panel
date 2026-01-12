@@ -317,6 +317,11 @@ const Auth = () => {
             }
           }
         }).catch(err => console.log('Telegram notification error:', err));
+
+        // Send registration confirmation email (fire and forget)
+        supabase.functions.invoke('send-registration-confirmation', {
+          body: { user_id: data.user!.id }
+        }).catch(err => console.log('Registration email error:', err));
         
         await redirectBasedOnRole(data.user!.id);
       } else if (data.user) {

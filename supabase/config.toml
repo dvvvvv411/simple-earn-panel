@@ -83,3 +83,15 @@ verify_jwt = false
 
 [functions.send-task-rejected]
 verify_jwt = false
+
+[functions.send-registration-confirmation]
+verify_jwt = false
+
+[functions.get-login-streak]
+verify_jwt = false
+
+[functions.save-crypto-prices]
+verify_jwt = false
+
+[functions.coinmarketcap]
+verify_jwt = false
