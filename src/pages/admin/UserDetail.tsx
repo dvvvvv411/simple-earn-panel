@@ -28,6 +28,7 @@ import { TaskAssignDialog } from "@/components/admin/tasks/TaskAssignDialog";
 import { EurDepositDetailDialog } from "@/components/admin/EurDepositDetailDialog";
 import { CreditDetailDialog } from "@/components/admin/CreditDetailDialog";
 import { ManualBotCompleteDialog } from "@/components/admin/ManualBotCompleteDialog";
+import { AdminSupportTicketDialog } from "@/components/admin/support/AdminSupportTicketDialog";
 import {
   Dialog,
   DialogContent,
@@ -255,6 +256,7 @@ export default function UserDetailPage() {
   // Support tickets
   const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
+  const [supportTicketDialogOpen, setSupportTicketDialogOpen] = useState(false);
   
   // Notes
   const [notes, setNotes] = useState<UserNote[]>([]);
@@ -1517,10 +1519,20 @@ export default function UserDetailPage() {
           {/* Support Tickets */}
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <MessageSquare className="h-5 w-5 text-blue-500" />
-                Support Tickets
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MessageSquare className="h-5 w-5 text-blue-500" />
+                  Support Tickets
+                </CardTitle>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setSupportTicketDialogOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Ticket erstellen
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {loadingTickets ? (
@@ -1825,6 +1837,16 @@ export default function UserDetailPage() {
           }
         }}
       />
+
+      {/* Admin Support Ticket Dialog */}
+      {user && (
+        <AdminSupportTicketDialog
+          open={supportTicketDialogOpen}
+          onOpenChange={setSupportTicketDialogOpen}
+          preselectedUserId={user.id}
+          onSuccess={() => fetchSupportTickets(user.id)}
+        />
+      )}
 
       {/* Bank-KYC Activate Dialog */}
       <Dialog open={eurDepositActivateOpen} onOpenChange={setEurDepositActivateOpen}>
