@@ -1,73 +1,54 @@
-# Welcome to your Lovable project
+# Krypto-Trading Dashboard
 
-## Project info
+Ein automatisiertes Krypto-Trading Dashboard zur Verwaltung von Trading-Bots, Wallet und Performance-Tracking.
 
-**URL**: https://lovable.dev/projects/422a2411-73a0-4d5a-87e0-7e8385e8cfcf
+## Features
 
-## How can I edit this code?
+- **Dashboard**: Übersicht über aktuelle Trades und Performance
+- **Trading-Bots**: Automatisierte Krypto-Trading Bots erstellen und verwalten
+- **Wallet**: Einzahlungen, Auszahlungen und Transaktionshistorie
+- **KYC-Verifizierung**: Identitätsverifizierung für sichere Transaktionen
+- **Support-System**: Ticket-System für Kundenanfragen
+- **Admin-Panel**: Verwaltung von Nutzern, Bots und Transaktionen
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- Supabase (Auth, Database, Storage, Edge Functions)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/422a2411-73a0-4d5a-87e0-7e8385e8cfcf) and start prompting.
+## Installation
 
-Changes made via Lovable will be committed automatically to this repo.
+```bash
+# Dependencies installieren
+npm install
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Development Server starten
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Deployment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Production Build erstellen
+npm run build
 
-**Use GitHub Codespaces**
+# Build lokal testen
+npm run preview
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Umgebungsvariablen
 
-## What technologies are used for this project?
+Erstelle eine `.env` Datei mit folgenden Variablen:
 
-This project is built with:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Lizenz
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/422a2411-73a0-4d5a-87e0-7e8385e8cfcf) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Proprietär - Alle Rechte vorbehalten.
