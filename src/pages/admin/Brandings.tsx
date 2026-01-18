@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Package, Mail } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Mail, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { BrandingDialog } from "@/components/admin/BrandingDialog";
@@ -85,6 +85,11 @@ export default function Brandings() {
     setEditingBranding(null);
     // Refresh list after closing the dialog (create/update)
     fetchBrandings();
+  };
+
+  const handleCopyId = async (id: string) => {
+    await navigator.clipboard.writeText(id);
+    toast.success('Branding-ID kopiert');
   };
 
   const getTypeLabel = (type: string) => {
@@ -197,6 +202,18 @@ export default function Brandings() {
                     <span className="truncate">{branding.branding_resend_configs.from_email}</span>
                   </div>
                 )}
+                
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-mono text-xs truncate flex-1">{branding.id}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 shrink-0"
+                    onClick={() => handleCopyId(branding.id)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
                 
                 <div className="flex items-center gap-2">
                   <Button
