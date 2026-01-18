@@ -30,6 +30,7 @@ interface TelegramConfig {
   notify_task_approved: boolean;
   notify_task_rejected: boolean;
   notify_task_started: boolean;
+  notify_new_lead: boolean;
 }
 
 export default function Telegram() {
@@ -58,6 +59,7 @@ export default function Telegram() {
   const [notifyTaskApproved, setNotifyTaskApproved] = useState(true);
   const [notifyTaskRejected, setNotifyTaskRejected] = useState(true);
   const [notifyTaskStarted, setNotifyTaskStarted] = useState(true);
+  const [notifyNewLead, setNotifyNewLead] = useState(true);
   useEffect(() => {
     fetchConfig();
   }, []);
@@ -95,6 +97,7 @@ export default function Telegram() {
         setNotifyTaskApproved(data.notify_task_approved ?? true);
         setNotifyTaskRejected(data.notify_task_rejected ?? true);
         setNotifyTaskStarted(data.notify_task_started ?? true);
+        setNotifyNewLead(data.notify_new_lead ?? true);
       }
     } catch (error) {
       console.error('Error fetching telegram config:', error);
@@ -127,6 +130,7 @@ export default function Telegram() {
         notify_task_approved: notifyTaskApproved,
         notify_task_rejected: notifyTaskRejected,
         notify_task_started: notifyTaskStarted,
+        notify_new_lead: notifyNewLead,
       };
 
       if (config?.id) {
@@ -308,6 +312,19 @@ export default function Telegram() {
             <Separator />
 
             <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifyNewLead">📋 Neue Leads</Label>
+                  <p className="text-xs text-muted-foreground">Bei neuen Leads von Landingpages</p>
+                </div>
+                <Switch
+                  id="notifyNewLead"
+                  checked={notifyNewLead}
+                  onCheckedChange={setNotifyNewLead}
+                  disabled={!enabled}
+                />
+              </div>
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="notifyNewUser">🆕 Neue Registrierungen</Label>
