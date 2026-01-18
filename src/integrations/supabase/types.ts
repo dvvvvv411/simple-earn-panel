@@ -581,6 +581,41 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          branding_id: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+        }
+        Insert: {
+          branding_id?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone: string
+        }
+        Update: {
+          branding_id?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_branding_id_fkey"
+            columns: ["branding_id"]
+            isOneToOne: false
+            referencedRelation: "brandings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -949,6 +984,7 @@ export type Database = {
           notify_deposit_created: boolean
           notify_deposit_paid: boolean
           notify_kyc_submitted: boolean | null
+          notify_new_lead: boolean
           notify_new_user: boolean
           notify_support_ticket: boolean
           notify_task_approved: boolean | null
@@ -973,6 +1009,7 @@ export type Database = {
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
           notify_kyc_submitted?: boolean | null
+          notify_new_lead?: boolean
           notify_new_user?: boolean
           notify_support_ticket?: boolean
           notify_task_approved?: boolean | null
@@ -997,6 +1034,7 @@ export type Database = {
           notify_deposit_created?: boolean
           notify_deposit_paid?: boolean
           notify_kyc_submitted?: boolean | null
+          notify_new_lead?: boolean
           notify_new_user?: boolean
           notify_support_ticket?: boolean
           notify_task_approved?: boolean | null

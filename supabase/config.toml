@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.delete-users-bulk]
 verify_jwt = false
+
+[functions.submit-lead]
+verify_jwt = false

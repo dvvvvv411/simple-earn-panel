@@ -15,6 +15,7 @@ import Withdrawals from "./pages/admin/Withdrawals";
 import Deposits from "./pages/admin/Deposits";
 import EmailTemplates from "./pages/admin/EmailTemplates";
 import TelegramSettings from "./pages/admin/Telegram";
+import Leads from "./pages/admin/Leads";
 import KYCManagement from "./pages/admin/KYC";
 import EurDeposits from "./pages/admin/EurDeposits";
 import Credits from "./pages/admin/Credits";
@@ -59,6 +60,7 @@ const App: React.FC = () => {
             <Route path="email-vorlagen" element={<EmailTemplates />} />
             <Route path="support" element={<AdminSupportPage />} />
             <Route path="telegram" element={<TelegramSettings />} />
+            <Route path="leads" element={<Leads />} />
           </Route>
           <Route path="/kryptotrading" element={<TradingLayout />}>
             <Route index element={<TradingDashboard />} />
