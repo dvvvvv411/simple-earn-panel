@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
     const domain = branding.domain || "example.com";
     const authUrl = `https://${domain}/auth`;
 
-    // Generate email HTML
+    // Generate email HTML (light theme)
     const emailHtml = `
 <!DOCTYPE html>
 <html lang="de">
@@ -104,27 +104,27 @@ const handler = async (req: Request): Promise<Response> => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ihr Zugang wurde freigeschaltet</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0f0f0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0f0f0f;">
+<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f5f7;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #1a1a1a; border-radius: 16px; overflow: hidden; border: 1px solid #2a2a2a;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
           
           <!-- Header with Logo -->
           <tr>
-            <td align="center" style="padding: 40px 40px 30px 40px; background: linear-gradient(135deg, ${accentColor}15 0%, transparent 50%);">
+            <td align="center" style="padding: 40px 40px 30px 40px; background-color: #ffffff; border-bottom: 1px solid #e5e7eb;">
               ${logoBase64 ? `
-              <img src="cid:logo" alt="${branding.name}" style="max-width: 180px; max-height: 60px; margin-bottom: 20px;" />
+              <img src="cid:logo" alt="${branding.name}" style="max-width: 180px; max-height: 60px;" />
               ` : `
-              <h1 style="color: #ffffff; font-size: 24px; margin: 0 0 20px 0;">${branding.name}</h1>
+              <h1 style="color: #1f2937; font-size: 24px; margin: 0;">${branding.name}</h1>
               `}
             </td>
           </tr>
 
           <!-- Success Icon -->
           <tr>
-            <td align="center" style="padding: 0 40px;">
-              <div style="width: 80px; height: 80px; background: linear-gradient(135deg, ${accentColor}, ${accentColor}cc); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+            <td align="center" style="padding: 40px 40px 0 40px;">
+              <div style="width: 80px; height: 80px; background-color: #ecfdf5; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
                 <span style="font-size: 40px;">🔓</span>
               </div>
             </td>
@@ -133,19 +133,19 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Main Content -->
           <tr>
             <td style="padding: 30px 40px;">
-              <h2 style="color: #ffffff; font-size: 24px; margin: 0 0 10px 0; text-align: center;">
+              <h2 style="color: #1f2937; font-size: 24px; margin: 0 0 10px 0; text-align: center;">
                 Ihr Zugang wurde freigeschaltet!
               </h2>
-              <p style="color: #888888; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0; text-align: center;">
+              <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0; text-align: center;">
                 Herzlichen Glückwunsch, ${firstName}!
               </p>
               
-              <div style="background-color: #0f0f0f; border-radius: 12px; padding: 25px; margin-bottom: 25px; border: 1px solid #2a2a2a;">
-                <p style="color: #cccccc; font-size: 15px; line-height: 1.7; margin: 0;">
+              <div style="background-color: #f0f9ff; border-radius: 12px; padding: 25px; margin-bottom: 25px; border: 1px solid #bae6fd;">
+                <p style="color: #4b5563; font-size: 15px; line-height: 1.7; margin: 0;">
                   Wir freuen uns, Ihnen mitteilen zu können, dass Ihr Zugang zur <strong style="color: ${accentColor};">${branding.name}</strong> Plattform erfolgreich freigeschaltet wurde.
                 </p>
-                <p style="color: #cccccc; font-size: 15px; line-height: 1.7; margin: 20px 0 0 0;">
-                  Sie können sich nun <strong style="color: #ffffff;">eigenständig registrieren</strong> und sofort mit dem Trading beginnen.
+                <p style="color: #4b5563; font-size: 15px; line-height: 1.7; margin: 20px 0 0 0;">
+                  Sie können sich nun <strong style="color: #1f2937;">eigenständig registrieren</strong> und sofort mit dem Trading beginnen.
                 </p>
               </div>
 
@@ -162,9 +162,9 @@ const handler = async (req: Request): Promise<Response> => {
               </table>
 
               <!-- Info Box -->
-              <div style="background-color: ${accentColor}10; border-radius: 12px; padding: 20px; border-left: 4px solid ${accentColor};">
-                <p style="color: #cccccc; font-size: 14px; line-height: 1.6; margin: 0;">
-                  <strong style="color: #ffffff;">💡 Tipp:</strong> Halten Sie Ihre Zugangsdaten sicher und teilen Sie diese nicht mit anderen Personen.
+              <div style="background-color: #fffbeb; border-radius: 12px; padding: 20px; border-left: 4px solid #f59e0b;">
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0;">
+                  <strong style="color: #1f2937;">💡 Tipp:</strong> Halten Sie Ihre Zugangsdaten sicher und teilen Sie diese nicht mit anderen Personen.
                 </p>
               </div>
             </td>
@@ -172,8 +172,8 @@ const handler = async (req: Request): Promise<Response> => {
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 30px 40px; background-color: #0f0f0f; border-top: 1px solid #2a2a2a;">
-              <p style="color: #666666; font-size: 13px; line-height: 1.6; margin: 0; text-align: center;">
+            <td style="padding: 30px 40px; background-color: #f3f4f6; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 13px; line-height: 1.6; margin: 0; text-align: center;">
                 Bei Fragen stehen wir Ihnen gerne zur Verfügung.<br>
                 <span style="color: ${accentColor};">${branding.name}</span>
               </p>
