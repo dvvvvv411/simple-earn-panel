@@ -1653,7 +1653,7 @@ export default function EmailTemplates() {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="center" style="padding: 10px 0 25px 0;">
-                    <a href="https://${domain}/auth" 
+                    <a href="https://web.${domain}/auth" 
                        style="display: inline-block; background: linear-gradient(135deg, ${accentColor}, ${accentColor}dd); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px ${accentColor}40;">
                       Jetzt registrieren
                     </a>
