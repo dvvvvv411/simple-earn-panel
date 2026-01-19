@@ -589,6 +589,8 @@ export type Database = {
           full_name: string
           id: string
           phone: string
+          status: string
+          status_updated_at: string | null
         }
         Insert: {
           branding_id?: string | null
@@ -597,6 +599,8 @@ export type Database = {
           full_name: string
           id?: string
           phone: string
+          status?: string
+          status_updated_at?: string | null
         }
         Update: {
           branding_id?: string | null
@@ -605,6 +609,8 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string
+          status?: string
+          status_updated_at?: string | null
         }
         Relationships: [
           {

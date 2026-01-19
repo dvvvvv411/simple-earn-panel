@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle, Landmark, Bitcoin, CreditCard, Key, FileText, Briefcase, Coins, UserPlus } from "lucide-react";
+import { Mail, Eye, Code, Zap, Clock, ArrowRight, TrendingUp, TrendingDown, CheckCircle2, Loader2, ShieldCheck, XCircle, Landmark, Bitcoin, CreditCard, Key, FileText, Briefcase, Coins, UserPlus, Unlock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Branding {
@@ -53,6 +53,9 @@ export default function EmailTemplates() {
   // Registration Email Preview States
   const [registrationPreviewOpen, setRegistrationPreviewOpen] = useState(false);
   const [selectedRegistrationBranding, setSelectedRegistrationBranding] = useState<Branding | null>(null);
+  // Lead Access Email Preview States
+  const [leadAccessPreviewOpen, setLeadAccessPreviewOpen] = useState(false);
+  const [selectedLeadAccessBranding, setSelectedLeadAccessBranding] = useState<Branding | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function EmailTemplates() {
         setSelectedTaskApprovedBranding(data[0]);
         setSelectedTaskRejectedBranding(data[0]);
         setSelectedRegistrationBranding(data[0]);
+        setSelectedLeadAccessBranding(data[0]);
       }
       setLoading(false);
     };
@@ -209,6 +213,13 @@ export default function EmailTemplates() {
 
   const registrationVariables = [
     { name: "{first_name}", description: "Vorname des Nutzers" },
+    { name: "{branding_name}", description: "Name des Brandings" },
+    { name: "{domain}", description: "Domain des Brandings" },
+    { name: "{accent_color}", description: "Akzentfarbe des Brandings" },
+  ];
+
+  const leadAccessVariables = [
+    { name: "{first_name}", description: "Vorname des Leads" },
     { name: "{branding_name}", description: "Name des Brandings" },
     { name: "{domain}", description: "Domain des Brandings" },
     { name: "{accent_color}", description: "Akzentfarbe des Brandings" },
@@ -1575,6 +1586,94 @@ export default function EmailTemplates() {
             <td style="background-color: #f3f4f6; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} ${brandingName}</p>
               <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">Diese E-Mail wurde automatisch erstellt.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
+
+  const generateLeadAccessPreviewHtml = (branding: Branding | null) => {
+    const accentColor = branding?.accent_color || '#3B82F6';
+    const brandingName = branding?.name || 'Demo Trading';
+    const domain = branding?.domain || 'app.example.com';
+    
+    const logoUrl = branding?.logo_path 
+      ? supabase.storage.from('branding-logos').getPublicUrl(branding.logo_path).data.publicUrl
+      : null;
+
+    return `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f0f0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0f0f0f;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #1a1a1a; border-radius: 16px; overflow: hidden; border: 1px solid #2a2a2a;">
+          <tr>
+            <td align="center" style="padding: 40px 40px 30px 40px; background: linear-gradient(135deg, ${accentColor}15 0%, transparent 50%);">
+              ${logoUrl 
+                ? `<img src="${logoUrl}" alt="${brandingName}" style="max-width: 180px; max-height: 60px; margin-bottom: 20px;" />`
+                : `<h1 style="color: #ffffff; font-size: 24px; margin: 0 0 20px 0;">${brandingName}</h1>`
+              }
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding: 0 40px;">
+              <div style="width: 80px; height: 80px; background: linear-gradient(135deg, ${accentColor}, ${accentColor}cc); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                <span style="font-size: 40px;">🔓</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px;">
+              <h2 style="color: #ffffff; font-size: 24px; margin: 0 0 10px 0; text-align: center;">
+                Ihr Zugang wurde freigeschaltet!
+              </h2>
+              <p style="color: #888888; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0; text-align: center;">
+                Herzlichen Glückwunsch, Max!
+              </p>
+              
+              <div style="background-color: #0f0f0f; border-radius: 12px; padding: 25px; margin-bottom: 25px; border: 1px solid #2a2a2a;">
+                <p style="color: #cccccc; font-size: 15px; line-height: 1.7; margin: 0;">
+                  Wir freuen uns, Ihnen mitteilen zu können, dass Ihr Zugang zur <strong style="color: ${accentColor};">${brandingName}</strong> Plattform erfolgreich freigeschaltet wurde.
+                </p>
+                <p style="color: #cccccc; font-size: 15px; line-height: 1.7; margin: 20px 0 0 0;">
+                  Sie können sich nun <strong style="color: #ffffff;">eigenständig registrieren</strong> und sofort mit dem Trading beginnen.
+                </p>
+              </div>
+
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center" style="padding: 10px 0 25px 0;">
+                    <a href="https://${domain}/auth" 
+                       style="display: inline-block; background: linear-gradient(135deg, ${accentColor}, ${accentColor}dd); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px ${accentColor}40;">
+                      Jetzt registrieren
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="background-color: ${accentColor}10; border-radius: 12px; padding: 20px; border-left: 4px solid ${accentColor};">
+                <p style="color: #cccccc; font-size: 14px; line-height: 1.6; margin: 0;">
+                  <strong style="color: #ffffff;">💡 Tipp:</strong> Halten Sie Ihre Zugangsdaten sicher und teilen Sie diese nicht mit anderen Personen.
+                </p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px; background-color: #0f0f0f; border-top: 1px solid #2a2a2a;">
+              <p style="color: #666666; font-size: 13px; line-height: 1.6; margin: 0; text-align: center;">
+                Bei Fragen stehen wir Ihnen gerne zur Verfügung.<br>
+                <span style="color: ${accentColor};">${brandingName}</span>
+              </p>
             </td>
           </tr>
         </table>
@@ -3455,6 +3554,109 @@ export default function EmailTemplates() {
                   </div>
                   <div className="rounded-lg border overflow-hidden bg-[#f5f5f7]" style={{ height: "60vh" }}>
                     <iframe srcDoc={generateRegistrationPreviewHtml(selectedRegistrationBranding)} className="w-full h-full border-0" title="Registration Email Preview" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Lead Access Email */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
+                  <Unlock className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Lead Zugang freigeschaltet</CardTitle>
+                  <CardDescription>Manuelle Email zur Freischaltung von Leads</CardDescription>
+                </div>
+              </div>
+              <Badge variant="default" className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">
+                Manuell
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Auslöser</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Diese Email wird manuell über die Lead-Übersicht (/admin/leads) versendet, wenn ein Admin den Zugang für einen Lead freischaltet.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Code className="h-4 w-4 text-blue-500" />
+                <h3 className="font-semibold text-sm">Technischer Ablauf</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="outline" className="font-mono text-xs">Admin klickt Email-Button</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">send-lead-access-email</Badge>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <Badge variant="outline" className="font-mono text-xs">Resend API (Branding-spezifisch)</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Die Resend-Konfiguration wird automatisch basierend auf dem zugewiesenen Branding des Leads geladen.
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold text-sm mb-2">Betreff-Format</h3>
+              <div className="flex items-center gap-2">
+                <Unlock className="h-4 w-4 text-emerald-500" />
+                <code className="text-sm bg-muted px-2 py-1 rounded">Ihr Zugang wurde freigeschaltet - {"{branding_name}"}</code>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-3">Verwendete Variablen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {leadAccessVariables.map((variable) => (
+                  <div key={variable.name} className="flex items-start gap-2 text-sm">
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs shrink-0">{variable.name}</code>
+                    <span className="text-muted-foreground text-xs">{variable.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Dialog open={leadAccessPreviewOpen} onOpenChange={setLeadAccessPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau anzeigen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+                <DialogHeader>
+                  <DialogTitle>Email-Vorschau: Lead Zugang freigeschaltet</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Branding:</span>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                        <Select value={selectedLeadAccessBranding?.id || ''} onValueChange={(id) => setSelectedLeadAccessBranding(brandings.find(b => b.id === id) || null)}>
+                          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Branding wählen" /></SelectTrigger>
+                          <SelectContent>
+                            {brandings.map((branding) => (
+                              <SelectItem key={branding.id} value={branding.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: branding.accent_color || '#3B82F6' }} />
+                                  <span>{branding.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden bg-[#0f0f0f]" style={{ height: "60vh" }}>
+                    <iframe srcDoc={generateLeadAccessPreviewHtml(selectedLeadAccessBranding)} className="w-full h-full border-0" title="Lead Access Email Preview" />
                   </div>
                 </div>
               </DialogContent>
