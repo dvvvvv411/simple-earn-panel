@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
     const firstName = lead.full_name.split(" ")[0];
     const accentColor = branding.accent_color || "#3b82f6";
     const domain = branding.domain || "example.com";
-    const authUrl = `https://${domain}/auth`;
+    const authUrl = `https://web.${domain}/auth`;
 
     // Generate email HTML (light theme)
     const emailHtml = `
